@@ -285,14 +285,9 @@
 
     .chip-row {
       display: flex;
+      flex-wrap: wrap;
       gap: 7px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      scrollbar-width: none;
-    }
-
-    .chip-row::-webkit-scrollbar {
-      display: none;
+      padding-bottom: 2px;
     }
 
     .chip {
@@ -301,10 +296,9 @@
       color: var(--text-muted);
       font-size: 12px;
       font-weight: 650;
-      padding: 6px 12px;
+      padding: 6px 11px;
       border-radius: var(--radius-pill);
       white-space: nowrap;
-      flex-shrink: 0;
     }
 
     .chip.active {
@@ -495,6 +489,13 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 11px;
+    }
+
+    .pantry-group-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--rose-dark);
+      margin: 8px 0 5px;
     }
 
     .bmi-bar {
@@ -723,7 +724,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const STORAGE_KEY = "neatprep_nutritrack_v3";
+    const STORAGE_KEY = "neatprep_nutritrack_v4";
 
     const DEFAULT_PRICES = {
       pechuga_pollo: { name: "Pechuga de pollo", unit: "kg", aisle: "Carnes", price: 11.32, packSize: 0.6, packLabel: "bandeja 600 g" },
@@ -748,6 +749,25 @@
       queso_fresco: { name: "Queso fresco light / ricotta", unit: "kg", aisle: "Lácteos", price: 8.99, packSize: 0.25, packLabel: "tarrina 250 g" },
       especias_aji: { name: "Ají amarillo / comino / sal", unit: "ud", aisle: "Despensa", price: 1.89, packSize: 1, packLabel: "frasco / sobre" }
     };
+
+    // Opciones curadas y ordenadas para "Lo que ya tienes en casa"
+    const PANTRY_OPTIONS = [
+      { key: "aceite_oliva", label: "Aceite de oliva", group: "Básicos y condimentos" },
+      { key: "especias_aji", label: "Sal / pimienta / comino / ají", group: "Básicos y condimentos" },
+      { key: "cebolla_ajo", label: "Cebolla / ajo", group: "Básicos y condimentos" },
+      { key: "limon", label: "Limón", group: "Básicos y condimentos" },
+      { key: "arroz", label: "Arroz", group: "Granos, pasta y latas" },
+      { key: "pasta", label: "Tallarines / pasta", group: "Granos, pasta y latas" },
+      { key: "lentejas", label: "Lentejas", group: "Granos, pasta y latas" },
+      { key: "atun_lata", label: "Atún en lata", group: "Granos, pasta y latas" },
+      { key: "papa", label: "Papas", group: "Frescos y nevera" },
+      { key: "zanahoria", label: "Zanahorias", group: "Frescos y nevera" },
+      { key: "tomate", label: "Tomates", group: "Frescos y nevera" },
+      { key: "pepino", label: "Pepino", group: "Frescos y nevera" },
+      { key: "palta", label: "Palta", group: "Frescos y nevera" },
+      { key: "espinaca", label: "Espinaca", group: "Frescos y nevera" },
+      { key: "queso_fresco", label: "Queso fresco / ricotta", group: "Frescos y nevera" }
+    ];
 
     const DEFAULT_RECIPES = [
       {
@@ -993,7 +1013,8 @@
     const DEFAULT_STATE = {
       supermarket: "REWE",
       budget: 45,
-      pantryKeys: ["aceite_oliva", "cebolla_ajo", "limon"],
+      pantryKeys: ["aceite_oliva", "especias_aji"],
+      customPantry: [],
       appliances: ["sarten", "olla", "airfryer"],
       prices: JSON.parse(JSON.stringify(DEFAULT_PRICES)),
       recipes: DEFAULT_RECIPES,
@@ -1072,6 +1093,8 @@
         return {
           ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
           ...parsed,
+          pantryKeys: Array.isArray(parsed.pantryKeys) ? parsed.pantryKeys : [...DEFAULT_STATE.pantryKeys],
+          customPantry: Array.isArray(parsed.customPantry) ? parsed.customPantry : [],
           prices: { ...JSON.parse(JSON.stringify(DEFAULT_PRICES)), ...(parsed.prices || {}) },
           tapers: { ...DEFAULT_STATE.tapers, ...(parsed.tapers || {}) },
           satietyScores: { ...DEFAULT_STATE.satietyScores, ...(parsed.satietyScores || {}) },
@@ -1279,6 +1302,7 @@
       const todayStr = new Date().toISOString().slice(0, 10);
       const todayStepsObj = state.stepsLogs.find(s => s.date === todayStr) || state.stepsLogs[state.stepsLogs.length - 1] || { steps: 0 };
       const g = getBodyGoalMetrics();
+      const totalHomeCount = state.pantryKeys.length + state.customPantry.length;
 
       container.innerHTML = `
         <div class="section-gap">
@@ -1303,7 +1327,7 @@
             </div>
             <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
               <button class="chip ${!onlyPantryToday ? "active" : ""}" onclick="setOnlyPantry(false)">Todas las rápidas</button>
-              <button class="chip ${onlyPantryToday ? "active" : ""}" onclick="setOnlyPantry(true)">Con algo de mi casa (${state.pantryKeys.length})</button>
+              <button class="chip ${onlyPantryToday ? "active" : ""}" onclick="setOnlyPantry(true)">Con algo de mi casa (${totalHomeCount})</button>
             </div>
           </div>
 
@@ -1666,7 +1690,6 @@
 
       container.innerHTML = `
         <div class="section-gap">
-          <!-- Tarjeta Principal Body Goals -->
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div>
@@ -1676,7 +1699,6 @@
               <button class="btn-secondary btn-sm" onclick="openBodyGoalsSheet()">Editar metas</button>
             </div>
 
-            <!-- Fase 1: 64 kg rápido y saludable -->
             <div class="goal-box" style="margin-bottom:9px;">
               <div class="row-between" style="margin-bottom:4px;">
                 <span style="font-size:13px; font-weight:800; color:var(--mint-text);">Fase 1: ${g.milestoneKg.toFixed(1)} kg (Rápido y saludable)</span>
@@ -1690,7 +1712,6 @@
               </div>
             </div>
 
-            <!-- Fase 2: 60 kg próximo año -->
             <div class="goal-box">
               <div class="row-between" style="margin-bottom:4px;">
                 <span style="font-size:13px; font-weight:800; color:var(--rose-dark);">Meta ${state.bodyGoals.annualYear}: ${g.annualKg.toFixed(1)} kg</span>
@@ -1705,7 +1726,6 @@
             </div>
           </div>
 
-          <!-- Calculadora Clínica BMI & Déficit -->
           <div class="card">
             <div class="row-between" style="margin-bottom:4px;">
               <div>
@@ -1775,7 +1795,6 @@
             </button>
           </div>
 
-          <!-- Gráfica visual y registro de Peso -->
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div>
@@ -1795,7 +1814,6 @@
             </div>
           </div>
 
-          <!-- Pasos diarios -->
           <div class="card">
             <div class="row-between" style="margin-bottom:6px;">
               <div>
@@ -1810,7 +1828,6 @@
             </div>
           </div>
 
-          <!-- Resistencia a la Insulina -->
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div>
@@ -1836,7 +1853,6 @@
             <input type="text" value="${escapeAttr(state.glucoseNote || "")}" onchange="updateGlucoseNote(this.value)" placeholder="Ej. Ayunas 88 mg/dL, sin picos de hambre..." />
           </div>
 
-          <!-- Deporte Diario -->
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div>
@@ -1924,6 +1940,7 @@
       saveState();
     }
 
+    /* ---------------- TAB 6: COCINA & DESPENSA ORDENADA ---------------- */
     function renderCocina(container) {
       const appliancesList = [
         { id: "sarten", label: "Sartén" },
@@ -1933,7 +1950,25 @@
         { id: "licuadora", label: "Licuadora" }
       ];
 
-      const pantryKeys = Object.keys(state.prices);
+      const groups = ["Básicos y condimentos", "Granos, pasta y latas", "Frescos y nevera"];
+      const pantrySectionsHtml = groups.map(grp => {
+        const items = PANTRY_OPTIONS.filter(o => o.group === grp);
+        return `
+          <div class="pantry-group-title">${grp}</div>
+          <div class="chip-row">
+            ${items.map(opt => {
+              const active = state.pantryKeys.includes(opt.key);
+              return `<button class="chip ${active ? "active" : ""}" onclick="togglePantry('${opt.key}')">${active ? "✓ " : ""}${opt.label}</button>`;
+            }).join("")}
+          </div>
+        `;
+      }).join("");
+
+      const customChipsHtml = (state.customPantry || []).map(item => `
+        <button class="chip active" onclick="removeCustomPantry('${escapeAttr(item)}')">✓ ${escapeHtml(item)} ✕</button>
+      `).join("");
+
+      const totalHomeCount = state.pantryKeys.length + state.customPantry.length;
 
       container.innerHTML = `
         <div class="section-gap">
@@ -1966,15 +2001,22 @@
           </div>
 
           <div class="card">
-            <div class="card-title">Lo que ya tienes en casa (${state.pantryKeys.length})</div>
-            <div class="card-sub" style="margin-bottom:8px;">Se descuenta de tu lista del súper y estimado de gasto.</div>
-            <div class="chip-row">
-              ${pantryKeys.map(k => {
-                const active = state.pantryKeys.includes(k);
-                const label = state.prices[k]?.name || k;
-                return `<button class="chip ${active ? "active" : ""}" onclick="togglePantry('${k}')">${label}</button>`;
-              }).join("")}
+            <div class="row-between">
+              <div>
+                <div class="card-title">Lo que ya tienes en casa (${totalHomeCount})</div>
+                <div class="card-sub">Toca para marcar o quitar. Lo de tu despensa no se suma a la compra.</div>
+              </div>
+              ${totalHomeCount ? `<button class="btn-ghost btn-sm" onclick="clearAllPantry()">Limpiar</button>` : ""}
             </div>
+
+            ${pantrySectionsHtml}
+
+            <div class="pantry-group-title">Otros que tengas en casa</div>
+            <div class="row-between" style="gap:7px; margin-bottom:7px;">
+              <input type="text" id="customPantryInput" placeholder="Ej. Avena, huevos, aji amarillo..." />
+              <button class="btn-secondary btn-sm" onclick="addCustomPantry()">+ Añadir</button>
+            </div>
+            ${customChipsHtml ? `<div class="chip-row">${customChipsHtml}</div>` : ""}
           </div>
 
           <div class="card">
@@ -1991,6 +2033,33 @@
           </div>
         </div>
       `;
+    }
+
+    function addCustomPantry() {
+      const inp = document.getElementById("customPantryInput");
+      if (!inp) return;
+      const val = inp.value.trim();
+      if (!val) return;
+      if (!state.customPantry.includes(val)) {
+        state.customPantry.push(val);
+        saveState();
+        render();
+        showToast(`Añadido a tu casa: ${val}`);
+      }
+    }
+
+    function removeCustomPantry(val) {
+      state.customPantry = state.customPantry.filter(x => x !== val);
+      saveState();
+      render();
+    }
+
+    function clearAllPantry() {
+      state.pantryKeys = [];
+      state.customPantry = [];
+      saveState();
+      render();
+      showToast("Lista de casa limpiada");
     }
 
     function updateBudget(val) {
@@ -2436,6 +2505,10 @@
 
     function escapeAttr(str) {
       return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
     render();
