@@ -483,6 +483,20 @@
       transition: width 0.25s ease;
     }
 
+    .progress-fill-mint {
+      height: 100%;
+      background: linear-gradient(90deg, #43B88C, #1E6B4E);
+      border-radius: var(--radius-pill);
+      transition: width 0.25s ease;
+    }
+
+    .goal-box {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 11px;
+    }
+
     .bmi-bar {
       position: relative;
       height: 10px;
@@ -709,7 +723,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const STORAGE_KEY = "neatprep_nutritrack_v2";
+    const STORAGE_KEY = "neatprep_nutritrack_v3";
 
     const DEFAULT_PRICES = {
       pechuga_pollo: { name: "Pechuga de pollo", unit: "kg", aisle: "Carnes", price: 11.32, packSize: 0.6, packLabel: "bandeja 600 g" },
@@ -1006,21 +1020,26 @@
       },
       checkedShopping: {},
       targets: {
-        kcal: 1650,
+        kcal: 1640,
         protein: 130,
-        carbsMax: 140
+        carbsMax: 135
       },
       bodyProfile: {
-        heightCm: 165,
-        age: 22,
+        heightCm: 158,
+        age: 21,
         sex: "F",
         activity: 1.55,
-        deficit: 400
+        deficit: 550
+      },
+      bodyGoals: {
+        startWeight: 69.0,
+        milestoneKg: 64.0,
+        milestoneLabel: "Meta rápida y saludable (-5 kg)",
+        annualKg: 60.0,
+        annualYear: "2027"
       },
       weightLogs: [
-        { id: "w1", date: "2026-11-01", weight: 67.4 },
-        { id: "w2", date: "2026-11-10", weight: 66.8 },
-        { id: "w3", date: "2026-11-20", weight: 66.1 }
+        { id: "w1", date: "2026-11-23", weight: 69.0 }
       ],
       stepsGoal: 9000,
       stepsLogs: [
@@ -1058,7 +1077,8 @@
           satietyScores: { ...DEFAULT_STATE.satietyScores, ...(parsed.satietyScores || {}) },
           dayExtras: { ...DEFAULT_STATE.dayExtras, ...(parsed.dayExtras || {}) },
           targets: { ...DEFAULT_STATE.targets, ...(parsed.targets || {}) },
-          bodyProfile: { ...DEFAULT_STATE.bodyProfile, ...(parsed.bodyProfile || {}) }
+          bodyProfile: { ...DEFAULT_STATE.bodyProfile, ...(parsed.bodyProfile || {}) },
+          bodyGoals: { ...DEFAULT_STATE.bodyGoals, ...(parsed.bodyGoals || {}) }
         };
       } catch (e) {
         return JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -1141,6 +1161,44 @@
       return getShoppingList().reduce((sum, item) => sum + item.cost, 0);
     }
 
+    function getBodyGoalMetrics() {
+      const latestW = state.weightLogs[state.weightLogs.length - 1] || { weight: 69.0 };
+      const currentKg = Number(latestW.weight) || 69.0;
+      const startKg = Math.max(currentKg, Number(state.bodyGoals.startWeight) || 69.0);
+      const milestoneKg = Number(state.bodyGoals.milestoneKg) || 64.0;
+      const annualKg = Number(state.bodyGoals.annualKg) || 60.0;
+
+      const totalToMilestone = Math.max(0.1, startKg - milestoneKg);
+      const lostSoFar = Math.max(0, startKg - currentKg);
+      const milestonePct = Math.max(0, Math.min(100, Math.round((lostSoFar / totalToMilestone) * 100)));
+      const remMilestone = Math.max(0, currentKg - milestoneKg);
+
+      const totalToAnnual = Math.max(0.1, startKg - annualKg);
+      const annualPct = Math.max(0, Math.min(100, Math.round((lostSoFar / totalToAnnual) * 100)));
+      const remAnnual = Math.max(0, currentKg - annualKg);
+
+      const deficit = Math.max(300, Number(state.bodyProfile.deficit) || 550);
+      const weeklyLossKg = (deficit * 7) / 7700;
+      const weeksTo64 = remMilestone > 0 ? Math.ceil(remMilestone / weeklyLossKg) : 0;
+      const etaDate = new Date();
+      etaDate.setDate(etaDate.getDate() + weeksTo64 * 7);
+      const etaStr = etaDate.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
+
+      return {
+        currentKg,
+        startKg,
+        milestoneKg,
+        annualKg,
+        milestonePct,
+        remMilestone,
+        annualPct,
+        remAnnual,
+        weeklyLossKg,
+        weeksTo64,
+        etaStr
+      };
+    }
+
     function updateHeader() {
       const spent = getTotalShoppingCost();
       const pill = document.getElementById("headerBudgetPill");
@@ -1220,9 +1278,21 @@
       const medsDone = state.meds.filter(m => m.checked).length;
       const todayStr = new Date().toISOString().slice(0, 10);
       const todayStepsObj = state.stepsLogs.find(s => s.date === todayStr) || state.stepsLogs[state.stepsLogs.length - 1] || { steps: 0 };
+      const g = getBodyGoalMetrics();
 
       container.innerHTML = `
         <div class="section-gap">
+          <div class="card">
+            <div class="row-between" style="margin-bottom:6px;">
+              <div>
+                <div style="font-size:13.5px; font-weight:800; color:var(--rose-dark);">Body Goals · ${g.currentKg.toFixed(1)} kg → ${g.milestoneKg} kg / ${g.annualKg} kg</div>
+                <div class="card-sub">Fase 1: <strong>${g.milestoneKg} kg</strong> (${g.weeksTo64 > 0 ? `~${g.weeksTo64} sem` : "¡Logrado!"}) · Meta ${state.bodyGoals.annualYear}: <strong>${g.annualKg} kg</strong></div>
+              </div>
+              <button class="btn-secondary btn-sm" onclick="switchTab('progreso')">Ver metas</button>
+            </div>
+            <div class="progress-track"><div class="progress-fill" style="width:${g.annualPct}%;"></div></div>
+          </div>
+
           <div class="card-soft">
             <div class="row-between">
               <div>
@@ -1547,15 +1617,19 @@
     }
 
     function renderProgreso(container) {
-      const latestW = state.weightLogs[state.weightLogs.length - 1] || { weight: 66.1, date: "Hoy" };
+      const g = getBodyGoalMetrics();
+      const latestW = state.weightLogs[state.weightLogs.length - 1] || { weight: 69.0, date: "Hoy" };
       const firstW = state.weightLogs[0] || latestW;
       const diffW = (Number(latestW.weight) - Number(firstW.weight)).toFixed(1);
 
-      const heightCm = Math.max(120, Math.min(220, Number(state.bodyProfile.heightCm) || 165));
+      const heightCm = Math.max(120, Math.min(220, Number(state.bodyProfile.heightCm) || 158));
       const heightM = heightCm / 100;
-      const weightKg = Math.max(30, Number(latestW.weight) || 66.1);
+      const weightKg = Math.max(30, Number(latestW.weight) || 69.0);
 
       const bmi = weightKg / (heightM * heightM);
+      const bmiAt64 = g.milestoneKg / (heightM * heightM);
+      const bmiAt60 = g.annualKg / (heightM * heightM);
+
       let bmiCategory = "Normopeso";
       let bmiColor = "var(--mint-text)";
       if (bmi < 18.5) {
@@ -1573,17 +1647,17 @@
       const healthyMinKg = (18.5 * heightM * heightM).toFixed(1);
       const healthyMaxKg = (24.9 * heightM * heightM).toFixed(1);
 
-      const age = Math.max(15, Number(state.bodyProfile.age) || 22);
+      const age = Math.max(15, Number(state.bodyProfile.age) || 21);
       const bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * age - 161);
       const activity = Number(state.bodyProfile.activity) || 1.55;
       const tdee = Math.round(bmr * activity);
-      const deficitVal = Number(state.bodyProfile.deficit) || 400;
-      const targetKcal = Math.max(1200, tdee - deficitVal);
+      const deficitVal = Number(state.bodyProfile.deficit) || 550;
+      const targetKcal = Math.max(1250, tdee - deficitVal);
       const suggestedProt = Math.round(weightKg * 1.9);
 
       const todayStr = new Date().toISOString().slice(0, 10);
       const trainedToday = state.workouts.some(w => w.date === todayStr);
-      const carbTargetToday = trainedToday ? 145 : 120;
+      const carbTargetToday = trainedToday ? 140 : 120;
 
       const todayStepsObj = state.stepsLogs.find(s => s.date === todayStr) || state.stepsLogs[state.stepsLogs.length - 1] || { date: todayStr, steps: 0 };
       const stepsPct = Math.min(100, Math.round((Number(todayStepsObj.steps || 0) / Math.max(1000, state.stepsGoal)) * 100));
@@ -1592,11 +1666,51 @@
 
       container.innerHTML = `
         <div class="section-gap">
+          <!-- Tarjeta Principal Body Goals -->
+          <div class="card">
+            <div class="row-between" style="margin-bottom:8px;">
+              <div>
+                <div class="card-title">🎯 Mis Body Goals</div>
+                <div class="card-sub">Inicio: <strong>${g.startKg.toFixed(1)} kg</strong> · Actual: <strong>${g.currentKg.toFixed(1)} kg</strong></div>
+              </div>
+              <button class="btn-secondary btn-sm" onclick="openBodyGoalsSheet()">Editar metas</button>
+            </div>
+
+            <!-- Fase 1: 64 kg rápido y saludable -->
+            <div class="goal-box" style="margin-bottom:9px;">
+              <div class="row-between" style="margin-bottom:4px;">
+                <span style="font-size:13px; font-weight:800; color:var(--mint-text);">Fase 1: ${g.milestoneKg.toFixed(1)} kg (Rápido y saludable)</span>
+                <span class="badge badge-mint">${g.milestonePct}%</span>
+              </div>
+              <div class="progress-track" style="margin-bottom:6px;">
+                <div class="progress-fill-mint" style="width:${g.milestonePct}%;"></div>
+              </div>
+              <div style="font-size:11.5px; color:var(--text-muted);">
+                Faltan <strong>${g.remMilestone.toFixed(1)} kg</strong> · Ritmo saludable: <strong>~${g.weeklyLossKg.toFixed(2)} kg/sem</strong> (${g.weeksTo64 > 0 ? `~${g.weeksTo64} semanas · meta aprox. ${g.etaStr}` : "¡Objetivo cumplido!"}) · BMI en 64 kg: <strong>${bmiAt64.toFixed(1)}</strong>.
+              </div>
+            </div>
+
+            <!-- Fase 2: 60 kg próximo año -->
+            <div class="goal-box">
+              <div class="row-between" style="margin-bottom:4px;">
+                <span style="font-size:13px; font-weight:800; color:var(--rose-dark);">Meta ${state.bodyGoals.annualYear}: ${g.annualKg.toFixed(1)} kg</span>
+                <span class="badge">${g.annualPct}%</span>
+              </div>
+              <div class="progress-track" style="margin-bottom:6px;">
+                <div class="progress-fill" style="width:${g.annualPct}%;"></div>
+              </div>
+              <div style="font-size:11.5px; color:var(--text-muted);">
+                Faltan <strong>${g.remAnnual.toFixed(1)} kg</strong> para alcanzar tu objetivo anual · BMI proyectado en 60 kg: <strong>${bmiAt60.toFixed(1)} (Normopeso)</strong>.
+              </div>
+            </div>
+          </div>
+
+          <!-- Calculadora Clínica BMI & Déficit -->
           <div class="card">
             <div class="row-between" style="margin-bottom:4px;">
               <div>
                 <div class="card-title">Calculadora de BMI &amp; Déficit Calórico</div>
-                <div class="card-sub">Peso actual: <strong>${weightKg} kg</strong> · Rango normopeso (${heightCm} cm): <strong>${healthyMinKg}–${healthyMaxKg} kg</strong></div>
+                <div class="card-sub">Estatura: <strong>${heightCm} cm</strong> · Normopeso: <strong>${healthyMinKg}–${healthyMaxKg} kg</strong></div>
               </div>
               <span class="badge" style="color:${bmiColor};">${bmi.toFixed(1)} · ${bmiCategory}</span>
             </div>
@@ -1644,11 +1758,11 @@
                 </select>
               </div>
               <div>
-                <label>Déficit calórico</label>
+                <label>Ritmo de déficit</label>
                 <select id="bpDeficit" onchange="updateBodyProfile()">
-                  <option value="300" ${deficitVal == 300 ? "selected" : ""}>Suave (-300 kcal/día)</option>
                   <option value="400" ${deficitVal == 400 ? "selected" : ""}>Moderado (-400 kcal/día)</option>
-                  <option value="500" ${deficitVal == 500 ? "selected" : ""}>Sostenido (-500 kcal/día)</option>
+                  <option value="550" ${deficitVal == 550 ? "selected" : ""}>Rápido saludable (-550 kcal/día)</option>
+                  <option value="650" ${deficitVal == 650 ? "selected" : ""}>Intenso seguro (-650 kcal/día)</option>
                 </select>
               </div>
             </div>
@@ -1661,13 +1775,14 @@
             </button>
           </div>
 
+          <!-- Gráfica visual y registro de Peso -->
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div>
                 <div class="card-title">Evolución de Peso (kg)</div>
                 <div class="card-sub">Actual: <strong>${weightKg} kg</strong> (${Number(diffW) <= 0 ? diffW : "+" + diffW} kg desde inicio)</div>
               </div>
-              <button class="btn-secondary btn-sm" onclick="openWeightLogSheet()">+ Registrar peso</button>
+              <button class="btn-primary btn-sm" onclick="openWeightLogSheet()">+ Registrar peso</button>
             </div>
             ${renderWeightChartSvg(state.weightLogs)}
             <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
@@ -1680,6 +1795,7 @@
             </div>
           </div>
 
+          <!-- Pasos diarios -->
           <div class="card">
             <div class="row-between" style="margin-bottom:6px;">
               <div>
@@ -1694,6 +1810,7 @@
             </div>
           </div>
 
+          <!-- Resistencia a la Insulina -->
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div>
@@ -1719,6 +1836,7 @@
             <input type="text" value="${escapeAttr(state.glucoseNote || "")}" onchange="updateGlucoseNote(this.value)" placeholder="Ej. Ayunas 88 mg/dL, sin picos de hambre..." />
           </div>
 
+          <!-- Deporte Diario -->
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div>
@@ -1745,7 +1863,7 @@
 
     function renderWeightChartSvg(logs) {
       if (!logs || logs.length < 2) {
-        return `<div style="font-size:12px; color:var(--text-soft); padding:8px; background:var(--bg-soft); border-radius:10px;">Registra al menos 2 fechas de peso para ver la curva de evolución.</div>`;
+        return `<div style="font-size:12px; color:var(--text-soft); padding:8px; background:var(--bg-soft); border-radius:10px;">Registra tu siguiente pesaje para ver la curva hacia 64 kg y 60 kg.</div>`;
       }
       const recent = logs.slice(-8);
       const weights = recent.map(x => Number(x.weight));
@@ -1775,10 +1893,10 @@
     }
 
     function updateBodyProfile() {
-      state.bodyProfile.heightCm = Math.max(120, Math.min(220, Number(document.getElementById("bpHeight").value) || 165));
-      state.bodyProfile.age = Math.max(15, Math.min(90, Number(document.getElementById("bpAge").value) || 22));
+      state.bodyProfile.heightCm = Math.max(120, Math.min(220, Number(document.getElementById("bpHeight").value) || 158));
+      state.bodyProfile.age = Math.max(15, Math.min(90, Number(document.getElementById("bpAge").value) || 21));
       state.bodyProfile.activity = Number(document.getElementById("bpActivity").value) || 1.55;
-      state.bodyProfile.deficit = Number(document.getElementById("bpDeficit").value) || 400;
+      state.bodyProfile.deficit = Number(document.getElementById("bpDeficit").value) || 550;
       saveState();
       render();
     }
@@ -1882,7 +2000,7 @@
     }
 
     function updateTargetKcal(val) {
-      state.targets.kcal = Math.max(1000, Number(val) || 1650);
+      state.targets.kcal = Math.max(1000, Number(val) || 1640);
       saveState();
       updateHeader();
     }
@@ -1965,6 +2083,41 @@
 
     function handleBackdropClick(e) {
       if (e.target.id === "sheetBackdrop") closeSheet();
+    }
+
+    function openBodyGoalsSheet() {
+      openSheet("Editar Body Goals", `
+        <div>
+          <label>Peso inicial de referencia (kg)</label>
+          <input type="number" step="0.1" id="bgStart" value="${state.bodyGoals.startWeight}" />
+        </div>
+        <div>
+          <label>Meta Fase 1 · Rápida y saludable (kg)</label>
+          <input type="number" step="0.1" id="bgMilestone" value="${state.bodyGoals.milestoneKg}" />
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Meta anual (kg)</label>
+            <input type="number" step="0.1" id="bgAnnual" value="${state.bodyGoals.annualKg}" />
+          </div>
+          <div>
+            <label>Año objetivo</label>
+            <input type="text" id="bgYear" value="${escapeAttr(state.bodyGoals.annualYear)}" />
+          </div>
+        </div>
+        <button class="btn-primary" onclick="saveBodyGoals()">Guardar Body Goals</button>
+      `);
+    }
+
+    function saveBodyGoals() {
+      state.bodyGoals.startWeight = Number(document.getElementById("bgStart").value) || 69.0;
+      state.bodyGoals.milestoneKg = Number(document.getElementById("bgMilestone").value) || 64.0;
+      state.bodyGoals.annualKg = Number(document.getElementById("bgAnnual").value) || 60.0;
+      state.bodyGoals.annualYear = document.getElementById("bgYear").value.trim() || "2027";
+      saveState();
+      closeSheet();
+      render();
+      showToast("Body Goals actualizados");
     }
 
     function openRecipeSheet(id) {
@@ -2161,7 +2314,7 @@
 
     function openWeightLogSheet() {
       const today = new Date().toISOString().slice(0, 10);
-      const last = state.weightLogs[state.weightLogs.length - 1] || { weight: 66.0 };
+      const last = state.weightLogs[state.weightLogs.length - 1] || { weight: 69.0 };
       openSheet("Registrar peso (kg)", `
         <div>
           <label>Fecha</label>
@@ -2183,7 +2336,7 @@
       saveState();
       closeSheet();
       render();
-      showToast("Peso guardado y BMI recalculado");
+      showToast("Peso guardado y Body Goals actualizados");
     }
 
     function openStepsSheet() {
