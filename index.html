@@ -1250,6 +1250,65 @@
       word-break: break-all;
       line-height: 1.4;
     }
+
+    .prod-thumb-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 2px;
+      position: relative;
+    }
+
+    .prod-thumb-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 7px;
+    }
+
+    .prod-thumb-fallback {
+      font-size: 20px;
+      line-height: 1;
+      display: none;
+    }
+
+    .prod-detail-hero {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+    }
+
+    .prod-detail-img-wrap {
+      width: 96px;
+      height: 96px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      padding: 4px;
+    }
+
+    .prod-detail-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
@@ -1316,31 +1375,206 @@
     const STORAGE_KEY = "neatprep_nutritrack_v5";
 
     const DEFAULT_PRICES = {
-      pechuga_pollo: { name: "Pechuga de pollo", unit: "kg", aisle: "Carnes", price: 11.32, packSize: 0.6, packLabel: "bandeja 600 g" },
-      carne_magra: { name: "Carne magra / molida res", unit: "kg", aisle: "Carnes", price: 17.98, packSize: 0.5, packLabel: "bandeja 500 g" },
-      salmon: { name: "Filete de salmón", unit: "kg", aisle: "Pescados", price: 28.97, packSize: 0.3, packLabel: "pack 300 g (2 filetes)" },
-      atun_lata: { name: "Atún al natural (lata ~150g)", unit: "ud", aisle: "Despensa", price: 1.59, packSize: 1, packLabel: "lata 150 g" },
-      lentejas: { name: "Lentejas secas", unit: "kg", aisle: "Despensa", price: 3.70, packSize: 0.5, packLabel: "paquete 500 g" },
-      arroz: { name: "Arroz basmati / integral", unit: "kg", aisle: "Despensa", price: 2.49, packSize: 1.0, packLabel: "bolsa 1 kg" },
-      pasta: { name: "Tallarines / pasta", unit: "kg", aisle: "Despensa", price: 2.39, packSize: 0.5, packLabel: "paquete 500 g" },
-      tomate: { name: "Tomate fresco / triturado", unit: "kg", aisle: "Verduras", price: 3.29, packSize: 0.5, packLabel: "pack 500 g" },
-      espinaca: { name: "Espinaca fresca", unit: "kg", aisle: "Verduras", price: 7.99, packSize: 0.15, packLabel: "bolsa 150 g" },
-      albahaca: { name: "Albahaca fresca", unit: "ud", aisle: "Verduras", price: 1.49, packSize: 1, packLabel: "maceta / manojo" },
-      zanahoria: { name: "Zanahoria", unit: "kg", aisle: "Verduras", price: 1.99, packSize: 1.0, packLabel: "bolsa 1 kg" },
-      papa: { name: "Papa", unit: "kg", aisle: "Verduras", price: 2.19, packSize: 1.5, packLabel: "malla 1,5 kg" },
-      pepino: { name: "Pepino", unit: "ud", aisle: "Verduras", price: 0.89, packSize: 1, packLabel: "unidad" },
-      lechuga: { name: "Lechuga / hojas verdes", unit: "ud", aisle: "Verduras", price: 1.19, packSize: 1, packLabel: "bolsa / pieza" },
-      cebolla_ajo: { name: "Cebolla y ajo", unit: "kg", aisle: "Verduras", price: 2.69, packSize: 0.5, packLabel: "malla 500 g" },
-      palta: { name: "Palta / aguacate", unit: "ud", aisle: "Verduras", price: 1.69, packSize: 1, packLabel: "unidad" },
-      limon: { name: "Limón", unit: "ud", aisle: "Verduras", price: 0.49, packSize: 1, packLabel: "unidad" },
-      arvejas: { name: "Arvejas verdes", unit: "kg", aisle: "Verduras", price: 3.49, packSize: 0.3, packLabel: "bolsa/lata 300 g" },
-      aceite_oliva: { name: "Aceite de oliva virgen extra", unit: "L", aisle: "Despensa", price: 17.98, packSize: 0.5, packLabel: "botella 500 ml" },
-      queso_fresco: { name: "Queso fresco light / ricotta", unit: "kg", aisle: "Lácteos", price: 8.99, packSize: 0.25, packLabel: "tarrina 250 g" },
-      especias_aji: { name: "Ají amarillo / comino / sal", unit: "ud", aisle: "Despensa", price: 1.89, packSize: 1, packLabel: "frasco / sobre" },
-      huevos: { name: "Huevos camperos", unit: "ud", aisle: "Lácteos", price: 0.42, packSize: 6, packLabel: "cartón 6 uds" },
-      calabacin: { name: "Calabacín / zucchini", unit: "kg", aisle: "Verduras", price: 2.49, packSize: 0.5, packLabel: "2 uds (~500 g)" },
-      yogur_griego: { name: "Yogur griego / Skyr natural", unit: "kg", aisle: "Lácteos", price: 3.98, packSize: 0.5, packLabel: "tarrina 500 g" },
-      brocoli: { name: "Brócoli fresco", unit: "kg", aisle: "Verduras", price: 3.18, packSize: 0.5, packLabel: "pieza 500 g" }
+      pechuga_pollo: {
+        name: "Pechuga de pollo", unit: "kg", aisle: "Carnes", price: 11.32, packSize: 0.6, packLabel: "bandeja 600 g",
+        reweName: "ja! Hähnchen-Brustfilet",
+        reweDesc: "Bandeja refrigerada (~600 g) en la zona de carnes frescas. Filete magro sin marinar (~23 g prot/100 g), ideal para plancha, airfryer o batch cooking.",
+        reweQuery: "ja! Hähnchen Brustfilet",
+        emoji: "🍗",
+        img: "https://images.openfoodfacts.org/images/products/433/725/609/8779/front_de.9.200.jpg"
+      },
+      carne_magra: {
+        name: "Carne magra / molida res", unit: "kg", aisle: "Carnes", price: 17.98, packSize: 0.5, packLabel: "bandeja 500 g",
+        reweName: "REWE Bio Rinderhackfleisch",
+        reweDesc: "Carne molida 100% vacuna en refrigerados. Elige la opción magra (Rinderhackfleisch, sin cerdo) para estofados, lentejas y bowls ricos en hierro hemo.",
+        reweQuery: "REWE Bio Rinderhackfleisch",
+        emoji: "🥩",
+        img: "https://images.openfoodfacts.org/images/products/404/733/409/1744/front_en.10.200.jpg"
+      },
+      salmon: {
+        name: "Filete de salmón", unit: "kg", aisle: "Pescados", price: 28.97, packSize: 0.3, packLabel: "pack 300 g (2 filetes)",
+        reweName: "REWE Beste Wahl Lachsfilet",
+        reweDesc: "Lomos de salmón refrigerados o congelados sin espinas (pack ~250–300 g). Fuente clave de Omega-3 EPA/DHA y vitamina D para SOP e IR.",
+        reweQuery: "REWE Lachsfilet",
+        emoji: "🐟",
+        img: "https://images.openfoodfacts.org/images/products/433/725/615/3072/front_de.3.200.jpg"
+      },
+      atun_lata: {
+        name: "Atún al natural (lata ~150g)", unit: "ud", aisle: "Despensa", price: 1.59, packSize: 1, packLabel: "lata 150 g",
+        reweName: "ja! Thunfisch-Filets im eigenen Saft",
+        reweDesc: "Pasillo de conservas. Revisa que diga «im eigenen Saft» (al natural, sin aceite) para proteína limpia lista en 2 minutos.",
+        reweQuery: "ja! Thunfisch im eigenen Saft",
+        emoji: "🥫",
+        img: "https://images.openfoodfacts.org/images/products/433/725/640/9032/front_en.6.200.jpg"
+      },
+      lentejas: {
+        name: "Lentejas secas", unit: "kg", aisle: "Despensa", price: 3.70, packSize: 0.5, packLabel: "paquete 500 g",
+        reweName: "REWE Bio Rote / Teller-Linsen",
+        reweDesc: "Pasillo de legumbres y granos (500 g). Carbohidrato de absorción lenta rico en fibra, folato y hierro vegetal (combínalo con limón o tomate).",
+        reweQuery: "REWE Bio Linsen",
+        emoji: "🫘",
+        img: "https://images.openfoodfacts.org/images/products/000/002/028/1915/front_en.20.200.jpg"
+      },
+      arroz: {
+        name: "Arroz basmati / integral", unit: "kg", aisle: "Despensa", price: 2.49, packSize: 1.0, packLabel: "bolsa 1 kg",
+        reweName: "ja! Basmati Reis",
+        reweDesc: "Pasillo de arroces (bolsa 1 kg). El Basmati o Vollkorn (integral) ofrece menor impacto glucémico que el arroz blanco común en porción medida.",
+        reweQuery: "ja! Basmati Reis",
+        emoji: "🍚",
+        img: "https://images.openfoodfacts.org/images/products/433/725/608/6370/front_en.3.200.jpg"
+      },
+      pasta: {
+        name: "Tallarines / pasta", unit: "kg", aisle: "Despensa", price: 2.39, packSize: 0.5, packLabel: "paquete 500 g",
+        reweName: "REWE Bio Spaghetti Vollkorn",
+        reweDesc: "Pasillo de pastas (500 g). La versión integral (Vollkorn) cocida al dente aporta más fibra y suaviza la curva de glucosa.",
+        reweQuery: "REWE Bio Spaghetti Vollkorn",
+        emoji: "🍝",
+        img: "https://images.openfoodfacts.org/images/products/433/725/618/7343/front_en.19.200.jpg"
+      },
+      tomate: {
+        name: "Tomate fresco / triturado", unit: "kg", aisle: "Verduras", price: 3.29, packSize: 0.5, packLabel: "pack 500 g",
+        reweName: "REWE Beste Wahl Strauchtomaten",
+        reweDesc: "Zona de verduras frescas (en rama o cherry). Aporta vitamina C natural para potenciar la absorción del hierro en guisos y ensaladas.",
+        reweQuery: "REWE Tomaten",
+        emoji: "🍅",
+        img: "https://images.openfoodfacts.org/images/products/400/679/536/2053/front_en.5.200.jpg"
+      },
+      espinaca: {
+        name: "Espinaca fresca", unit: "kg", aisle: "Verduras", price: 7.99, packSize: 0.15, packLabel: "bolsa 150 g",
+        reweName: "REWE Bio Babyspinat",
+        reweDesc: "Refrigerador de ensaladas listas (bolsa ~125–150 g). Hoja tierna lavada, excelente fuente de folato (B9), magnesio y fibra.",
+        reweQuery: "REWE Babyspinat",
+        emoji: "🥬",
+        img: "https://images.openfoodfacts.org/images/products/803/387/478/7106/front_en.3.200.jpg"
+      },
+      albahaca: {
+        name: "Albahaca fresca", unit: "ud", aisle: "Verduras", price: 1.49, packSize: 1, packLabel: "maceta / manojo",
+        reweName: "REWE Bio Basilikum im Topf",
+        reweDesc: "Sección de hierbas frescas en maceta (Frische Kräuter). Dura varios días en tu cocina y da el sabor clave a los tallarines verdes fit.",
+        reweQuery: "REWE Bio Basilikum",
+        emoji: "🌿",
+        img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Ocimum_basilicum_8zz.jpg/330px-Ocimum_basilicum_8zz.jpg"
+      },
+      zanahoria: {
+        name: "Zanahoria", unit: "kg", aisle: "Verduras", price: 1.99, packSize: 1.0, packLabel: "bolsa 1 kg",
+        reweName: "REWE Bio Möhren (1 kg)",
+        reweDesc: "Sección de verduras (bolsa 1 kg). Económica, dura 2 semanas en nevera y aporta volumen y fibra a estofados y guisos.",
+        reweQuery: "REWE Bio Möhren",
+        emoji: "🥕",
+        img: "https://images.openfoodfacts.org/images/products/438/884/413/8667/front_en.3.200.jpg"
+      },
+      papa: {
+        name: "Papa", unit: "kg", aisle: "Verduras", price: 2.19, packSize: 1.5, packLabel: "malla 1,5 kg",
+        reweName: "REWE Beste Wahl Kartoffeln festkochend",
+        reweDesc: "Malla de 1,5 kg (elige «festkochend» para guisos y estofados para que no se deshaga). Alta saciedad por caloría.",
+        reweQuery: "REWE Kartoffeln festkochend",
+        emoji: "🥔",
+        img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Patates.jpg/330px-Patates.jpg"
+      },
+      pepino: {
+        name: "Pepino", unit: "ud", aisle: "Verduras", price: 0.89, packSize: 1, packLabel: "unidad",
+        reweName: "REWE Beste Wahl Salatgurke",
+        reweDesc: "Pepino largo fresco por unidad en frutas y verduras. Base crujiente casi sin calorías para sumar volumen y fibra antes del plato principal.",
+        reweQuery: "REWE Salatgurke",
+        emoji: "🥒",
+        img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/ARS_cucumber.jpg/330px-ARS_cucumber.jpg"
+      },
+      lechuga: {
+        name: "Lechuga / hojas verdes", unit: "ud", aisle: "Verduras", price: 1.19, packSize: 1, packLabel: "bolsa / pieza",
+        reweName: "REWE Beste Wahl Eisbergsalat / Romanasalat",
+        reweDesc: "Lechuga iceberg o romana de hojas firmes y crujientes. Perfecta tanto para ensaladas rápidas como para wraps/tacos low-carb.",
+        reweQuery: "REWE Eisbergsalat",
+        emoji: "🥗",
+        img: "https://images.openfoodfacts.org/images/products/000/002/020/1852/front_en.27.200.jpg"
+      },
+      cebolla_ajo: {
+        name: "Cebolla y ajo", unit: "kg", aisle: "Verduras", price: 2.69, packSize: 0.5, packLabel: "malla 500 g",
+        reweName: "REWE Bio Zwiebeln & Knoblauch",
+        reweDesc: "Malla de cebollas (rojas o amarillas) y cabezas de ajo fresco. Base aromática para aderezos caseros sin salsas ultraprocesadas.",
+        reweQuery: "REWE Bio Zwiebeln",
+        emoji: "🧅",
+        img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Mixed_onions.jpg/330px-Mixed_onions.jpg"
+      },
+      palta: {
+        name: "Palta / aguacate", unit: "ud", aisle: "Verduras", price: 1.69, packSize: 1, packLabel: "unidad",
+        reweName: "REWE Beste Wahl Avocado Vorgereift",
+        reweDesc: "Busca la etiqueta «vorgereift» / «essreif» (lista para comer). Grasa monoinsaturada clave para saciedad y control hormonal en SOP/IR.",
+        reweQuery: "REWE Avocado",
+        emoji: "🥑",
+        img: "https://images.openfoodfacts.org/images/products/000/000/000/4770/front_en.11.200.jpg"
+      },
+      limon: {
+        name: "Limón", unit: "ud", aisle: "Verduras", price: 0.49, packSize: 1, packLabel: "unidad",
+        reweName: "REWE Bio Zitronen",
+        reweDesc: "Limón fresco (suelto o malla Bio 500 g). Aliño sin calorías y fuente directa de vitamina C para potenciar la absorción de hierro vegetal.",
+        reweQuery: "REWE Bio Zitronen",
+        emoji: "🍋",
+        img: "https://images.openfoodfacts.org/images/products/438/884/008/5682/front_de.37.200.jpg"
+      },
+      arvejas: {
+        name: "Arvejas verdes", unit: "kg", aisle: "Verduras", price: 3.49, packSize: 0.3, packLabel: "bolsa/lata 300 g",
+        reweName: "ja! Junge Erbsen (TK / Dose)",
+        reweDesc: "En congelados (Tiefkühl) o conservas sin azúcar añadido. Aportan proteína vegetal y fibra extra a tus estofados.",
+        reweQuery: "ja! Junge Erbsen",
+        emoji: "🫛",
+        img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/Doperwt_rijserwt_peulen_Pisum_sativum.jpg/330px-Doperwt_rijserwt_peulen_Pisum_sativum.jpg"
+      },
+      aceite_oliva: {
+        name: "Aceite de oliva virgen extra", unit: "L", aisle: "Despensa", price: 17.98, packSize: 0.5, packLabel: "botella 500 ml",
+        reweName: "REWE Bio Natives Olivenöl Extra",
+        reweDesc: "Pasillo de aceites (botella oscura 500 ml). Verifica que diga «Natives Olivenöl Extra» (primera presión en frío, antiinflamatorio).",
+        reweQuery: "REWE Bio Natives Olivenöl Extra",
+        emoji: "🫒",
+        img: "https://images.openfoodfacts.org/images/products/433/725/641/4371/front_de.18.200.jpg"
+      },
+      queso_fresco: {
+        name: "Queso fresco light / ricotta", unit: "kg", aisle: "Lácteos", price: 8.99, packSize: 0.25, packLabel: "tarrina 250 g",
+        reweName: "ja! Körniger Frischkäse / Ricotta",
+        reweDesc: "Refrigerador de lácteos (200–250 g). El Körniger Frischkäse (cottage) es muy alto en proteína y bajo en grasa para salsas, pizzas fit y cenas.",
+        reweQuery: "ja! Körniger Frischkäse",
+        emoji: "🧀",
+        img: "https://images.openfoodfacts.org/images/products/433/725/677/1009/front_de.5.200.jpg"
+      },
+      especias_aji: {
+        name: "Ají amarillo / comino / sal", unit: "ud", aisle: "Despensa", price: 1.89, packSize: 1, packLabel: "frasco / sobre",
+        reweName: "REWE Beste Wahl Paprika / Kreuzkümmel",
+        reweDesc: "Pasillo de especias (Gewürze): paprika, comino (Kreuzkümmel), orégano y ajo en polvo para dar mucho sabor sin calorías extra.",
+        reweQuery: "REWE Gewürz Paprika Kreuzkümmel",
+        emoji: "🌶️",
+        img: "https://images.openfoodfacts.org/images/products/433/725/621/6494/front_de.10.200.jpg"
+      },
+      huevos: {
+        name: "Huevos camperos", unit: "ud", aisle: "Lácteos", price: 0.42, packSize: 6, packLabel: "cartón 6 uds",
+        reweName: "REWE Beste Wahl Eier aus Freilandhaltung",
+        reweDesc: "Caja de 6 o 10 huevos (Freilandhaltung / Bio). Proteína completa, colina y vitamina B12 para desayunos estables y cenas rápidas.",
+        reweQuery: "REWE Eier Freilandhaltung",
+        emoji: "🥚",
+        img: "https://images.openfoodfacts.org/images/products/431/150/161/9490/front_en.3.200.jpg"
+      },
+      calabacin: {
+        name: "Calabacín / zucchini", unit: "kg", aisle: "Verduras", price: 2.49, packSize: 0.5, packLabel: "2 uds (~500 g)",
+        reweName: "REWE Bio Zucchini",
+        reweDesc: "Sección de verduras frescas. Bajo en carbohidratos, versátil para salteados y espaguetis vegetales (zoodles) nocturnos.",
+        reweQuery: "REWE Bio Zucchini",
+        emoji: "🥒",
+        img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/CSA-Striped-Zucchini.jpg/330px-CSA-Striped-Zucchini.jpg"
+      },
+      yogur_griego: {
+        name: "Yogur griego / Skyr natural", unit: "kg", aisle: "Lácteos", price: 3.98, packSize: 0.5, packLabel: "tarrina 500 g",
+        reweName: "ja! Skyr Natur (500 g)",
+        reweDesc: "Refrigerador de yogures (tarrina 500 g). Elige «Natur» sin azúcar añadido (~11 g prot/100 g): ideal para salsas fit y desayunos saciantes.",
+        reweQuery: "ja! Skyr Natur",
+        emoji: "🥣",
+        img: "https://images.openfoodfacts.org/images/products/433/725/616/9240/front_de.42.200.jpg"
+      },
+      brocoli: {
+        name: "Brócoli fresco", unit: "kg", aisle: "Verduras", price: 3.18, packSize: 0.5, packLabel: "pieza 500 g",
+        reweName: "REWE Beste Wahl Brokkoli (500 g)",
+        reweDesc: "Pieza fresca ~500 g en verduras. Rico en fibra, vitamina C y sulforafano; queda espectacular en airfryer en 10 minutos.",
+        reweQuery: "REWE Brokkoli",
+        emoji: "🥦",
+        img: "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Broccoli_and_cross_section_edit.jpg/330px-Broccoli_and_cross_section_edit.jpg"
+      }
     };
 
     const PANTRY_OPTIONS = [
@@ -1763,6 +1997,7 @@
       customPantry: [],
       appliances: ["sarten", "olla", "airfryer"],
       prices: JSON.parse(JSON.stringify(DEFAULT_PRICES)),
+      customProductImages: {},
       recipes: DEFAULT_RECIPES,
       tapers: {
         Lunes: "pollo_criollo_ensalada",
@@ -1911,13 +2146,27 @@
         const newDefaults = base.recipes.filter(r => !existingIds.has(r.id));
         return [...parsed.recipes, ...newDefaults];
       })();
+      const mergedPrices = JSON.parse(JSON.stringify(DEFAULT_PRICES));
+      if (parsed.prices && typeof parsed.prices === "object") {
+        Object.keys(parsed.prices).forEach(k => {
+          mergedPrices[k] = { ...(mergedPrices[k] || {}), ...(parsed.prices[k] || {}) };
+          if (DEFAULT_PRICES[k]) {
+            mergedPrices[k].reweName = mergedPrices[k].reweName || DEFAULT_PRICES[k].reweName;
+            mergedPrices[k].reweDesc = mergedPrices[k].reweDesc || DEFAULT_PRICES[k].reweDesc;
+            mergedPrices[k].reweQuery = mergedPrices[k].reweQuery || DEFAULT_PRICES[k].reweQuery;
+            mergedPrices[k].img = mergedPrices[k].img || DEFAULT_PRICES[k].img;
+            mergedPrices[k].emoji = mergedPrices[k].emoji || DEFAULT_PRICES[k].emoji;
+          }
+        });
+      }
       return {
         ...base,
         ...parsed,
         pantryKeys: Array.isArray(parsed.pantryKeys) ? parsed.pantryKeys : [...base.pantryKeys],
         customPantry: Array.isArray(parsed.customPantry) ? parsed.customPantry : [],
         appliances: Array.isArray(parsed.appliances) ? parsed.appliances : [...base.appliances],
-        prices: { ...JSON.parse(JSON.stringify(DEFAULT_PRICES)), ...(parsed.prices || {}) },
+        prices: mergedPrices,
+        customProductImages: (parsed.customProductImages && typeof parsed.customProductImages === "object") ? parsed.customProductImages : {},
         recipes: mergedRecipes,
         favoriteRecipes: Array.isArray(parsed.favoriteRecipes) ? parsed.favoriteRecipes : [...base.favoriteRecipes],
         tapers: { ...base.tapers, ...(parsed.tapers || {}) },
@@ -3381,20 +3630,33 @@
           <div style="display:flex; flex-direction:column; gap:7px;">
             ${byAisle[aisle].map(item => {
               const done = Boolean(state.checkedShopping[item.key]);
+              const meta = state.prices[item.key] || {};
+              const imgUrl = getProductImgUrl(item.key);
+              const emoji = meta.emoji || "🛒";
+              const reweSubtitle = meta.reweName ? `${meta.reweName} · ` : "";
               return `
                 <div class="check-item ${done ? "done" : ""}" onclick="toggleShoppingItem('${item.key}')">
                   <div class="check-left">
                     <div class="check-box">${done ? "✓" : ""}</div>
-                    <div style="min-width:0;">
+                    <button class="prod-thumb-btn" onclick="event.stopPropagation(); openProductDetailSheet('${item.key}')" title="Ver foto y descripción REWE" aria-label="Ver ficha de ${escapeAttr(item.name)}">
+                      ${imgUrl ? `<img src="${escapeAttr(imgUrl)}" alt="${escapeAttr(item.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><span class="prod-thumb-fallback">${emoji}</span>` : `<span class="prod-thumb-fallback" style="display:block;">${emoji}</span>`}
+                    </button>
+                    <div style="min-width:0; flex:1;">
                       <div class="check-label">${item.name}</div>
-                      <div style="font-size:11px; color:var(--text-soft);">
-                        Tápers: ${item.qty.toFixed(2)} ${item.unit} · <strong>${item.packsNeeded}× ${item.packLabel}</strong> (${fmtEur(item.packCost)})
+                      <div style="font-size:10.5px; color:var(--rose-dark); font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ${escapeHtml(reweSubtitle)}${item.packsNeeded}× ${item.packLabel}
+                      </div>
+                      <div style="font-size:10.5px; color:var(--text-soft);">
+                        Uso: ${item.qty.toFixed(2)} ${item.unit} · Caja: ${fmtEur(item.packCost)}
                       </div>
                     </div>
                   </div>
                   <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0;">
                     <strong style="font-size:12px;">${fmtEur(item.cost)}</strong>
-                    <button class="in-home-pill" onclick="event.stopPropagation(); markShoppingItemInHome('${item.key}')">🏠 En casa</button>
+                    <div style="display:flex; gap:4px;">
+                      <button class="in-home-pill" style="background:var(--bg-surface);" onclick="event.stopPropagation(); openProductDetailSheet('${item.key}')">ℹ️ Ficha</button>
+                      <button class="in-home-pill" onclick="event.stopPropagation(); markShoppingItemInHome('${item.key}')">🏠</button>
+                    </div>
                   </div>
                 </div>
               `;
@@ -3457,6 +3719,106 @@
       render();
       const name = state.prices[key]?.name || "Ingrediente";
       showToast(`${name} movido a "En casa"`);
+    }
+
+    function getProductImgUrl(key) {
+      if (state.customProductImages && state.customProductImages[key]) {
+        return state.customProductImages[key];
+      }
+      return state.prices[key]?.img || DEFAULT_PRICES[key]?.img || "";
+    }
+
+    function openProductDetailSheet(key) {
+      const meta = state.prices[key] || DEFAULT_PRICES[key];
+      if (!meta) return;
+      const imgUrl = getProductImgUrl(key);
+      const hasCustom = Boolean(state.customProductImages && state.customProductImages[key]);
+      const emoji = meta.emoji || "🛒";
+      const reweName = meta.reweName || meta.name;
+      const reweDesc = meta.reweDesc || "Disponible en el pasillo correspondiente de REWE.";
+      const reweUrl = `https://shop.rewe.de/productList?search=${encodeURIComponent(meta.reweQuery || reweName)}`;
+      const inHome = state.pantryKeys.includes(key);
+      const unitP = getUnitPrice(key);
+      const packPrice = unitP * (meta.packSize || 1);
+
+      openSheet(meta.name, `
+        <div class="prod-detail-hero">
+          <div class="prod-detail-img-wrap">
+            ${imgUrl
+              ? `<img src="${escapeAttr(imgUrl)}" alt="${escapeAttr(reweName)}" referrerpolicy="no-referrer" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><span class="prod-thumb-fallback" style="font-size:38px;">${emoji}</span>`
+              : `<span style="font-size:38px;">${emoji}</span>`}
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:4px;">
+              <span class="badge">${meta.aisle || "Súper"}</span>
+              <span class="badge badge-mint">${state.supermarket}</span>
+            </div>
+            <div style="font-size:14.5px; font-weight:800; color:var(--text-main); line-height:1.25;">${escapeHtml(reweName)}</div>
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
+              Envase: <strong>${meta.packLabel || meta.unit}</strong> (~${fmtEur(packPrice)})<br>
+              Ref.: ${fmtEur(unitP)} / ${meta.unit}
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:12.5px; font-weight:800; color:var(--rose-dark); margin-bottom:4px;">📝 Descripción y cómo encontrarlo en REWE</div>
+          <div style="font-size:12.5px; color:var(--text-main); line-height:1.48;">${escapeHtml(reweDesc)}</div>
+        </div>
+
+        <a href="${escapeAttr(reweUrl)}" target="_blank" rel="noopener" class="btn-primary" style="text-decoration:none;">
+          🛒 Ver en shop.rewe.de ↗
+        </a>
+
+        <div class="grid-2">
+          <button class="btn-secondary" onclick="togglePantry('${key}'); openProductDetailSheet('${key}');">
+            ${inHome ? "✓ Ya está en casa (quitar)" : "🏠 Marcar en casa"}
+          </button>
+          <label class="btn-secondary" style="margin:0; cursor:pointer;">
+            📷 Cambiar foto
+            <input type="file" accept="image/*" style="display:none;" onchange="handleCustomProductPhoto('${key}', this)" />
+          </label>
+        </div>
+
+        ${hasCustom ? `<button class="btn-ghost btn-sm" onclick="resetCustomProductPhoto('${key}')">Restaurar foto REWE original</button>` : ""}
+      `);
+    }
+
+    function handleCustomProductPhoto(key, inputEl) {
+      const file = inputEl?.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 260;
+          const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.78);
+          if (!state.customProductImages) state.customProductImages = {};
+          state.customProductImages[key] = dataUrl;
+          saveState();
+          render();
+          openProductDetailSheet(key);
+          showToast("Foto del producto guardada");
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetCustomProductPhoto(key) {
+      if (state.customProductImages) {
+        delete state.customProductImages[key];
+        saveState();
+        render();
+        openProductDetailSheet(key);
+        showToast("Foto REWE restaurada");
+      }
     }
 
     async function toggleWakeLock() {
