@@ -1370,6 +1370,134 @@
       border-top: 1px solid var(--border);
       padding-top: 12px;
     }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+      margin-bottom: 10px;
+    }
+
+    .lab-tile {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+
+    .lab-tile.homa-highlight {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #FFF7FA, #FDF0F5);
+      border-color: var(--rose-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .lab-tile-lbl {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .lab-tile-val {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    .lab-status {
+      display: inline-block;
+      margin-top: 3px;
+      font-size: 10px;
+      font-weight: 750;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+    }
+
+    .lab-status.ok {
+      background: var(--mint-bg);
+      color: var(--mint-text);
+    }
+
+    .lab-status.warn {
+      background: var(--amber-bg);
+      color: var(--amber-text);
+    }
+
+    .lab-status.alert {
+      background: var(--rose-pale);
+      color: var(--rose-dark);
+    }
+
+    .leftover-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 650;
+      color: var(--text-main);
+    }
+
+    .leftover-recipe-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: var(--radius-md);
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+    }
+
+    .cycle-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #FFF7FA, #FDF2F7);
+      border: 1px solid var(--rose-soft);
+      font-size: 11.5px;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    .eating-out-step {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      padding: 9px 11px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
+
+    .eating-out-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--rose);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
   </style>
 </head>
 <body>
@@ -2504,7 +2632,11 @@
       workouts: [
         { id: "wo1", date: "2026-11-22", type: "Fuerza (Gym)", minutes: 55, intensity: "Alta" },
         { id: "wo2", date: "2026-11-21", type: "Natación", minutes: 45, intensity: "Moderada" }
-      ]
+      ],
+      labLogs: [],
+      cycleProfile: {
+        phase: "none"
+      }
     };
 
     let state = loadState();
@@ -2611,7 +2743,13 @@
         weightLogs: Array.isArray(parsed.weightLogs) && parsed.weightLogs.length ? parsed.weightLogs : base.weightLogs,
         stepsLogs: Array.isArray(parsed.stepsLogs) ? parsed.stepsLogs : base.stepsLogs,
         meds: Array.isArray(parsed.meds) ? parsed.meds : base.meds,
-        workouts: Array.isArray(parsed.workouts) ? parsed.workouts : base.workouts
+        workouts: Array.isArray(parsed.workouts) ? parsed.workouts : base.workouts,
+        labLogs: Array.isArray(parsed.labLogs) ? parsed.labLogs : [],
+        cycleProfile: {
+          phase: ["none", "menstrual", "follicular", "ovulatory", "luteal"].includes(parsed.cycleProfile?.phase)
+            ? parsed.cycleProfile.phase
+            : "none"
+        }
       };
     }
 
@@ -3064,11 +3202,15 @@
       const isHypertrophy = m.goal === "hypertrophy";
       const isDeficit = m.goal === "deficit";
 
+      const cyclePhase = getActiveCyclePhase(m);
+      const isMenstrual = cyclePhase?.id === "menstrual";
+      const isLuteal = cyclePhase?.id === "luteal";
+
       // Hierro
       const ironBase = isFemale ? (age <= 50 ? "18 mg/día" : "8 mg/día") : "8 mg/día";
-      const ironTag = m.isIronDef ? "Prioritario" : (isFemale && age <= 50 ? "Clave edad fértil" : "");
-      const ironCare = m.isIronDef
-        ? "Une lentejas/espinaca con limón o tomate (vitamina C) y separa café, té o calcio al menos 1–2 h."
+      const ironTag = m.isIronDef ? "Prioritario" : (isMenstrual ? "Prioridad fase menstrual" : (isFemale && age <= 50 ? "Clave edad fértil" : ""));
+      const ironCare = (m.isIronDef || isMenstrual)
+        ? "Une lentejas/espinaca o carne magra con limón o tomate (vitamina C) y separa café, té o calcio al menos 1–2 h."
         : "Combina hierro vegetal (lentejas, espinaca) con vitamina C y evita café o té justo al terminar de comer.";
 
       // Vitamina B12
@@ -3099,8 +3241,10 @@
         mgVal = age <= 18 ? 410 : (age <= 30 ? 400 : 420);
       }
       const mgTarget = `${mgVal} mg/día`;
-      const mgPriority = isHypertrophy || m.isIR || m.isDiabetes || m.isPCOS;
-      const mgTag = m.isPCOS ? "Apoyo SOP / descanso" : (isHypertrophy ? "Recuperación muscular" : (m.isIR || m.isDiabetes ? "Apoyo glucémico" : ""));
+      const mgPriority = isHypertrophy || m.isIR || m.isDiabetes || m.isPCOS || isMenstrual || isLuteal;
+      const mgTag = isMenstrual
+        ? "Apoyo menstrual"
+        : (isLuteal ? "Apoyo fase lútea" : (m.isPCOS ? "Apoyo SOP / descanso" : (isHypertrophy ? "Recuperación muscular" : (m.isIR || m.isDiabetes ? "Apoyo glucémico" : ""))));
       const mgCare = "Suma semillas, frutos secos, espinaca y legumbres; en déficit calórico o entrenamiento exigente suele quedarse corto.";
 
       // Zinc
@@ -3120,7 +3264,7 @@
           name: "Hierro (Fe)",
           target: ironBase,
           tag: ironTag,
-          priority: m.isIronDef,
+          priority: m.isIronDef || isMenstrual,
           purpose: "Transporta oxígeno en sangre, sostiene la energía diaria y evita la fatiga por anemia.",
           care: ironCare
         },
@@ -3541,6 +3685,14 @@
         ? `Salud (${activeCondLabels.join(" · ")}) & Pasos hoy`
         : "Salud, Protocolo & Pasos hoy";
 
+      const cyclePhase = getActiveCyclePhase(m);
+      const cycleHoyBannerHtml = cyclePhase ? `
+        <div class="cycle-banner" onclick="switchTab('progreso')" style="cursor:pointer;">
+          <span>${cyclePhase.hoyShort}</span>
+          <span style="color:var(--rose-dark); font-weight:800; flex-shrink:0;">Ajustar</span>
+        </div>
+      ` : "";
+
       container.innerHTML = `
         <div class="section-gap">
           ${topSwitcherHtml}
@@ -3563,11 +3715,14 @@
               <span>·</span>
               <span><strong>${todayRecipe.fat}g</strong> G</span>
             </div>
-            <div class="row-between" style="gap:8px;">
+            <div class="row-between" style="gap:6px;">
               <button class="btn-primary btn-sm" style="flex:1;" onclick="openRecipeSheet('${todayRecipe.id}')">Preparar</button>
-              <button class="btn-secondary btn-sm" style="flex:1;" onclick="scrollToQuickToday()">Otra rápida</button>
+              <button class="btn-secondary btn-sm" onclick="scrollToQuickToday()">Otra rápida</button>
+              <button class="btn-secondary btn-sm" onclick="openEatingOutSheet()" title="Guía rápida si comes fuera hoy">🍽️ Fuera</button>
             </div>
           </div>
+
+          ${cycleHoyBannerHtml}
 
           <div class="card">
             <div class="row-between">
@@ -3619,6 +3774,67 @@
     function scrollToQuickToday() {
       const el = document.getElementById("hoyQuickSection");
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function openEatingOutSheet() {
+      const m = getAdaptiveNutritionMetrics();
+      const cycle = getActiveCyclePhase(m);
+      const steps = [];
+
+      if (m.isIR || m.isPCOS || m.isDiabetes) {
+        steps.push("<strong>Orden del plato:</strong> empieza por ensalada o verdura → sigue con proteína y grasa saludable → deja arroz, pan, pasta o postre para el final (amortigua el pico de glucosa).");
+      }
+
+      if (m.goal === "hypertrophy") {
+        steps.push("<strong>No te quedes corto:</strong> pide proteína principal generosa (carne, pollo, pescado o doble porción) + carbohidrato de calidad (arroz, papa o pasta) para sostener tu meta de " + m.targetKcal + " kcal.");
+      } else if (m.goal === "deficit") {
+        steps.push("<strong>Truco de restaurante:</strong> elige plancha, horno o parrilla, pide salsas/aderezos aparte y acompaña con verdura; come despacio hasta ~80% de saciedad.");
+      } else {
+        steps.push("<strong>Plato equilibrado:</strong> busca mitad verdura, un cuarto proteína y un cuarto carbohidrato complejo; disfruta con flexibilidad.");
+      }
+
+      if (m.isIronDef) {
+        steps.push("<strong>Cuidado del hierro:</strong> prioriza carne magra, pescado o legumbres con limón/tomate y deja el café, té o postres lácteos para 1–2 h después.");
+      }
+
+      if (m.isIR || m.isPCOS || m.isDiabetes) {
+        steps.push("<strong>Cierre metabólico:</strong> camina 10–15 min suaves después de comer (vuelve caminando o da una vuelta corta); mejora la captación muscular de glucosa.");
+      } else {
+        steps.push("<strong>Hidratación inteligente:</strong> elige agua con gas, limón o infusión en lugar de bebidas azucaradas para mantener saciedad.");
+      }
+
+      if (cycle && (cycle.id === "menstrual" || cycle.id === "luteal")) {
+        steps.push(`<strong>${cycle.label}:</strong> ${cycle.nutritionCue}`);
+      }
+
+      const activeLabels = [m.goalMeta.shortLabel];
+      (state.clinicalProfile.conditions || []).forEach(c => {
+        if (CLINICAL_CONDITION_META[c]?.short) activeLabels.push(CLINICAL_CONDITION_META[c].short);
+      });
+
+      openSheet("🍽️ Hoy como fuera", `
+        <div class="section-gap">
+          <div class="chip-row" style="margin-bottom:2px;">
+            ${activeLabels.map(l => `<span class="badge">${escapeHtml(l)}</span>`).join("")}
+            ${cycle ? `<span class="badge badge-mint">${escapeHtml(cycle.label)}</span>` : ""}
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${steps.map((txt, idx) => `
+              <div class="eating-out-step">
+                <span class="eating-out-num">${idx + 1}</span>
+                <span>${txt}</span>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="card-soft" style="border-color:#CDE8DC; background:var(--mint-bg); color:var(--mint-text); font-size:12px; line-height:1.45;">
+            <strong>Cero culpa:</strong> una comida fuera no arruina tu semana. Disfrútala tranquila/o y retoma tu rutina normal en la siguiente comida — sin compensar ni saltarte comidas.
+          </div>
+
+          <button class="btn-primary" style="width:100%;" onclick="closeSheet()">Listo, ¡a disfrutar!</button>
+        </div>
+      `);
     }
 
     function setOnlyPantry(val) {
@@ -4071,6 +4287,74 @@
       showToast(`Tápers L–V armados para ${m.goalMeta.shortLabel}`);
     }
 
+    function formatLeftoverAmount(val, unit) {
+      const u = String(unit || "").toLowerCase();
+      if (u === "kg") {
+        return val < 1 ? `${Math.round(val * 1000)} g` : `${val.toFixed(1).replace(".", ",")} kg`;
+      }
+      if (u === "l") {
+        return val < 1 ? `${Math.round(val * 1000)} ml` : `${val.toFixed(1).replace(".", ",")} L`;
+      }
+      if (u === "g" || u === "ml") {
+        return `${Math.round(val)} ${u}`;
+      }
+      const rounded = Math.round(val * 10) / 10;
+      return `${String(rounded).replace(".", ",")} ${unit || "ud"}`;
+    }
+
+    function getLeftoverInsights(shoppingList) {
+      const list = shoppingList || getShoppingList();
+      const ignoreKeys = new Set(["aceite_oliva", "especias_aji"]);
+      const leftovers = [];
+
+      list.forEach(item => {
+        if (ignoreKeys.has(item.key)) return;
+        const bought = Number(item.packsNeeded || 1) * Number(item.packSize || 1);
+        const rem = bought - Number(item.qty || 0);
+        if (rem > 0.001 && rem >= Number(item.packSize || 1) * 0.2) {
+          const shortName = String(item.name || item.key).split(" (")[0].split(" /")[0];
+          leftovers.push({
+            key: item.key,
+            name: shortName,
+            rem,
+            unit: item.unit,
+            label: `~${formatLeftoverAmount(rem, item.unit)} ${shortName.toLowerCase()}`,
+            estValue: rem * Number(item.unitPrice || 0)
+          });
+        }
+      });
+
+      leftovers.sort((a, b) => b.estValue - a.estValue);
+
+      const usedIds = new Set(Object.values(state.tapers || {}));
+      const leftoverKeySet = new Set(leftovers.map(x => x.key));
+      const m = getAdaptiveNutritionMetrics();
+
+      const suggestions = state.recipes
+        .filter(r => !usedIds.has(r.id))
+        .map(r => {
+          const matched = (r.ingredients || [])
+            .filter(ing => leftoverKeySet.has(ing.key))
+            .map(ing => {
+              const found = leftovers.find(x => x.key === ing.key);
+              return found ? found.name.toLowerCase() : ing.key;
+            });
+          const uniqueMatched = [...new Set(matched)];
+          const prof = getRecipeProfileMeta(r, m);
+          return {
+            recipe: r,
+            matched: uniqueMatched,
+            score: uniqueMatched.length * 10 + (prof ? prof.score : 0)
+          };
+        })
+        .filter(x => x.matched.length > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 2);
+
+      const totalSavedValue = leftovers.reduce((s, x) => s + x.estValue, 0);
+      return { leftovers, suggestions, totalSavedValue };
+    }
+
     function renderSuper(container) {
       const list = getShoppingList();
       const totalCost = getTotalShoppingCost();
@@ -4078,6 +4362,38 @@
       const checkedCount = list.filter(i => state.checkedShopping[i.key]).length;
       const pct = list.length ? Math.round((checkedCount / list.length) * 100) : 0;
       const totalHomeCount = state.pantryKeys.length + state.customPantry.length;
+      const antiWaste = getLeftoverInsights(list);
+
+      const antiWasteHtml = antiWaste.leftovers.length ? `
+        <details class="clean-details" id="antiWasteDetails">
+          <summary>
+            <div>
+              <div class="card-title" style="margin:0; font-size:14px;">♻️ Anti-desperdicio (${antiWaste.leftovers.length} sobrantes)</div>
+              <div style="font-size:11.5px; color:var(--text-soft);">Aprovecha ~${fmtEur(antiWaste.totalSavedValue)} en envases abiertos</div>
+            </div>
+          </summary>
+          <div class="clean-details-body">
+            <div style="font-size:11px; font-weight:750; color:var(--text-soft); margin-bottom:6px;">TE SOBRARÁ APROX. ESTA SEMANA</div>
+            <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">
+              ${antiWaste.leftovers.slice(0, 8).map(l => `<span class="leftover-chip">${escapeHtml(l.label)}</span>`).join("")}
+            </div>
+            ${antiWaste.suggestions.length ? `
+              <div style="font-size:11px; font-weight:750; color:var(--rose-dark); margin-bottom:6px;">RECETAS PARA APROVECHARLO</div>
+              <div style="display:flex; flex-direction:column; gap:7px;">
+                ${antiWaste.suggestions.map(s => `
+                  <div class="leftover-recipe-row">
+                    <div style="min-width:0; flex:1;">
+                      <div style="font-size:12.5px; font-weight:800; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(s.recipe.title)}</div>
+                      <div style="font-size:11px; color:var(--text-muted);">Usa: <strong>${escapeHtml(s.matched.join(", "))}</strong> · ${s.recipe.timeMin} min</div>
+                    </div>
+                    <button class="btn-secondary btn-sm" style="flex-shrink:0;" onclick="openRecipeSheet('${s.recipe.id}')">Preparar</button>
+                  </div>
+                `).join("")}
+              </div>
+            ` : `<div style="font-size:11.5px; color:var(--text-soft);">Guarda los sobrantes en <strong>Comida → En casa</strong> para que aparezcan en tus recetas rápidas.</div>`}
+          </div>
+        </details>
+      ` : "";
 
       const byAisle = {};
       list.forEach(item => {
@@ -4163,6 +4479,7 @@
             </div>
             <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
           </div>
+          ${antiWasteHtml}
           ${aislesHtml || `<div class="empty-note">Todo cubierto con lo que ya tienes en casa. Revisa <strong>Comida → En casa</strong> si quieres quitar algún ingrediente.</div>`}
         </div>
       `;
@@ -4367,11 +4684,20 @@
         : (isFemale ? "60–90 s" : "90–150 s");
       const restPilates = "30–45 s · fluido";
 
-      const rpeLabel = m.isIronDef
+      const cyclePhase = getActiveCyclePhase(m);
+      let rpeLabel = m.isIronDef
         ? "RPE 5–6/10 (suave)"
         : (m.goal === "hypertrophy"
           ? "RPE 7,5–9/10 (RIR 1–2)"
           : (level === "beginner" ? "RPE 6,5–7,5/10" : "RPE 7–8/10 (RIR 2)"));
+
+      if (cyclePhase && !m.isIronDef) {
+        if (cyclePhase.id === "menstrual") {
+          rpeLabel = "RPE 5,5–6,5/10 (menstrual)";
+        } else if (cyclePhase.id === "luteal") {
+          rpeLabel = m.goal === "hypertrophy" ? "RPE 7–8/10 (lútea)" : "RPE 6,5–7,5/10 (lútea)";
+        }
+      }
 
       const intensityText = m.isIronDef ? "Suave" : (m.goal === "hypertrophy" ? "Alta" : "Moderada");
 
@@ -4606,7 +4932,8 @@
         cardioTarget,
         schedule,
         sexScience,
-        clinicalScience
+        clinicalScience,
+        cyclePhase
       };
     }
 
@@ -4666,7 +4993,13 @@
               <span class="badge">${sexLabel} · ${m.age}a</span>
               <span class="badge badge-mint">${m.goalMeta.shortLabel}</span>
               <span class="badge badge-amber">${condSummary}</span>
+              ${plan.cyclePhase ? `<span class="badge">${plan.cyclePhase.label}</span>` : ""}
             </div>
+            ${plan.cyclePhase ? `
+              <div class="cycle-banner" style="margin-bottom:10px;">
+                <span><strong>${plan.cyclePhase.label}:</strong> ${plan.cyclePhase.trainingCue}</span>
+              </div>
+            ` : ""}
 
             <div style="margin-bottom:9px;">
               <label>Estilo</label>
@@ -5142,6 +5475,7 @@
 
             ${diabetesRationsHtml}
             ${clinicalBlocksHtml}
+            ${m.sex === "F" ? buildCycleSelectorHtml(m) : ""}
           </div>
 
           <details class="clean-details">
@@ -5157,6 +5491,8 @@
               </div>
             </div>
           </details>
+
+          ${buildLabsDetailsHtml(m)}
 
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
@@ -5314,6 +5650,471 @@
           ${circles}
         </svg>
       `;
+    }
+
+    const CYCLE_PHASE_META = {
+      none: { id: "none", label: "Ocultar", short: "Ocultar" },
+      menstrual: {
+        id: "menstrual",
+        label: "🩸 Menstrual",
+        short: "Menstrual",
+        trainingCue: "Baja 1–2 puntos el RPE si notas fatiga; prioriza técnica, Pilates o movilidad sin culpa.",
+        nutritionCue: "Prioriza hierro + vitamina C (limón/tomate) y magnesio; evita café justo después de comer.",
+        hoyShort: "🩸 Menstrual · Prioriza hierro + Vit C y baja 1–2 RPE si hay fatiga."
+      },
+      follicular: {
+        id: "follicular",
+        label: "🌱 Folicular",
+        short: "Folicular",
+        trainingCue: "Energía en ascenso: excelente ventana para fuerza progresiva y mejorar marcas.",
+        nutritionCue: "Buena tolerancia a carbohidratos complejos alrededor del entreno + proteína constante.",
+        hoyShort: "🌱 Folicular · Buena ventana para fuerza progresiva y proteína firme."
+      },
+      ovulatory: {
+        id: "ovulatory",
+        label: "✨ Ovulatoria",
+        short: "Ovulatoria",
+        trainingCue: "Pico de fuerza/energía: cuida el calentamiento, la técnica y la estabilidad articular.",
+        nutritionCue: "Mantén fibra, proteína saciante e hidratación con electrolitos.",
+        hoyShort: "✨ Ovulatoria · Pico de energía · cuida calentamiento y técnica."
+      },
+      luteal: {
+        id: "luteal",
+        label: "🌙 Lútea",
+        short: "Lútea",
+        trainingCue: "Mantén ritmo constante (-0,5 a -1 RPE en días pesados) y prioriza sueño y recuperación.",
+        nutritionCue: "Si hay más apetito o antojos: asegura proteína + grasa saludable (palta, nueces, yogur) y magnesio.",
+        hoyShort: "🌙 Lútea · Asegura proteína + grasa saciante y magnesio; prioriza descanso."
+      }
+    };
+
+    function getActiveCyclePhase(m) {
+      const sex = m ? m.sex : state.bodyProfile?.sex;
+      if (sex !== "F") return null;
+      const phase = state.cycleProfile?.phase || "none";
+      if (!phase || phase === "none" || !CYCLE_PHASE_META[phase]) return null;
+      return CYCLE_PHASE_META[phase];
+    }
+
+    function setCyclePhase(phase) {
+      if (!CYCLE_PHASE_META[phase]) return;
+      state.cycleProfile = { phase };
+      saveState();
+      render();
+      showToast(phase === "none" ? "Fase del ciclo ocultada" : `Fase activa: ${CYCLE_PHASE_META[phase].short}`);
+    }
+
+    function buildCycleSelectorHtml(m) {
+      const current = state.cycleProfile?.phase || "none";
+      const active = getActiveCyclePhase(m);
+      return `
+        <div style="margin-top:11px; padding-top:10px; border-top:1px solid var(--border);">
+          <div class="row-between" style="margin-bottom:6px;">
+            <span style="font-size:12px; font-weight:800; color:var(--text-main);">🌙 Fase del ciclo <span style="font-weight:600; color:var(--text-soft);">(opcional)</span></span>
+            ${active ? `<span class="badge">${active.short}</span>` : ""}
+          </div>
+          <div class="chip-row">
+            ${Object.values(CYCLE_PHASE_META).map(p => `
+              <button class="chip ${current === p.id ? "active" : ""}" onclick="setCyclePhase('${p.id}')">${p.label}</button>
+            `).join("")}
+          </div>
+          ${active ? `
+            <div style="margin-top:7px; font-size:11.5px; color:var(--text-muted); line-height:1.4; background:var(--bg-soft); padding:8px 10px; border-radius:10px; border:1px solid var(--border);">
+              <div><strong>Entreno:</strong> ${active.trainingCue}</div>
+              <div style="margin-top:3px;"><strong>Comida:</strong> ${active.nutritionCue}</div>
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    function computeHomaIr(glucose, insulin) {
+      const g = Number(glucose);
+      const i = Number(insulin);
+      if (!(g > 0) || !(i > 0)) return null;
+      return (g * i) / 405;
+    }
+
+    function evaluateLabMarker(type, val, sex) {
+      const n = Number(val);
+      if (!(n > 0)) return null;
+      if (type === "homa") {
+        if (n < 2.0) return { label: "Óptimo orient.", cls: "ok" };
+        if (n <= 2.5) return { label: "Límite · vigilar", cls: "warn" };
+        return { label: "Elevado orient.", cls: "alert" };
+      }
+      if (type === "ferritin") {
+        if (n < 30) return { label: "Reserva baja", cls: "alert" };
+        if (n <= (sex === "M" ? 300 : 150)) return { label: "Adecuada", cls: "ok" };
+        return { label: "Elevada · consultar", cls: "warn" };
+      }
+      if (type === "b12") {
+        if (n < 300) return { label: "Baja / límite", cls: "alert" };
+        if (n <= 900) return { label: "Adecuada", cls: "ok" };
+        return { label: "Alta", cls: "warn" };
+      }
+      if (type === "vitD") {
+        if (n < 20) return { label: "Déficit", cls: "alert" };
+        if (n < 30) return { label: "Insuficiente", cls: "warn" };
+        if (n <= 100) return { label: "Óptima", cls: "ok" };
+        return { label: "Elevada", cls: "warn" };
+      }
+      if (type === "glucose") {
+        if (n < 100) return { label: "Normal ayunas", cls: "ok" };
+        if (n <= 125) return { label: "Límite ayunas", cls: "warn" };
+        return { label: "Elevada · consultar", cls: "alert" };
+      }
+      if (type === "hba1c") {
+        if (n < 5.7) return { label: "Normal", cls: "ok" };
+        if (n <= 6.4) return { label: "Rango prediabetes", cls: "warn" };
+        return { label: "Elevada · consultar", cls: "alert" };
+      }
+      return null;
+    }
+
+    function buildLabsDetailsHtml(m) {
+      const logs = Array.isArray(state.labLogs) ? state.labLogs : [];
+      const sorted = logs.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      const latest = sorted[0] || null;
+      const latestHoma = latest ? computeHomaIr(latest.glucose, latest.insulin) : null;
+      const summarySub = latest
+        ? `Última: ${latest.date}${latestHoma !== null ? ` · HOMA-IR ${latestHoma.toFixed(2).replace(".", ",")}` : ` · ${logs.length} reg.`}`
+        : "Ferritina, B12, Vit D, HOMA-IR y PDF médico";
+
+      const renderTile = (lbl, val, unit, evalObj) => `
+        <div class="lab-tile">
+          <div class="lab-tile-lbl">${lbl}</div>
+          <div class="lab-tile-val">${Number(val).toFixed(unit === "%" ? 1 : 0).replace(".", ",")} <span style="font-size:10.5px; font-weight:600; color:var(--text-soft);">${unit}</span></div>
+          ${evalObj ? `<span class="lab-status ${evalObj.cls}">${evalObj.label}</span>` : ""}
+        </div>
+      `;
+
+      let latestHtml = "";
+      if (latest) {
+        const tiles = [];
+        if (latestHoma !== null) {
+          const hEval = evaluateLabMarker("homa", latestHoma, m.sex);
+          tiles.push(`
+            <div class="lab-tile homa-highlight">
+              <div>
+                <div class="lab-tile-lbl">Índice HOMA-IR (calculado)</div>
+                <div class="lab-tile-val" style="color:var(--rose-dark);">${latestHoma.toFixed(2).replace(".", ",")}</div>
+                <div style="font-size:10.5px; color:var(--text-soft);">Glucosa ${latest.glucose} · Insulina ${latest.insulin}</div>
+              </div>
+              ${hEval ? `<span class="lab-status ${hEval.cls}">${hEval.label}</span>` : ""}
+            </div>
+          `);
+        }
+        if (latest.ferritin > 0) tiles.push(renderTile("Ferritina", latest.ferritin, "ng/mL", evaluateLabMarker("ferritin", latest.ferritin, m.sex)));
+        if (latest.b12 > 0) tiles.push(renderTile("Vitamina B12", latest.b12, "pg/mL", evaluateLabMarker("b12", latest.b12, m.sex)));
+        if (latest.vitD > 0) tiles.push(renderTile("Vitamina D", latest.vitD, "ng/mL", evaluateLabMarker("vitD", latest.vitD, m.sex)));
+        if (latest.glucose > 0) tiles.push(renderTile("Glucosa ayunas", latest.glucose, "mg/dL", evaluateLabMarker("glucose", latest.glucose, m.sex)));
+        if (latest.hba1c > 0) tiles.push(renderTile("HbA1c", latest.hba1c, "%", evaluateLabMarker("hba1c", latest.hba1c, m.sex)));
+
+        latestHtml = `
+          <div class="lab-grid">${tiles.join("")}</div>
+          ${latest.note ? `<div style="font-size:11.5px; color:var(--text-muted); margin-bottom:9px;">📝 ${escapeHtml(latest.note)}</div>` : ""}
+          ${sorted.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">
+              ${sorted.slice(0, 4).map(entry => {
+                const eh = computeHomaIr(entry.glucose, entry.insulin);
+                const bits = [];
+                if (eh !== null) bits.push(`HOMA ${eh.toFixed(2).replace(".", ",")}`);
+                if (entry.ferritin > 0) bits.push(`Fe ${entry.ferritin}`);
+                if (entry.b12 > 0) bits.push(`B12 ${entry.b12}`);
+                if (entry.vitD > 0) bits.push(`VitD ${entry.vitD}`);
+                if (entry.hba1c > 0) bits.push(`A1c ${entry.hba1c}%`);
+                return `
+                  <div class="row-between" style="padding:6px 9px; background:var(--bg-soft); border-radius:9px; font-size:11.5px; gap:6px;">
+                    <div style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                      <strong>${escapeHtml(entry.date)}</strong> · <span style="color:var(--text-muted);">${bits.join(" · ") || "Registro"}</span>
+                    </div>
+                    <button class="btn-ghost btn-sm" style="padding:2px 6px; color:var(--text-soft);" onclick="deleteLabEntry('${entry.id}')" title="Eliminar">×</button>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          ` : ""}
+        `;
+      } else {
+        latestHtml = `<div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Guarda tus analíticas para seguir evolución de ferritina, B12, vitamina D, glucosa, insulina (HOMA-IR automático) y llevar un PDF limpio a tu consulta.</div>`;
+      }
+
+      return `
+        <details class="clean-details" id="labsDetailsBox">
+          <summary>
+            <div>
+              <div class="card-title" style="margin:0; font-size:14px;">📊 Analíticas &amp; Resumen Médico</div>
+              <div style="font-size:11.5px; color:var(--text-soft);">${summarySub}</div>
+            </div>
+          </summary>
+          <div class="clean-details-body">
+            ${latestHtml}
+            <div class="grid-2">
+              <button class="btn-primary btn-sm" onclick="openAddLabSheet()">+ Analítica</button>
+              <button class="btn-secondary btn-sm" onclick="openPrintableMedicalReport()">📄 Resumen PDF</button>
+            </div>
+          </div>
+        </details>
+      `;
+    }
+
+    function openAddLabSheet() {
+      const today = new Date().toISOString().slice(0, 10);
+      openSheet("Registrar analítica de sangre", `
+        <div class="section-gap">
+          <div>
+            <label>Fecha del análisis</label>
+            <input type="date" id="labDate" value="${today}" />
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Glucosa ayunas (mg/dL)</label>
+              <input type="text" inputmode="decimal" id="labGlucose" placeholder="Ej. 92" oninput="updateHomaPreview()" />
+            </div>
+            <div>
+              <label>Insulina basal (µU/mL)</label>
+              <input type="text" inputmode="decimal" id="labInsulin" placeholder="Ej. 11,5" oninput="updateHomaPreview()" />
+            </div>
+          </div>
+          <div id="homaPreviewBox" style="display:none; padding:8px 11px; border-radius:10px; background:var(--rose-pale); color:var(--rose-dark); font-size:12px; font-weight:750;"></div>
+          <div class="grid-2">
+            <div>
+              <label>Ferritina (ng/mL)</label>
+              <input type="text" inputmode="decimal" id="labFerritin" placeholder="Ej. 28" />
+            </div>
+            <div>
+              <label>Vitamina B12 (pg/mL)</label>
+              <input type="text" inputmode="decimal" id="labB12" placeholder="Ej. 380" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Vitamina D 25-OH (ng/mL)</label>
+              <input type="text" inputmode="decimal" id="labVitD" placeholder="Ej. 32" />
+            </div>
+            <div>
+              <label>HbA1c (%)</label>
+              <input type="text" inputmode="decimal" id="labHba1c" placeholder="Ej. 5,3" />
+            </div>
+          </div>
+          <div>
+            <label>Nota opcional</label>
+            <input type="text" id="labNote" placeholder="Ej. Control semestral en ayunas" />
+          </div>
+          <button class="btn-primary" style="width:100%;" onclick="saveLabEntry()">Guardar analítica</button>
+          <div class="disclaimer-box" style="margin-top:0;">Rellena solo los valores que tengas. Los rangos mostrados son orientativos y no sustituyen el criterio de tu médico.</div>
+        </div>
+      `);
+    }
+
+    function parseOptDecimal(id) {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const raw = String(el.value || "").trim().replace(",", ".");
+      if (!raw) return null;
+      const num = Number(raw);
+      return Number.isFinite(num) && num > 0 ? num : null;
+    }
+
+    function updateHomaPreview() {
+      const box = document.getElementById("homaPreviewBox");
+      if (!box) return;
+      const g = parseOptDecimal("labGlucose");
+      const i = parseOptDecimal("labInsulin");
+      const homa = computeHomaIr(g, i);
+      if (homa !== null) {
+        const ev = evaluateLabMarker("homa", homa, state.bodyProfile.sex);
+        box.style.display = "block";
+        box.textContent = `HOMA-IR calculado: ${homa.toFixed(2).replace(".", ",")} (${ev ? ev.label : ""})`;
+      } else {
+        box.style.display = "none";
+      }
+    }
+
+    function saveLabEntry() {
+      const date = document.getElementById("labDate")?.value || new Date().toISOString().slice(0, 10);
+      const entry = {
+        id: "lab_" + Date.now(),
+        date,
+        glucose: parseOptDecimal("labGlucose"),
+        insulin: parseOptDecimal("labInsulin"),
+        ferritin: parseOptDecimal("labFerritin"),
+        b12: parseOptDecimal("labB12"),
+        vitD: parseOptDecimal("labVitD"),
+        hba1c: parseOptDecimal("labHba1c"),
+        note: String(document.getElementById("labNote")?.value || "").trim()
+      };
+      const hasAny = entry.glucose || entry.insulin || entry.ferritin || entry.b12 || entry.vitD || entry.hba1c;
+      if (!hasAny) {
+        showToast("Ingresa al menos un valor de laboratorio");
+        return;
+      }
+      if (!Array.isArray(state.labLogs)) state.labLogs = [];
+      state.labLogs.push(entry);
+      saveState();
+      closeSheet();
+      render();
+      const box = document.getElementById("labsDetailsBox");
+      if (box) box.open = true;
+      showToast("Analítica guardada ✓");
+    }
+
+    function deleteLabEntry(id) {
+      state.labLogs = (state.labLogs || []).filter(x => x.id !== id);
+      saveState();
+      render();
+      const box = document.getElementById("labsDetailsBox");
+      if (box) box.open = true;
+      showToast("Registro eliminado");
+    }
+
+    function buildPrintableReportDocumentHtml() {
+      const m = getAdaptiveNutritionMetrics();
+      const g = getBodyGoalMetrics();
+      const plan = getAdaptiveTrainingPlan(m);
+      const cycle = getActiveCyclePhase(m);
+      const today = new Date().toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" });
+      const activeConds = (state.clinicalProfile.conditions || [])
+        .map(c => CLINICAL_CONDITION_META[c]?.label)
+        .filter(Boolean);
+      const sortedLabs = (state.labLogs || []).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      const recentWeights = (state.weightLogs || []).slice(-8).reverse();
+      const recentWorkouts = (state.workouts || []).slice(0, 6);
+
+      const labsRows = sortedLabs.length
+        ? sortedLabs.map(l => {
+            const homa = computeHomaIr(l.glucose, l.insulin);
+            return `<tr>
+              <td>${escapeHtml(l.date || "")}</td>
+              <td>${l.ferritin ? l.ferritin + " ng/mL" : "—"}</td>
+              <td>${l.b12 ? l.b12 + " pg/mL" : "—"}</td>
+              <td>${l.vitD ? l.vitD + " ng/mL" : "—"}</td>
+              <td>${l.glucose ? l.glucose + " mg/dL" : "—"}</td>
+              <td>${l.insulin ? l.insulin + " µU/mL" : "—"}</td>
+              <td><strong>${homa !== null ? homa.toFixed(2).replace(".", ",") : "—"}</strong></td>
+              <td>${l.hba1c ? l.hba1c + "%" : "—"}</td>
+            </tr>`;
+          }).join("")
+        : `<tr><td colspan="8" style="text-align:center; color:#666;">Sin analíticas registradas todavía.</td></tr>`;
+
+      return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resumen Médico · MealPrep & NutriTrack</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #22161B; margin: 24px; line-height: 1.45; }
+  h1 { font-size: 20px; margin: 0 0 4px; color: #522639; }
+  h2 { font-size: 14px; margin: 18px 0 8px; color: #6E2F4A; border-bottom: 1px solid #E7DCE1; padding-bottom: 4px; }
+  .sub { font-size: 12px; color: #6E525D; margin-bottom: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .box { background: #FAF7F8; border: 1px solid #E7DCE1; border-radius: 8px; padding: 8px 10px; font-size: 12px; }
+  .box strong { display: block; font-size: 14px; color: #22161B; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 6px; }
+  th, td { border: 1px solid #E7DCE1; padding: 6px 7px; text-align: left; }
+  th { background: #F5EDF1; color: #522639; }
+  .note { margin-top: 16px; font-size: 11px; color: #6E525D; background: #FAF7F8; padding: 10px; border-radius: 8px; border: 1px solid #E7DCE1; }
+  .print-btn { background: #6E2F4A; color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-bottom: 14px; }
+  @media print { .no-print { display: none !important; } body { margin: 12px; } }
+</style>
+</head>
+<body>
+  <button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+  <h1>Resumen de Seguimiento Nutricional &amp; Salud</h1>
+  <div class="sub">Generado con MealPrep &amp; NutriTrack · ${escapeHtml(today)}</div>
+
+  <h2>1. Perfil Clínico y Metas</h2>
+  <div class="grid">
+    <div class="box">Sexo / Edad<strong>${m.sex === "M" ? "Hombre" : "Mujer"} · ${m.age} años</strong></div>
+    <div class="box">Peso / Estatura<strong>${m.weightKg.toFixed(1)} kg · ${m.heightCm} cm (BMI ${m.bmi.toFixed(1)})</strong></div>
+    <div class="box">Objetivo<strong>${escapeHtml(m.goalMeta.shortLabel)} (Meta ${g.milestoneKg} kg)</strong></div>
+    <div class="box">Calorías / Proteína<strong>${m.targetKcal} kcal · ${m.targetProtein} g P</strong></div>
+    <div class="box">Carbohidratos / Grasas<strong>${m.targetCarbs} g C · ${m.targetFat} g G</strong></div>
+    <div class="box">Condiciones activas<strong>${escapeHtml(activeConds.length ? activeConds.join(", ") : "General")}</strong></div>
+  </div>
+  ${cycle ? `<p style="font-size:12px; margin-top:8px;"><strong>Fase del ciclo actual:</strong> ${escapeHtml(cycle.short)}</p>` : ""}
+
+  <h2>2. Analíticas de Sangre e Índice HOMA-IR</h2>
+  <table>
+    <thead>
+      <tr><th>Fecha</th><th>Ferritina</th><th>Vit B12</th><th>Vit D</th><th>Glucosa</th><th>Insulina</th><th>HOMA-IR</th><th>HbA1c</th></tr>
+    </thead>
+    <tbody>${labsRows}</tbody>
+  </table>
+
+  <h2>3. Evolución de Peso y Actividad Reciente</h2>
+  <div class="grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="box">
+      Últimos pesajes
+      <div style="margin-top:5px;">${recentWeights.map(w => `${escapeHtml(w.date)}: <b>${Number(w.weight).toFixed(1)} kg</b>`).join("<br/>")}</div>
+    </div>
+    <div class="box">
+      Plan y entrenamientos (${escapeHtml(plan.planTitle)})
+      <div style="margin-top:5px;">${recentWorkouts.length ? recentWorkouts.map(w => `${escapeHtml(w.date)}: ${escapeHtml(w.type)} (${w.minutes} min)`).join("<br/>") : "Sin entrenamientos registrados"}</div>
+    </div>
+  </div>
+
+  <h2>4. Protocolo / Suplementación Habitual y Notas</h2>
+  <div class="box">
+    ${(state.meds || []).map(med => `• <b>${escapeHtml(med.name)}</b> — ${escapeHtml(med.dose)}`).join("<br/>") || "Sin tomas registradas"}
+    ${state.glucoseNote ? `<div style="margin-top:6px; border-top:1px solid #E7DCE1; padding-top:6px;"><b>Nota personal:</b> ${escapeHtml(state.glucoseNote)}</div>` : ""}
+  </div>
+
+  <div class="note">
+    Documento generado automáticamente a partir del autorregistro del usuario para facilitar la consulta con médico, endocrinólogo o nutricionista. Los cálculos e indicadores son orientativos y no constituyen diagnóstico médico.
+  </div>
+</body>
+</html>`;
+    }
+
+    function openPrintableMedicalReport() {
+      const m = getAdaptiveNutritionMetrics();
+      const sortedLabs = (state.labLogs || []).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      const latest = sortedLabs[0] || null;
+      const latestHoma = latest ? computeHomaIr(latest.glucose, latest.insulin) : null;
+      const activeConds = (state.clinicalProfile.conditions || [])
+        .map(c => CLINICAL_CONDITION_META[c]?.short)
+        .filter(Boolean);
+
+      openSheet("📄 Resumen Médico (PDF)", `
+        <div class="section-gap">
+          <div class="card-soft">
+            <div style="font-size:13px; font-weight:800; color:var(--rose-dark); margin-bottom:6px;">Vista previa para tu consulta</div>
+            <div style="font-size:12px; color:var(--text-main); line-height:1.5;">
+              <div><strong>Perfil:</strong> ${m.sex === "M" ? "Hombre" : "Mujer"} · ${m.age} años · ${m.weightKg.toFixed(1)} kg · ${m.heightCm} cm (BMI ${m.bmi.toFixed(1)})</div>
+              <div><strong>Enfoque:</strong> ${m.goalMeta.shortLabel} · ${activeConds.length ? activeConds.join(", ") : "General"}</div>
+              <div><strong>Metas diarias:</strong> ${m.targetKcal} kcal · ${m.targetProtein}g P · ${m.targetCarbs}g C · ${m.targetFat}g G</div>
+              <div><strong>Analíticas:</strong> ${sortedLabs.length ? `${sortedLabs.length} registro(s) · última ${latest.date}${latestHoma !== null ? ` (HOMA-IR ${latestHoma.toFixed(2).replace(".", ",")})` : ""}` : "Sin analíticas aún (se exporta perfil, peso y protocolo)"}</div>
+            </div>
+          </div>
+          <button class="btn-primary" style="width:100%;" onclick="printMedicalReportNow()">🖨️ Imprimir / Guardar como PDF</button>
+          <div style="font-size:11px; color:var(--text-soft); text-align:center;">En iPhone o navegador elige <strong>Guardar como PDF</strong> en el diálogo de impresión.</div>
+        </div>
+      `);
+    }
+
+    function printMedicalReportNow() {
+      const docHtml = buildPrintableReportDocumentHtml();
+      const popup = window.open("", "_blank");
+      if (popup) {
+        popup.document.open();
+        popup.document.write(docHtml);
+        popup.document.close();
+        setTimeout(() => { try { popup.focus(); popup.print(); } catch (e) {} }, 250);
+      } else {
+        const blob = new Blob([docHtml], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `resumen-medico-${new Date().toISOString().slice(0, 10)}.html`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast("Resumen descargado (ábrelo y pulsa Imprimir → PDF)");
+      }
     }
 
     function setProfileSex(sex) {
