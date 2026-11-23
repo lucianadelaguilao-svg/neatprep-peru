@@ -84,7 +84,6 @@
       }
     }
 
-    /* Topbar */
     .topbar {
       background: rgba(253, 247, 249, 0.95);
       backdrop-filter: blur(12px);
@@ -175,7 +174,6 @@
       color: var(--text-soft);
     }
 
-    /* Scroll Area */
     .scroll-area {
       flex: 1;
       overflow-y: auto;
@@ -337,7 +335,6 @@
       color: var(--amber-text);
     }
 
-    /* Recipe Cards */
     .recipe-card {
       background: var(--bg-surface);
       border: 1px solid var(--border);
@@ -380,7 +377,6 @@
       border-radius: var(--radius-sm);
     }
 
-    /* Forms */
     input[type="text"],
     input[type="number"],
     input[type="date"],
@@ -423,7 +419,6 @@
       gap: 8px;
     }
 
-    /* Check List */
     .check-item {
       display: flex;
       align-items: center;
@@ -474,7 +469,6 @@
       text-overflow: ellipsis;
     }
 
-    /* Progress & BMI Scale */
     .progress-track {
       height: 8px;
       background: var(--bg-tint);
@@ -509,7 +503,6 @@
       transform: translateX(-50%);
     }
 
-    /* Satiety Pills */
     .satiety-row {
       display: flex;
       align-items: center;
@@ -533,7 +526,6 @@
       color: #fff;
     }
 
-    /* Bottom Navigation */
     .bottom-nav {
       height: var(--nav-height);
       padding-bottom: env(safe-area-inset-bottom);
@@ -567,7 +559,6 @@
       line-height: 1.1;
     }
 
-    /* Bottom Sheet */
     .sheet-backdrop {
       position: fixed;
       inset: 0;
@@ -658,7 +649,6 @@
 </head>
 <body>
   <div class="phone-shell">
-    <!-- Top Header -->
     <header class="topbar">
       <div class="topbar-row">
         <div class="brand">
@@ -673,10 +663,8 @@
       <div class="macro-strip" id="headerMacroStrip"></div>
     </header>
 
-    <!-- Main Scroll View -->
     <main class="scroll-area" id="mainContent"></main>
 
-    <!-- Bottom Navigation -->
     <nav class="bottom-nav" aria-label="Navegación principal">
       <button class="nav-btn active" data-tab="hoy" onclick="switchTab('hoy')">
         <span class="nav-icon">⚡</span>
@@ -705,7 +693,6 @@
     </nav>
   </div>
 
-  <!-- Bottom Sheet -->
   <div class="sheet-backdrop" id="sheetBackdrop" onclick="handleBackdropClick(event)">
     <div class="sheet-panel" role="dialog" aria-modal="true">
       <div class="sheet-header">
@@ -724,7 +711,6 @@
   <script>
     const STORAGE_KEY = "neatprep_nutritrack_v2";
 
-    // Precios base calibrados de referencia REWE (€ por kg, L o unidad) + formato comercial típico
     const DEFAULT_PRICES = {
       pechuga_pollo: { name: "Pechuga de pollo", unit: "kg", aisle: "Carnes", price: 11.32, packSize: 0.6, packLabel: "bandeja 600 g" },
       carne_magra: { name: "Carne magra / molida res", unit: "kg", aisle: "Carnes", price: 17.98, packSize: 0.5, packLabel: "bandeja 500 g" },
@@ -1158,7 +1144,16 @@
     function updateHeader() {
       const spent = getTotalShoppingCost();
       const pill = document.getElementById("headerBudgetPill");
-      pill.textContent = `${fmtEur(spent)} / ${fmtEur(state.budget)}`; if (spent > state.budget) { pill.style.background = "var(--danger-bg)"; pill.style.color = "var(--danger-text)"; } else { pill.style.background = "var(--bg-soft)"; pill.style.color = "var(--rose-badge-text)"; }  document.getElementById("headerSub").textContent = `${state.supermarket} · 5 tápers L–V`;
+      pill.textContent = `${fmtEur(spent)} / ${fmtEur(state.budget)}`;
+      if (spent > state.budget) {
+        pill.style.background = "var(--danger-bg)";
+        pill.style.color = "var(--danger-text)";
+      } else {
+        pill.style.background = "var(--bg-soft)";
+        pill.style.color = "var(--rose-badge-text)";
+      }
+
+      document.getElementById("headerSub").textContent = `${state.supermarket} · 5 tápers L–V`;
 
       const days = Object.keys(state.tapers);
       let avgKcal = 0, avgProt = 0, avgCarbs = 0, count = 0;
@@ -1179,7 +1174,7 @@
 
       document.getElementById("headerMacroStrip").innerHTML = `
         <div>
-          <div class="macro-item-val">${avgKcal} /${state.targets.kcal} kcal</div>
+          <div class="macro-item-val">${avgKcal} / ${state.targets.kcal} kcal</div>
           <div class="macro-item-lbl">Táper vs meta día</div>
         </div>
         <div>
@@ -1213,7 +1208,6 @@
       else if (currentTab === "cocina") renderCocina(container);
     }
 
-    /* ---------------- TAB 1: HOY ---------------- */
     function renderHoy(container) {
       const quickList = state.recipes.filter(r => {
         if (!r.quickToday) return false;
@@ -1247,7 +1241,7 @@
             <div class="row-between">
               <div>
                 <div style="font-size:13px; font-weight:750;">Resistencia a la Insulina &amp; Pasos hoy</div>
-                <div class="card-sub">Tomas: <strong>${medsDone}/${state.meds.length}</strong> · Pasos: <strong>${Number(todayStepsObj.steps \vert{}\vert{} 0).toLocaleString("es-ES")}</strong> / ${Number(state.stepsGoal).toLocaleString("es-ES")}</div>
+                <div class="card-sub">Tomas: <strong>${medsDone}/${state.meds.length}</strong> · Pasos: <strong>${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")}</strong> / ${Number(state.stepsGoal).toLocaleString("es-ES")}</div>
               </div>
               <button class="btn-secondary btn-sm" onclick="switchTab('progreso')">Registrar</button>
             </div>
@@ -1276,7 +1270,8 @@
             <div>
               <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px;">
                 <span class="badge">${r.category}</span>
-                <span class="badge badge-mint">⏱ ${r.timeMin} min</span>${r.tiktokUrl ? `<span class="badge badge-amber">🎵 TikTok Fit</span>` : ""}
+                <span class="badge badge-mint">⏱ ${r.timeMin} min</span>
+                ${r.tiktokUrl ? `<span class="badge badge-amber">🎵 TikTok Fit</span>` : ""}
                 ${!hasAppliance ? `<span class="badge" style="background:var(--danger-bg);color:var(--danger-text);">Revisar aparato</span>` : ""}
               </div>
               <h3 class="recipe-title">${r.title}</h3>
@@ -1306,8 +1301,10 @@
     function shareRecipe(id) {
       const r = state.recipes.find(x => x.id === id);
       if (!r) return;
-      const text = `🍲 ${r.title} (${r.kcal} kcal | ${r.protein}g prot \vert{}${r.carbs}g carb)\nIngredientes:\n` +
-        (r.ingredients || []).map(i => `• ${i.label}`).join("\n") + `\nPasos:\n` + (r.steps \vert{}\vert{} []).map((s, idx) => `${idx + 1}. ${s}`).join("\n") + (r.tiktokUrl ? `\nVideo: ${r.tiktokUrl}` : "");
+      const text = `🍲 ${r.title} (${r.kcal} kcal | ${r.protein}g prot | ${r.carbs}g carb)\nIngredientes:\n` +
+        (r.ingredients || []).map(i => `• ${i.label}`).join("\n") +
+        `\nPasos:\n` + (r.steps || []).map((s, idx) => `${idx + 1}. ${s}`).join("\n") +
+        (r.tiktokUrl ? `\nVideo: ${r.tiktokUrl}` : "");
 
       if (navigator.share) {
         navigator.share({ title: r.title, text }).catch(() => {});
@@ -1318,7 +1315,6 @@
       }
     }
 
-    /* ---------------- TAB 2: RECETAS & TIKTOK FIT ---------------- */
     function renderRecetas(container) {
       const cats = ["Todas", "Pollo", "Carne", "Atún / Salmón", "Lentejas", "TikTok Fit"];
       const filtered = state.recipes.filter(r => {
@@ -1351,12 +1347,10 @@
       render();
     }
 
-    /* ---------------- TAB 3: TÁPERS L–V & BATCH COOKING ---------------- */
     function renderTapers(container) {
       const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
       let totalKcal = 0, totalProt = 0, totalCarbs = 0;
 
-      // Contar cuántas veces aparece cada receta (batch cooking)
       const counts = {};
       days.forEach(d => {
         const id = state.tapers[d];
@@ -1376,7 +1370,8 @@
           <div class="card">
             <div class="row-between" style="margin-bottom:6px;">
               <div style="display:flex; gap:6px; align-items:center;">
-                <span class="badge">${day}</span>${batchCount > 1 ? `<span class="badge badge-mint">Batch ×${batchCount}</span>` : ""}
+                <span class="badge">${day}</span>
+                ${batchCount > 1 ? `<span class="badge badge-mint">Batch ×${batchCount}</span>` : ""}
               </div>
               <span class="recipe-price">${fmtEur(getRecipeCost(r, 1, true))}</span>
             </div>
@@ -1390,7 +1385,7 @@
 
             <div style="margin-bottom:8px;">
               <label style="font-size:10.5px;">Resto del día (desayuno / cena / snacks)</label>
-              <input type="text" style="font-size:12px; padding:6px 9px;" value="${escapeAttr(state.dayExtras[day] \vert{}\vert{} "")}" onchange="updateDayExtra('${day}', this.value)" placeholder="Añade desayuno y cena para cuadrar macros..." />
+              <input type="text" style="font-size:12px; padding:6px 9px;" value="${escapeAttr(state.dayExtras[day] || "")}" onchange="updateDayExtra('${day}', this.value)" placeholder="Añade desayuno y cena para cuadrar macros..." />
             </div>
 
             <div class="row-between" style="margin-bottom:9px;">
@@ -1433,7 +1428,7 @@
       state.satietyScores[day] = score;
       saveState();
       render();
-      showToast(`Saciedad ${day}:${score}/5`);
+      showToast(`Saciedad ${day}: ${score}/5`);
     }
 
     function updateDayExtra(day, val) {
@@ -1452,7 +1447,6 @@
       showToast("Tápers L–V actualizados");
     }
 
-    /* ---------------- TAB 4: SÚPER (FORMATOS REALES + MODO PASILLO) ---------------- */
     function renderSuper(container) {
       const list = getShoppingList();
       const totalCost = getTotalShoppingCost();
@@ -1496,7 +1490,7 @@
             <div class="row-between" style="margin-bottom:8px;">
               <div>
                 <div class="card-title">Súper · ${state.supermarket}</div>
-                <div class="card-sub">Estimado porción: <strong>${fmtEur(totalCost)}</strong> /${fmtEur(state.budget)}</div>
+                <div class="card-sub">Estimado porción: <strong>${fmtEur(totalCost)}</strong> / ${fmtEur(state.budget)}</div>
               </div>
               <div style="display:flex; gap:6px;">
                 <button class="btn-secondary btn-sm" onclick="toggleWakeLock()">${wakeLockObj ? "💡 Pantalla fija" : "💡 Modo pasillo"}</button>
@@ -1552,7 +1546,6 @@
       render();
     }
 
-    /* ---------------- TAB 5: PROGRESO (BMI ARREGLADO SIN % GRASA, GRÁFICA PESO, PASOS, INSULINA, DEPORTE) ---------------- */
     function renderProgreso(container) {
       const latestW = state.weightLogs[state.weightLogs.length - 1] || { weight: 66.1, date: "Hoy" };
       const firstW = state.weightLogs[0] || latestW;
@@ -1562,7 +1555,6 @@
       const heightM = heightCm / 100;
       const weightKg = Math.max(30, Number(latestW.weight) || 66.1);
 
-      // Cálculo BMI exacto
       const bmi = weightKg / (heightM * heightM);
       let bmiCategory = "Normopeso";
       let bmiColor = "var(--mint-text)";
@@ -1577,12 +1569,10 @@
         bmiColor = "var(--danger-text)";
       }
 
-      // Posición visual del marcador BMI entre 16 y 35
       const bmiPct = Math.max(4, Math.min(96, ((bmi - 16) / (35 - 16)) * 100));
       const healthyMinKg = (18.5 * heightM * heightM).toFixed(1);
       const healthyMaxKg = (24.9 * heightM * heightM).toFixed(1);
 
-      // Mifflin-St Jeor (Femenino por defecto: -161)
       const age = Math.max(15, Number(state.bodyProfile.age) || 22);
       const bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * age - 161);
       const activity = Number(state.bodyProfile.activity) || 1.55;
@@ -1591,7 +1581,6 @@
       const targetKcal = Math.max(1200, tdee - deficitVal);
       const suggestedProt = Math.round(weightKg * 1.9);
 
-      // Ajuste inteligente de carbos si hoy hubo entrenamiento
       const todayStr = new Date().toISOString().slice(0, 10);
       const trainedToday = state.workouts.some(w => w.date === todayStr);
       const carbTargetToday = trainedToday ? 145 : 120;
@@ -1603,14 +1592,13 @@
 
       container.innerHTML = `
         <div class="section-gap">
-          <!-- Calculadora Clínica BMI & Déficit -->
           <div class="card">
             <div class="row-between" style="margin-bottom:4px;">
               <div>
                 <div class="card-title">Calculadora de BMI &amp; Déficit Calórico</div>
                 <div class="card-sub">Peso actual: <strong>${weightKg} kg</strong> · Rango normopeso (${heightCm} cm): <strong>${healthyMinKg}–${healthyMaxKg} kg</strong></div>
               </div>
-              <span class="badge" style="color:${bmiColor};">${bmi.toFixed(1)} ·${bmiCategory}</span>
+              <span class="badge" style="color:${bmiColor};">${bmi.toFixed(1)} · ${bmiCategory}</span>
             </div>
 
             <div class="bmi-bar">
@@ -1665,4 +1653,639 @@
               </div>
             </div>
 
-            <div style
+            <div style="margin-top:9px; font-size:11.5px; color:var(--text-muted);">
+              Proteína objetivo: <strong>${suggestedProt} g/día</strong> · Carbos sugeridos hoy (${trainedToday ? "día de entreno" : "día base"}): <strong>≤${carbTargetToday} g</strong>.
+            </div>
+            <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="applyCalculatedTargets(${targetKcal}, ${suggestedProt}, ${carbTargetToday})">
+              Aplicar ${targetKcal} kcal y ${suggestedProt}g prot a mi plan
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="row-between" style="margin-bottom:8px;">
+              <div>
+                <div class="card-title">Evolución de Peso (kg)</div>
+                <div class="card-sub">Actual: <strong>${weightKg} kg</strong> (${Number(diffW) <= 0 ? diffW : "+" + diffW} kg desde inicio)</div>
+              </div>
+              <button class="btn-secondary btn-sm" onclick="openWeightLogSheet()">+ Registrar peso</button>
+            </div>
+            ${renderWeightChartSvg(state.weightLogs)}
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+              ${state.weightLogs.slice().reverse().slice(0, 5).map(w => `
+                <div class="row-between" style="padding:7px 10px; background:var(--bg-soft); border-radius:var(--radius-sm); font-size:12.5px;">
+                  <span>${w.date}</span>
+                  <strong>${Number(w.weight).toFixed(1)} kg</strong>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row-between" style="margin-bottom:6px;">
+              <div>
+                <div class="card-title">Pasos Diarios</div>
+                <div class="card-sub">${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")} / ${Number(state.stepsGoal).toLocaleString("es-ES")} pasos (${stepsPct}%)</div>
+              </div>
+              <button class="btn-secondary btn-sm" onclick="openStepsSheet()">+ Anotar pasos</button>
+            </div>
+            <div class="progress-track"><div class="progress-fill" style="width:${stepsPct}%;"></div></div>
+            <div style="font-size:11px; color:var(--text-soft); margin-top:6px;">
+              Tip iPhone: ejecuta tu Atajo <strong>"Pasos Hoy"</strong> en Salud y pega el total aquí.
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row-between" style="margin-bottom:8px;">
+              <div>
+                <div class="card-title">Resistencia a la Insulina</div>
+                <div class="card-sub">Adherencia diaria: ${medsDone}/${state.meds.length}</div>
+              </div>
+              <button class="btn-secondary btn-sm" onclick="openAddMedSheet()">+ Toma</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:10px;">
+              ${state.meds.map(m => `
+                <div class="check-item ${m.checked ? "done" : ""}" onclick="toggleMed('${m.id}')">
+                  <div class="check-left">
+                    <div class="check-box">${m.checked ? "✓" : ""}</div>
+                    <div>
+                      <div class="check-label">${m.name}</div>
+                      <div style="font-size:11px; color:var(--text-soft);">${m.dose}</div>
+                    </div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+            <label>Nota clínica / glucemia / energía</label>
+            <input type="text" value="${escapeAttr(state.glucoseNote || "")}" onchange="updateGlucoseNote(this.value)" placeholder="Ej. Ayunas 88 mg/dL, sin picos de hambre..." />
+          </div>
+
+          <div class="card">
+            <div class="row-between" style="margin-bottom:8px;">
+              <div>
+                <div class="card-title">Deporte &amp; Entrenamiento</div>
+                <div class="card-sub">Fuerza, natación y actividad física.</div>
+              </div>
+              <button class="btn-primary btn-sm" onclick="openAddWorkoutSheet()">+ Sesión</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              ${state.workouts.slice().reverse().slice(0, 5).map(wo => `
+                <div class="row-between" style="padding:8px 10px; background:var(--bg-soft); border-radius:var(--radius-sm); font-size:12.5px;">
+                  <div>
+                    <strong>${wo.type}</strong>
+                    <div style="font-size:11px; color:var(--text-muted);">${wo.date} · Intensidad ${wo.intensity}</div>
+                  </div>
+                  <span class="badge badge-mint">${wo.minutes} min</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderWeightChartSvg(logs) {
+      if (!logs || logs.length < 2) {
+        return `<div style="font-size:12px; color:var(--text-soft); padding:8px; background:var(--bg-soft); border-radius:10px;">Registra al menos 2 fechas de peso para ver la curva de evolución.</div>`;
+      }
+      const recent = logs.slice(-8);
+      const weights = recent.map(x => Number(x.weight));
+      const minW = Math.min(...weights) - 0.5;
+      const maxW = Math.max(...weights) + 0.5;
+      const span = Math.max(0.5, maxW - minW);
+      const W = 340, H = 96, padX = 18, padY = 16;
+
+      const pts = recent.map((item, idx) => {
+        const x = padX + (idx / (recent.length - 1)) * (W - padX * 2);
+        const y = H - padY - ((Number(item.weight) - minW) / span) * (H - padY * 2);
+        return { x, y, w: Number(item.weight).toFixed(1) };
+      });
+
+      const polyline = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+      const circles = pts.map(p => `
+        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="#B5436A" />
+        <text x="${p.x.toFixed(1)}" y="${(p.y - 7).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#6E525D">${p.w}</text>
+      `).join("");
+
+      return `
+        <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:96px; background:var(--bg-soft); border-radius:12px; border:1px solid var(--border);">
+          <polyline fill="none" stroke="#D45B84" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${polyline}" />
+          ${circles}
+        </svg>
+      `;
+    }
+
+    function updateBodyProfile() {
+      state.bodyProfile.heightCm = Math.max(120, Math.min(220, Number(document.getElementById("bpHeight").value) || 165));
+      state.bodyProfile.age = Math.max(15, Math.min(90, Number(document.getElementById("bpAge").value) || 22));
+      state.bodyProfile.activity = Number(document.getElementById("bpActivity").value) || 1.55;
+      state.bodyProfile.deficit = Number(document.getElementById("bpDeficit").value) || 400;
+      saveState();
+      render();
+    }
+
+    function applyCalculatedTargets(kcal, prot, carbsMax) {
+      state.targets.kcal = kcal;
+      state.targets.protein = prot;
+      if (carbsMax) state.targets.carbsMax = carbsMax;
+      saveState();
+      updateHeader();
+      showToast(`Metas aplicadas: ${kcal} kcal · ${prot}g proteína`);
+    }
+
+    function toggleMed(id) {
+      const item = state.meds.find(m => m.id === id);
+      if (item) {
+        item.checked = !item.checked;
+        saveState();
+        render();
+      }
+    }
+
+    function updateGlucoseNote(val) {
+      state.glucoseNote = val;
+      saveState();
+    }
+
+    function renderCocina(container) {
+      const appliancesList = [
+        { id: "sarten", label: "Sartén" },
+        { id: "olla", label: "Olla" },
+        { id: "airfryer", label: "Airfryer" },
+        { id: "horno", label: "Horno" },
+        { id: "licuadora", label: "Licuadora" }
+      ];
+
+      const pantryKeys = Object.keys(state.prices);
+
+      container.innerHTML = `
+        <div class="section-gap">
+          <div class="card">
+            <div class="card-title">Presupuesto &amp; Metas Diarias</div>
+            <div class="grid-3" style="margin-top:8px;">
+              <div>
+                <label>Presupuesto (€)</label>
+                <input type="number" step="1" value="${state.budget}" onchange="updateBudget(this.value)" />
+              </div>
+              <div>
+                <label>Meta kcal/día</label>
+                <input type="number" step="25" value="${state.targets.kcal}" onchange="updateTargetKcal(this.value)" />
+              </div>
+              <div>
+                <label>Meta pasos</label>
+                <input type="number" step="500" value="${state.stepsGoal}" onchange="updateStepsGoal(this.value)" />
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Aparatos en tu cocina</div>
+            <div class="chip-row" style="margin-top:8px;">
+              ${appliancesList.map(ap => {
+                const active = state.appliances.includes(ap.id);
+                return `<button class="chip ${active ? "active" : ""}" onclick="toggleAppliance('${ap.id}')">${ap.label}</button>`;
+              }).join("")}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Lo que ya tienes en casa (${state.pantryKeys.length})</div>
+            <div class="card-sub" style="margin-bottom:8px;">Se descuenta de tu lista del súper y estimado de gasto.</div>
+            <div class="chip-row">
+              ${pantryKeys.map(k => {
+                const active = state.pantryKeys.includes(k);
+                const label = state.prices[k]?.name || k;
+                return `<button class="chip ${active ? "active" : ""}" onclick="togglePantry('${k}')">${label}</button>`;
+              }).join("")}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Copia de Seguridad &amp; Precios</div>
+            <div class="card-sub" style="margin-bottom:9px;">Descarga tus datos para no perder registros al limpiar Safari.</div>
+            <div class="grid-2" style="margin-bottom:8px;">
+              <button class="btn-secondary" onclick="exportBackupJson()">Exportar respaldo JSON</button>
+              <button class="btn-secondary" onclick="openImportBackupSheet()">Importar respaldo</button>
+            </div>
+            <div class="grid-2">
+              <button class="btn-ghost" onclick="resetDemoData()">Restablecer fábrica</button>
+              <button class="btn-primary" onclick="openPriceEditorSheet()">Precios ${state.supermarket}</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateBudget(val) {
+      state.budget = Math.max(10, Number(val) || 45);
+      saveState();
+      updateHeader();
+    }
+
+    function updateTargetKcal(val) {
+      state.targets.kcal = Math.max(1000, Number(val) || 1650);
+      saveState();
+      updateHeader();
+    }
+
+    function updateStepsGoal(val) {
+      state.stepsGoal = Math.max(2000, Number(val) || 9000);
+      saveState();
+    }
+
+    function toggleAppliance(id) {
+      if (state.appliances.includes(id)) {
+        state.appliances = state.appliances.filter(x => x !== id);
+      } else {
+        state.appliances.push(id);
+      }
+      saveState();
+      render();
+    }
+
+    function togglePantry(key) {
+      if (state.pantryKeys.includes(key)) {
+        state.pantryKeys = state.pantryKeys.filter(x => x !== key);
+      } else {
+        state.pantryKeys.push(key);
+      }
+      saveState();
+      render();
+    }
+
+    function exportBackupJson() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const a = document.createElement("a");
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", `neatprep-respaldo-${new Date().toISOString().slice(0, 10)}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast("Respaldo JSON descargado");
+    }
+
+    function openImportBackupSheet() {
+      openSheet("Restaurar copia de seguridad", `
+        <p class="card-sub">Pega el contenido de tu archivo de respaldo JSON para recuperar tus datos.</p>
+        <textarea id="importJsonArea" rows="6" placeholder='{"supermarket":"REWE", ...}'></textarea>
+        <button class="btn-primary" onclick="applyImportBackup()">Restaurar datos</button>
+      `);
+    }
+
+    function applyImportBackup() {
+      try {
+        const raw = document.getElementById("importJsonArea").value.trim();
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") throw new Error();
+        state = { ...JSON.parse(JSON.stringify(DEFAULT_STATE)), ...parsed };
+        saveState();
+        closeSheet();
+        render();
+        showToast("Respaldo restaurado con éxito");
+      } catch (e) {
+        showToast("JSON inválido, revisa el texto pegado");
+      }
+    }
+
+    function resetDemoData() {
+      localStorage.removeItem(STORAGE_KEY);
+      state = loadState();
+      render();
+      showToast("Datos restablecidos");
+    }
+
+    function openSheet(title, html) {
+      document.getElementById("sheetTitle").textContent = title;
+      document.getElementById("sheetBody").innerHTML = html;
+      document.getElementById("sheetBackdrop").classList.add("open");
+    }
+
+    function closeSheet() {
+      document.getElementById("sheetBackdrop").classList.remove("open");
+    }
+
+    function handleBackdropClick(e) {
+      if (e.target.id === "sheetBackdrop") closeSheet();
+    }
+
+    function openRecipeSheet(id) {
+      const r = state.recipes.find(x => x.id === id);
+      if (!r) return;
+      openSheet(r.title, `
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <span class="badge">${r.category}</span>
+          <span class="badge badge-mint">⏱ ${r.timeMin} min</span>
+          <span class="badge">${r.kcal} kcal · ${r.protein}g prot</span>
+        </div>
+        ${r.tiktokUrl ? `<a href="${escapeAttr(r.tiktokUrl)}" target="_blank" rel="noopener" class="btn-secondary">Ver video original en TikTok ↗</a>` : ""}
+        <div>
+          <strong style="font-size:13px;">Ingredientes (1 porción)</strong>
+          <ul style="margin:6px 0 0; padding-left:18px; font-size:13px;">
+            ${(r.ingredients || []).map(i => `<li>${i.label} ${state.pantryKeys.includes(i.key) ? "<em>(en casa)</em>" : ""}</li>`).join("")}
+          </ul>
+        </div>
+        <div>
+          <strong style="font-size:13px;">Preparación rápida</strong>
+          <ol style="margin:6px 0 0; padding-left:18px; font-size:13px;">
+            ${(r.steps || []).map(s => `<li style="margin-bottom:5px;">${s}</li>`).join("")}
+          </ol>
+        </div>
+        <div class="grid-2">
+          <button class="btn-secondary" onclick="shareRecipe('${r.id}')">Compartir receta</button>
+          <button class="btn-primary" onclick="openBatchAssignSheet('${r.id}')">+ Batch / Tápers</button>
+        </div>
+      `);
+    }
+
+    function openBatchAssignSheet(recipeId) {
+      const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+      openSheet("Batch Cooking · Asignar días", `
+        <p class="card-sub">Marca uno o varios días de lunes a viernes para cocinar por lotes:</p>
+        <div style="display:flex; flex-direction:column; gap:7px;">
+          ${days.map(d => {
+            const isCurrent = state.tapers[d] === recipeId;
+            return `
+              <label class="check-item" style="margin:0; cursor:pointer;">
+                <div class="check-left">
+                  <input type="checkbox" class="batch-day-cb" value="${d}" ${isCurrent ? "checked" : ""} style="width:18px; height:18px; accent-color:var(--rose);" />
+                  <span class="check-label">${d} <small style="color:var(--text-soft);">(${(state.recipes.find(x => x.id === state.tapers[d]) || {}).title || ""})</small></span>
+                </div>
+              </label>
+            `;
+          }).join("")}
+        </div>
+        <button class="btn-primary" onclick="saveBatchAssign('${recipeId}')">Aplicar a días seleccionados</button>
+      `);
+    }
+
+    function saveBatchAssign(recipeId) {
+      const cbs = Array.from(document.querySelectorAll(".batch-day-cb:checked"));
+      if (!cbs.length) {
+        showToast("Selecciona al menos un día");
+        return;
+      }
+      cbs.forEach(cb => {
+        state.tapers[cb.value] = recipeId;
+      });
+      saveState();
+      closeSheet();
+      render();
+      showToast(`Asignado a ${cbs.length} día(s)`);
+    }
+
+    function openDaySelectorSheet(day) {
+      openSheet(`Plato para ${day}`, `
+        ${state.recipes.map(r => `
+          <button class="btn-secondary" style="justify-content:space-between; text-align:left;" onclick="assignRecipeToDay('${day}', '${r.id}')">
+            <span><strong>${r.title}</strong><br><small style="color:var(--text-muted);">${r.kcal} kcal · ${r.protein}g prot · ${r.timeMin} min</small></span>
+            <span>${fmtEur(getRecipeCost(r, 1, true))}</span>
+          </button>
+        `).join("")}
+      `);
+    }
+
+    function assignRecipeToDay(day, recipeId) {
+      state.tapers[day] = recipeId;
+      saveState();
+      closeSheet();
+      render();
+      showToast(`${day} actualizado`);
+    }
+
+    function openAddTikTokSheet() {
+      openSheet("Añadir receta fit de TikTok", `
+        <div>
+          <label>Nombre de la receta</label>
+          <input type="text" id="ttTitle" placeholder="Ej. Bowl de pollo teriyaki fit" />
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Categoría</label>
+            <select id="ttCat">
+              <option value="Pollo">Pollo</option>
+              <option value="Carne">Carne</option>
+              <option value="Atún / Salmón">Atún / Salmón</option>
+              <option value="Lentejas">Lentejas</option>
+            </select>
+          </div>
+          <div>
+            <label>Tiempo (min)</label>
+            <input type="number" id="ttTime" value="15" />
+          </div>
+        </div>
+        <div class="grid-3">
+          <div>
+            <label>Kcal</label>
+            <input type="number" id="ttKcal" value="400" />
+          </div>
+          <div>
+            <label>Proteína (g)</label>
+            <input type="number" id="ttProt" value="40" />
+          </div>
+          <div>
+            <label>Carbos (g)</label>
+            <input type="number" id="ttCarb" value="30" />
+          </div>
+        </div>
+        <div>
+          <label>Enlace de TikTok (opcional)</label>
+          <input type="url" id="ttUrl" placeholder="https://www.tiktok.com/..." />
+        </div>
+        <div>
+          <label>Ingrediente principal del súper</label>
+          <select id="ttIngKey">
+            ${Object.entries(state.prices).map(([k, v]) => `<option value="${k}">${v.name} (${v.unit})</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label>Notas / pasos breves</label>
+          <textarea id="ttNotes" rows="2" placeholder="Pasos clave o tip de conservación..."></textarea>
+        </div>
+        <button class="btn-primary" onclick="saveTikTokRecipe()">Guardar receta fit</button>
+      `);
+    }
+
+    function saveTikTokRecipe() {
+      const title = document.getElementById("ttTitle").value.trim();
+      if (!title) {
+        showToast("Escribe el nombre de la receta");
+        return;
+      }
+      const key = document.getElementById("ttIngKey").value;
+      const meta = state.prices[key] || { unit: "kg" };
+      const qty = meta.unit === "kg" ? 0.18 : (meta.unit === "L" ? 0.01 : 1);
+
+      const newRecipe = {
+        id: "tt_" + Date.now(),
+        title,
+        category: document.getElementById("ttCat").value,
+        timeMin: Number(document.getElementById("ttTime").value) || 15,
+        quickToday: true,
+        taperFriendly: true,
+        taperTip: "Guarda en táper hermético y ajusta porciones según tu meta calórica.",
+        appliances: ["sarten"],
+        kcal: Number(document.getElementById("ttKcal").value) || 400,
+        protein: Number(document.getElementById("ttProt").value) || 35,
+        carbs: Number(document.getElementById("ttCarb").value) || 28,
+        fat: 12,
+        tiktokUrl: document.getElementById("ttUrl").value.trim(),
+        ingredients: [{ key, qty, label: `${title} (${meta.name})` }],
+        steps: [document.getElementById("ttNotes").value.trim() || "Preparar según receta del video de TikTok."]
+      };
+
+      state.recipes.unshift(newRecipe);
+      saveState();
+      closeSheet();
+      render();
+      showToast("Receta TikTok Fit guardada");
+    }
+
+    function openPriceEditorSheet() {
+      const entries = Object.entries(state.prices);
+      openSheet(`Precios base (${state.supermarket})`, `
+        <p class="card-sub">Edita el precio base por kg, L o unidad. Se guarda en tu dispositivo.</p>
+        ${entries.map(([k, v]) => `
+          <div class="row-between" style="gap:8px;">
+            <span style="font-size:12.5px; flex:1;">${v.name} <small style="color:var(--text-soft);">(${v.unit})</small></span>
+            <input type="number" step="0.05" style="width:92px;" value="${v.price}" onchange="updateSinglePrice('${k}', this.value)" />
+          </div>
+        `).join("")}
+      `);
+    }
+
+    function updateSinglePrice(key, val) {
+      if (!state.prices[key]) return;
+      state.prices[key].price = Math.max(0.05, Number(val) || state.prices[key].price);
+      saveState();
+      updateHeader();
+    }
+
+    function openWeightLogSheet() {
+      const today = new Date().toISOString().slice(0, 10);
+      const last = state.weightLogs[state.weightLogs.length - 1] || { weight: 66.0 };
+      openSheet("Registrar peso (kg)", `
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="wlDate" value="${today}" />
+        </div>
+        <div>
+          <label>Peso actual (kg)</label>
+          <input type="number" step="0.1" id="wlWeight" value="${last.weight}" />
+        </div>
+        <button class="btn-primary" onclick="saveWeightLog()">Guardar peso</button>
+      `);
+    }
+
+    function saveWeightLog() {
+      const date = document.getElementById("wlDate").value || new Date().toISOString().slice(0, 10);
+      const weight = Number(document.getElementById("wlWeight").value);
+      if (!weight || weight <= 20) return;
+      state.weightLogs.push({ id: "w_" + Date.now(), date, weight });
+      saveState();
+      closeSheet();
+      render();
+      showToast("Peso guardado y BMI recalculado");
+    }
+
+    function openStepsSheet() {
+      const today = new Date().toISOString().slice(0, 10);
+      const existing = state.stepsLogs.find(s => s.date === today) || { steps: "" };
+      openSheet("Registrar pasos del día", `
+        <p class="card-sub">Pega o escribe el total de pasos de hoy desde Salud / Atajos:</p>
+        <div>
+          <label>Pasos de hoy</label>
+          <input type="number" step="100" id="stCount" value="${existing.steps}" placeholder="Ej. 8500" />
+        </div>
+        <button class="btn-primary" onclick="saveStepsLog()">Guardar pasos</button>
+      `);
+    }
+
+    function saveStepsLog() {
+      const today = new Date().toISOString().slice(0, 10);
+      const steps = Math.max(0, Number(document.getElementById("stCount").value) || 0);
+      const idx = state.stepsLogs.findIndex(s => s.date === today);
+      if (idx >= 0) state.stepsLogs[idx].steps = steps;
+      else state.stepsLogs.push({ date: today, steps });
+      saveState();
+      closeSheet();
+      render();
+      showToast(`Pasos guardados: ${steps.toLocaleString("es-ES")}`);
+    }
+
+    function openAddMedSheet() {
+      openSheet("Añadir toma / tratamiento", `
+        <div>
+          <label>Nombre (fármaco o suplemento)</label>
+          <input type="text" id="medName" placeholder="Ej. Vitamina D3 / Inositol" />
+        </div>
+        <div>
+          <label>Dosis y momento del día</label>
+          <input type="text" id="medDose" placeholder="Ej. 2000 UI · con el almuerzo" />
+        </div>
+        <button class="btn-primary" onclick="saveMed()">Agregar toma</button>
+      `);
+    }
+
+    function saveMed() {
+      const name = document.getElementById("medName").value.trim();
+      if (!name) return;
+      const dose = document.getElementById("medDose").value.trim() || "Diario";
+      state.meds.push({ id: "m_" + Date.now(), name, dose, checked: false });
+      saveState();
+      closeSheet();
+      render();
+      showToast("Toma agregada");
+    }
+
+    function openAddWorkoutSheet() {
+      const today = new Date().toISOString().slice(0, 10);
+      openSheet("Registrar sesión deportiva", `
+        <div>
+          <label>Tipo de entrenamiento</label>
+          <select id="woType">
+            <option value="Fuerza (Gym)">Fuerza (Gym)</option>
+            <option value="Natación">Natación</option>
+            <option value="Caminata / Cardio">Caminata / Cardio</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Duración (min)</label>
+            <input type="number" id="woMin" value="45" />
+          </div>
+          <div>
+            <label>Intensidad</label>
+            <select id="woInt">
+              <option value="Moderada">Moderada</option>
+              <option value="Alta">Alta</option>
+              <option value="Suave">Suave</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="woDate" value="${today}" />
+        </div>
+        <button class="btn-primary" onclick="saveWorkout()">Guardar sesión</button>
+      `);
+    }
+
+    function saveWorkout() {
+      const type = document.getElementById("woType").value;
+      const minutes = Number(document.getElementById("woMin").value) || 30;
+      const intensity = document.getElementById("woInt").value;
+      const date = document.getElementById("woDate").value || new Date().toISOString().slice(0, 10);
+      state.workouts.push({ id: "wo_" + Date.now(), type, minutes, intensity, date });
+      saveState();
+      closeSheet();
+      render();
+      showToast("Sesión deportiva registrada");
+    }
+
+    function escapeAttr(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    render();
+  </script>
+</body>
+</html>
