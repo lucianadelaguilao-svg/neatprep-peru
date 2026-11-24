@@ -3332,7 +3332,8 @@
         surplus: 250
       },
       clinicalProfile: {
-        conditions: ["insulin_resistance"],
+        conditions: [],
+        medsMode: "none",
         mealsPerDay: 4,
         gramsPerRation: 15
       },
@@ -3375,12 +3376,7 @@
       stepsLogs: [
         { date: "2026-11-23", steps: 8450 }
       ],
-      meds: [
-        { id: "m1", name: "Metformina", dose: "500 mg · con comida", category: "metabolic", time: "14:00", withFood: true, stock: 30, followUp15: true, checked: false },
-        { id: "m2", name: "Mio-Inositol + D-Chiro", dose: "2000 mg · mañana", category: "vitamin", time: "08:30", withFood: false, stock: null, followUp15: false, checked: false },
-        { id: "m3", name: "Omega-3 EPA/DHA", dose: "1000 mg · comida", category: "vitamin", time: "14:00", withFood: true, stock: null, followUp15: false, checked: false },
-        { id: "m4", name: "Magnesio", dose: "300 mg · noche", category: "vitamin", time: "21:30", withFood: false, stock: null, followUp15: false, checked: false }
-      ],
+      meds: [],
       medLogs: {},
       glucoseNote: "Glucosa ayunas estable · buena saciedad post-comida",
       workouts: [
@@ -3434,14 +3430,26 @@
       const mergedProfile = { ...base.bodyProfile, ...(parsed.bodyProfile || {}) };
       if (!["F", "M"].includes(mergedProfile.sex)) mergedProfile.sex = "F";
       if (!["deficit", "hypertrophy", "maintenance"].includes(mergedProfile.goal)) mergedProfile.goal = "deficit";
-      const validConds = ["insulin_resistance", "diabetes", "iron_deficiency", "pcos"];
+      const validConds = ["insulin_resistance", "diabetes", "iron_deficiency", "pcos", "adhd", "mood"];
       const rawClinical = parsed.clinicalProfile || {};
+      const parsedMedsList = Array.isArray(parsed.meds) ? parsed.meds : base.meds;
+      const inferredMedsMode = (() => {
+        if (["none", "supplements", "meds"].includes(rawClinical.medsMode)) return rawClinical.medsMode;
+        if (!parsedMedsList.length) return "none";
+        const hasRx = parsedMedsList.some(m => {
+          const n = String(m.name || "").toLowerCase();
+          return ["tdah", "antidepressant", "contraceptive", "metabolic"].includes(m.category)
+            || n.includes("metform") || n.includes("tdah") || n.includes("antidep") || n.includes("anticonc");
+        });
+        return hasRx ? "meds" : "supplements";
+      })();
       const mergedClinical = {
         ...base.clinicalProfile,
         ...rawClinical,
         conditions: Array.isArray(rawClinical.conditions)
           ? rawClinical.conditions.filter(c => validConds.includes(c))
           : [...base.clinicalProfile.conditions],
+        medsMode: inferredMedsMode,
         mealsPerDay: [3, 4, 5].includes(Number(rawClinical.mealsPerDay)) ? Number(rawClinical.mealsPerDay) : base.clinicalProfile.mealsPerDay,
         gramsPerRation: [10, 15].includes(Number(rawClinical.gramsPerRation)) ? Number(rawClinical.gramsPerRation) : base.clinicalProfile.gramsPerRation
       };
@@ -3782,6 +3790,16 @@
         id: "pcos",
         label: "SOP (Ovario Poliquístico)",
         short: "SOP"
+      },
+      adhd: {
+        id: "adhd",
+        label: "TDAH",
+        short: "TDAH"
+      },
+      mood: {
+        id: "mood",
+        label: "Ansiedad / Depresión",
+        short: "Ánimo"
       }
     };
 
@@ -3789,8 +3807,18 @@
       return Array.isArray(state.clinicalProfile?.conditions) && state.clinicalProfile.conditions.includes(key);
     }
 
+    function getMedsMode() {
+      const mode = state.clinicalProfile?.medsMode;
+      return ["none", "supplements", "meds"].includes(mode) ? mode : "none";
+    }
+
+    function isMedsTrackingEnabled() {
+      return getMedsMode() !== "none";
+    }
+
     function takesMetformin() {
-      return (state.meds || []).some(m => String(m.name || "").toLowerCase().includes("metform"));
+      if (getMedsMode() !== "meds") return false;
+      return (state.meds || []).some(m => m.category === "metabolic" || String(m.name || "").toLowerCase().includes("metform"));
     }
 
     function getCurrentWeightKg() {
@@ -4613,10 +4641,10 @@
             <div class="row-between" style="gap:8px;">
               <div style="min-width:0;">
                 <div style="font-size:12.5px; font-weight:800;">💗 ${healthBannerTitle}</div>
-                <div class="card-sub">Tomas <strong>${medsDone}/${state.meds.length}</strong> · Pasos <strong>${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")}</strong>/${Number(state.stepsGoal).toLocaleString("es-ES")}</div>
+                <div class="card-sub">${isMedsTrackingEnabled() && state.meds.length ? `Tomas <strong>${medsDone}/${state.meds.length}</strong> · ` : ""}Pasos <strong>${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")}</strong>/${Number(state.stepsGoal).toLocaleString("es-ES")}</div>
               </div>
               <div style="display:flex; gap:5px; flex-shrink:0;">
-                ${(m.takesMetformin || (state.metforminTracker?.logs?.length > 0)) ? `<button class="btn-secondary btn-sm" onclick="openMetforminLogSheet()" title="Registrar tolerancia metformina hoy">💊 GI</button>` : ""}
+                ${takesMetformin() ? `<button class="btn-secondary btn-sm" onclick="openMetforminLogSheet()" title="Registrar tolerancia metformina hoy">💊 GI</button>` : ""}
                 <button class="btn-secondary btn-sm" onclick="switchTab('progreso', 'diario')">Abrir</button>
               </div>
             </div>
@@ -6873,13 +6901,23 @@
                   <div class="quick-log-sub">${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")} hoy</div>
                 </div>
               </button>
-              <button class="quick-log-btn" onclick="openMetforminLogSheet()">
-                <span class="quick-log-icon">💊</span>
-                <div style="min-width:0;">
-                  <div class="quick-log-title">+ Metformina</div>
-                  <div class="quick-log-sub">${metfStatsQuick.count ? `GI ${metfStatsQuick.avgGi.toFixed(1).replace(".", ",")}/3 · ${metfStatsQuick.count}d` : "Escala GI (10 s)"}</div>
-                </div>
-              </button>
+              ${takesMetformin() ? `
+                <button class="quick-log-btn" onclick="openMetforminLogSheet()">
+                  <span class="quick-log-icon">💊</span>
+                  <div style="min-width:0;">
+                    <div class="quick-log-title">+ Metformina</div>
+                    <div class="quick-log-sub">${metfStatsQuick.count ? `GI ${metfStatsQuick.avgGi.toFixed(1).replace(".", ",")}/3 · ${metfStatsQuick.count}d` : "Escala GI (10 s)"}</div>
+                  </div>
+                </button>
+              ` : `
+                <button class="quick-log-btn" onclick="openAddWorkoutSheet()">
+                  <span class="quick-log-icon">🏋️</span>
+                  <div style="min-width:0;">
+                    <div class="quick-log-title">+ Entreno</div>
+                    <div class="quick-log-sub">${(state.workouts || []).length} registrado(s)</div>
+                  </div>
+                </button>
+              `}
               <button class="quick-log-btn" onclick="openAddLabSheet()">
                 <span class="quick-log-icon">🩸</span>
                 <div style="min-width:0;">
@@ -6889,7 +6927,7 @@
               </button>
             </div>
 
-            ${buildMedsCardHtml()}
+            ${isMedsTrackingEnabled() ? buildMedsCardHtml() : ""}
 
             ${m.sex === "F" ? `<div class="card">${buildCycleSelectorHtml(m, true)}</div>` : ""}
 
@@ -6941,6 +6979,12 @@
               <div class="progress-track"><div class="progress-fill" style="width:${stepsPct}%;"></div></div>
               ${state.syncConfig?.lastSyncAt ? `<div style="font-size:10.5px; color:var(--text-soft); margin-top:5px;">✓ Sync: ${escapeHtml(state.syncConfig.lastSyncAt)}</div>` : ""}
             </div>
+
+            ${!isMedsTrackingEnabled() ? `
+              <div style="text-align:center; padding:4px 8px;">
+                <button class="btn-ghost btn-sm" style="color:var(--text-soft); font-size:11.5px;" onclick="setSaludSubTab('perfil')">💊 ¿Tomas medicación o suplementos? Actívalo en ⚙️ Perfil</button>
+              </div>
+            ` : ""}
           </div>
         `;
         return;
@@ -6965,7 +7009,7 @@
               </div>
             </div>
 
-            ${buildMetforminDetailsHtml(m, true)}
+            ${takesMetformin() ? buildMetforminDetailsHtml(m, true) : ""}
             ${buildLabsDetailsHtml(m, true)}
 
             <details class="clean-details">
@@ -7093,8 +7137,11 @@
               <button class="chip ${m.isPCOS ? "active" : ""}" onclick="toggleClinicalCondition('pcos')">${m.isPCOS ? "✓ " : ""}SOP</button>
               <button class="chip ${m.isDiabetes ? "active" : ""}" onclick="toggleClinicalCondition('diabetes')">${m.isDiabetes ? "✓ " : ""}Diabetes</button>
               <button class="chip ${m.isIronDef ? "active" : ""}" onclick="toggleClinicalCondition('iron_deficiency')">${m.isIronDef ? "✓ " : ""}Déficit de hierro</button>
+              <button class="chip ${hasCondition('adhd') ? "active" : ""}" onclick="toggleClinicalCondition('adhd')">${hasCondition('adhd') ? "✓ " : ""}TDAH</button>
+              <button class="chip ${hasCondition('mood') ? "active" : ""}" onclick="toggleClinicalCondition('mood')">${hasCondition('mood') ? "✓ " : ""}Ansiedad / Depresión</button>
             </div>
 
+            ${buildProfileMedsIntakeHtml(m)}
             ${diabetesRationsHtml}
             ${clinicalBlocksHtml}
           </div>
@@ -8313,7 +8360,7 @@
 
       const metfStats = getMetforminStats();
       const b12Mon = getMetforminB12Monitor();
-      const metfPdfHtml = (m.takesMetformin || metfStats.count > 0) ? `
+      const metfPdfHtml = takesMetformin() ? `
   <h2>3. Seguimiento de Metformina, Tolerancia GI y Monitor B12</h2>
   <div class="grid">
     <div class="box">Pauta registrada<strong>${escapeHtml(metfStats.mt.formulation)} · ${metfStats.mt.doseMg} mg/día</strong></div>
@@ -8418,7 +8465,7 @@
               <div><strong>Enfoque:</strong> ${m.goalMeta.shortLabel} · ${activeConds.length ? activeConds.join(", ") : "General"}</div>
               <div><strong>Metas diarias:</strong> ${m.targetKcal} kcal · ${m.targetProtein}g P · ${m.targetCarbs}g C · ${m.targetFat}g G</div>
               <div><strong>Analíticas:</strong> ${sortedLabs.length ? `${sortedLabs.length} registro(s) · última ${latest.date}${latestHoma !== null ? ` (HOMA-IR ${latestHoma.toFixed(2).replace(".", ",")})` : ""}` : "Sin analíticas aún"}</div>
-              ${(m.takesMetformin || metfStats.count > 0) ? `<div><strong>Metformina:</strong> ${metfStats.mt.formulation} ${metfStats.mt.doseMg} mg · ${metfStats.count ? `${metfStats.count} reg. (GI ${metfStats.avgGi.toFixed(1).replace(".", ",")}/3 · En. ${metfStats.avgEnergy.toFixed(1).replace(".", ",")}/5)` : "sin diario GI aún"}</div>` : ""}
+              ${takesMetformin() ? `<div><strong>Metformina:</strong> ${metfStats.mt.formulation} ${metfStats.mt.doseMg} mg · ${metfStats.count ? `${metfStats.count} reg. (GI ${metfStats.avgGi.toFixed(1).replace(".", ",")}/3 · En. ${metfStats.avgEnergy.toFixed(1).replace(".", ",")}/5)` : "sin diario GI aún"}</div>` : ""}
             </div>
           </div>
           <button class="btn-primary" style="width:100%;" onclick="printMedicalReportNow()">🖨️ Imprimir / Guardar como PDF</button>
@@ -9223,7 +9270,144 @@
       showToast(`⏰ ${item.name} pospuesta hasta las ${until}`);
     }
 
+    const QUICK_MED_PRESETS = {
+      metformin:     { key: "metformin",     name: "Metformina",           dose: "500 mg · con comida",  category: "metabolic",      time: "14:00", withFood: true,  stock: 30,   followUp15: true,  icon: "💊", kind: "med" },
+      tdah:          { key: "tdah",          name: "Medicación TDAH",      dose: "Según pauta médica",   category: "tdah",           time: "08:00", withFood: false, stock: 30,   followUp15: true,  icon: "🧠", kind: "med" },
+      antidep:       { key: "antidep",       name: "Antidepresivo",        dose: "Toma diaria fija",     category: "antidepressant", time: "08:30", withFood: false, stock: 30,   followUp15: true,  icon: "💜", kind: "med" },
+      contraceptive: { key: "contraceptive", name: "Anticonceptivo",       dose: "1 comp. · misma hora", category: "contraceptive",  time: "21:30", withFood: false, stock: 28,   followUp15: true,  icon: "🌸", kind: "med" },
+      iron:          { key: "iron",          name: "Hierro + Vitamina C",  dose: "Con limón · sin café", category: "vitamin",        time: "09:00", withFood: false, stock: 30,   followUp15: false, icon: "🩸", kind: "supp" },
+      vitd:          { key: "vitd",          name: "Vitamina D3",          dose: "2000 UI · con comida", category: "vitamin",        time: "14:00", withFood: true,  stock: null, followUp15: false, icon: "☀️", kind: "supp" },
+      b12:           { key: "b12",           name: "Vitamina B12",         dose: "Según pauta",          category: "vitamin",        time: "08:30", withFood: false, stock: null, followUp15: false, icon: "✨", kind: "supp" },
+      omega3:        { key: "omega3",        name: "Omega-3 EPA/DHA",      dose: "1000 mg · comida",     category: "vitamin",        time: "14:00", withFood: true,  stock: null, followUp15: false, icon: "🐟", kind: "supp" },
+      magnesium:     { key: "magnesium",     name: "Magnesio",             dose: "300 mg · noche",       category: "vitamin",        time: "21:30", withFood: false, stock: null, followUp15: false, icon: "🌙", kind: "supp" },
+      inositol:      { key: "inositol",      name: "Mio-Inositol + D-Chiro", dose: "2000 mg · mañana",   category: "vitamin",        time: "08:30", withFood: false, stock: null, followUp15: false, icon: "✨", kind: "supp" },
+      creatine:      { key: "creatine",      name: "Creatina Monohidrato", dose: "5 g · diario",         category: "vitamin",        time: "14:00", withFood: true,  stock: null, followUp15: false, icon: "💪", kind: "supp" }
+    };
+
+    function isPresetMedActive(presetKey) {
+      const p = QUICK_MED_PRESETS[presetKey];
+      if (!p) return false;
+      return (state.meds || []).some(m =>
+        m.presetKey === presetKey ||
+        String(m.name || "").toLowerCase() === p.name.toLowerCase() ||
+        (presetKey === "metformin" && String(m.name || "").toLowerCase().includes("metform"))
+      );
+    }
+
+    function setMedsMode(mode) {
+      if (!["none", "supplements", "meds"].includes(mode)) return;
+      state.clinicalProfile.medsMode = mode;
+      saveState();
+      render();
+      const labels = {
+        none: "Medicación y suplementos ocultados en Diario",
+        supplements: "Seguimiento de suplementos activado ✓",
+        meds: "Seguimiento de medicación y suplementos activado ✓"
+      };
+      showToast(labels[mode]);
+    }
+
+    function toggleQuickPresetMed(presetKey) {
+      const p = QUICK_MED_PRESETS[presetKey];
+      if (!p) return;
+      if (isPresetMedActive(presetKey)) {
+        state.meds = (state.meds || []).filter(m => !(
+          m.presetKey === presetKey ||
+          String(m.name || "").toLowerCase() === p.name.toLowerCase() ||
+          (presetKey === "metformin" && String(m.name || "").toLowerCase().includes("metform"))
+        ));
+        saveState();
+        render();
+        showToast(`${p.name} quitado`);
+      } else {
+        if (p.kind === "med" && getMedsMode() !== "meds") {
+          state.clinicalProfile.medsMode = "meds";
+        } else if (getMedsMode() === "none") {
+          state.clinicalProfile.medsMode = "supplements";
+        }
+        state.meds.push({
+          id: "m_" + presetKey + "_" + Date.now(),
+          presetKey,
+          name: p.name,
+          dose: p.dose,
+          category: p.category,
+          time: p.time,
+          withFood: p.withFood,
+          stock: p.stock,
+          followUp15: p.followUp15,
+          checked: false
+        });
+        saveState();
+        render();
+        showToast(presetKey === "metformin"
+          ? "✓ Metformina activada · ahora tienes su tracker en Diario y Clínica"
+          : `✓ ${p.name} añadido a tu horario diario`);
+      }
+    }
+
+    function buildProfileMedsIntakeHtml(m) {
+      const mode = getMedsMode();
+      const medSuggestions = [];
+      if (m.isIR || m.isPCOS || m.isDiabetes || mode === "meds") medSuggestions.push("metformin");
+      if (hasCondition("adhd") || mode === "meds") medSuggestions.push("tdah");
+      if (hasCondition("mood") || mode === "meds") medSuggestions.push("antidep");
+      if (m.sex === "F") medSuggestions.push("contraceptive");
+
+      const suppSuggestions = [];
+      if (m.isIronDef) suppSuggestions.push("iron");
+      if (m.isPCOS || m.isIR) suppSuggestions.push("inositol");
+      suppSuggestions.push("vitd", "omega3", "magnesium", "b12");
+      if (m.goal === "hypertrophy") suppSuggestions.push("creatine");
+      if (!m.isIronDef) suppSuggestions.push("iron");
+
+      const uniqueMeds = [...new Set(medSuggestions)];
+      const uniqueSupps = [...new Set(suppSuggestions)];
+
+      return `
+        <div style="margin-top:11px; padding-top:10px; border-top:1px solid var(--border);">
+          <div style="font-size:12px; font-weight:800; color:var(--text-main); margin-bottom:6px;">
+            💊 ¿Tomas medicación o suplementos diarios?
+          </div>
+          <div class="seg-control cols-3" style="margin-bottom:8px;">
+            <button type="button" class="seg-btn ${mode === "none" ? "active" : ""}" onclick="setMedsMode('none')">No tomo</button>
+            <button type="button" class="seg-btn ${mode === "supplements" ? "active" : ""}" onclick="setMedsMode('supplements')">Suplementos</button>
+            <button type="button" class="seg-btn ${mode === "meds" ? "active" : ""}" onclick="setMedsMode('meds')">Medicación</button>
+          </div>
+
+          ${mode === "none" ? `
+            <div style="font-size:11px; color:var(--text-soft);">Tu pantalla de Diario y Clínica se mantendrá limpia, sin avisos ni tarjetas de medicación.</div>
+          ` : `
+            ${mode === "meds" ? `
+              <div style="font-size:10.5px; font-weight:800; color:var(--rose-dark); margin-bottom:5px;">MEDICACIÓN (TOCA LO QUE TOMAS)</div>
+              <div class="chip-row" style="margin-bottom:8px;">
+                ${uniqueMeds.map(k => {
+                  const p = QUICK_MED_PRESETS[k];
+                  const on = isPresetMedActive(k);
+                  return `<button type="button" class="chip ${on ? "active" : ""}" onclick="toggleQuickPresetMed('${k}')">${on ? "✓ " : "+ "}${p.icon} ${p.name}</button>`;
+                }).join("")}
+              </div>
+            ` : ""}
+
+            <div style="font-size:10.5px; font-weight:800; color:var(--text-soft); margin-bottom:5px;">VITAMINAS Y SUPLEMENTOS</div>
+            <div class="chip-row" style="margin-bottom:8px;">
+              ${uniqueSupps.map(k => {
+                const p = QUICK_MED_PRESETS[k];
+                const on = isPresetMedActive(k);
+                return `<button type="button" class="chip ${on ? "active" : ""}" onclick="toggleQuickPresetMed('${k}')">${on ? "✓ " : "+ "}${p.icon} ${p.name}</button>`;
+              }).join("")}
+            </div>
+
+            <div class="row-between" style="gap:6px;">
+              <span style="font-size:11px; color:var(--text-muted);">Activos ahora: <strong>${(state.meds || []).length}</strong></span>
+              <button type="button" class="btn-secondary btn-sm" onclick="openAddMedSheet()">+ Añadir otro personalizado</button>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
     function buildHoyDueMedsBannerHtml() {
+      if (!isMedsTrackingEnabled()) return "";
       const { overdue, upcoming } = getDueMedsNow();
       const activeList = overdue.length ? overdue : upcoming;
       if (!activeList.length) return "";
@@ -9252,6 +9436,9 @@
     }
 
     function buildMedsCardHtml() {
+      if (!isMedsTrackingEnabled()) return "";
+      const mode = getMedsMode();
+      const cardTitle = mode === "supplements" ? "✨ Suplementos y Vitaminas" : "💊 Medicación y Vitaminas";
       const today = getTodayDateKey();
       const meds = state.meds || [];
       const medsDone = meds.filter(med => isMedTakenToday(med, today)).length;
@@ -9312,7 +9499,7 @@
         <div class="card">
           <div class="row-between" style="margin-bottom:7px; gap:6px;">
             <div>
-              <div class="card-title" style="margin:0;">💊 Medicación y Vitaminas</div>
+              <div class="card-title" style="margin:0;">${cardTitle}</div>
               <div class="card-sub">${medsDone}/${meds.length} hoy · Adherencia 7d: <strong>${adh.pct}%</strong></div>
             </div>
             <div style="display:flex; gap:5px; flex-shrink:0;">
@@ -10198,6 +10385,11 @@
           state.meds[idx] = { ...state.meds[idx], name, dose, category, time, stock, withFood, followUp15 };
         }
       } else {
+        if (["tdah", "antidepressant", "contraceptive", "metabolic"].includes(category)) {
+          state.clinicalProfile.medsMode = "meds";
+        } else if (getMedsMode() === "none") {
+          state.clinicalProfile.medsMode = "supplements";
+        }
         state.meds.push({
           id: "m_" + Date.now(),
           name,
