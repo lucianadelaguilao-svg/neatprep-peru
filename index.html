@@ -3679,6 +3679,7 @@
         logs: []
       },
       foodDiary: {},
+      customFoods: [],
       onboardingCompleted: false
     };
 
@@ -3867,6 +3868,7 @@
           };
         })(),
         foodDiary: (parsed.foodDiary && typeof parsed.foodDiary === "object") ? parsed.foodDiary : {},
+        customFoods: Array.isArray(parsed.customFoods) ? parsed.customFoods : [],
         onboardingCompleted: typeof parsed.onboardingCompleted === "boolean"
           ? parsed.onboardingCompleted
           : Boolean(parsed.healthPlanStatus?.ready || (parsed.labLogs && parsed.labLogs.length) || (parsed.foodDiary && Object.keys(parsed.foodDiary).length))
@@ -5557,11 +5559,276 @@
       `;
     }
 
+    // Rich curated food & exact brand/dish database (per 100g or per serving)
+    const EXTENDED_FOOD_DB = [
+      // Exact Branded Dairy & High Protein (Germany / REWE / International)
+      { id: "db_fage02", title: "Fage Total 0,2% (Yogur griego)", brand: "Fage · 0,2% grasa · sin azúcar", mode: "grams", defaultQty: 170, kcal100: 54, prot100: 10.3, carbs100: 3.0, fat100: 0.2, sugar100: 3.0 },
+      { id: "db_fage2",  title: "Fage Total 2% (Yogur griego)", brand: "Fage · 2% grasa · natural", mode: "grams", defaultQty: 170, kcal100: 73, prot100: 9.9, carbs100: 3.0, fat100: 2.0, sugar100: 3.0 },
+      { id: "db_fage5",  title: "Fage Total 5% (Yogur griego)", brand: "Fage · 5% grasa · cremoso", mode: "grams", defaultQty: 170, kcal100: 93, prot100: 9.0, carbs100: 3.0, fat100: 5.0, sugar100: 3.0 },
+      { id: "db_skyr_nat", title: "Skyr Natur 0,2% (sin azúcar)", brand: "Arla / ja! / REWE Bio · Natural", mode: "grams", defaultQty: 200, kcal100: 63, prot100: 11.0, carbs100: 4.0, fat100: 0.2, sugar100: 4.0 },
+      { id: "db_skyr_sug", title: "Skyr saborizado / azucarado (vainilla o frutas)", brand: "Arla / Milbona · Con azúcar añadido", mode: "grams", defaultQty: 200, kcal100: 89, prot100: 8.7, carbs100: 12.8, fat100: 0.2, sugar100: 11.5 },
+      { id: "db_magerquark", title: "Magerquark 0,2% (Queso batido magro)", brand: "ja! / REWE Bio · 0,2% grasa", mode: "grams", defaultQty: 250, kcal100: 67, prot100: 12.0, carbs100: 4.0, fat100: 0.2, sugar100: 4.0 },
+      { id: "db_ehrmann_pud", title: "High Protein Pudding (vainilla/choco)", brand: "Ehrmann · 20g prot / vasito 200g", mode: "grams", defaultQty: 200, kcal100: 76, prot100: 10.0, carbs100: 5.5, fat100: 1.5, sugar100: 4.0 },
+      { id: "db_cottage", title: "Körniger Frischkäse / Cottage Light 0,8%", brand: "ja! / Exquisa · Bajo en grasa", mode: "grams", defaultQty: 200, kcal100: 72, prot100: 13.0, carbs100: 2.5, fat100: 0.8, sugar100: 2.5 },
+      { id: "db_alpro_soja", title: "Bebida de Soja Sin Azúcar", brand: "Alpro · 0g azúcar", mode: "grams", defaultQty: 250, unitLbl: "ml", kcal100: 33, prot100: 3.3, carbs100: 0.0, fat100: 1.8, sugar100: 0.0 },
+      { id: "db_alpro_avena", title: "Bebida de Avena Barista / Sin azúcar", brand: "Alpro / Oatly", mode: "grams", defaultQty: 200, unitLbl: "ml", kcal100: 45, prot100: 0.8, carbs100: 6.8, fat100: 1.5, sugar100: 3.5 },
+      { id: "db_leche15", title: "Leche semidesnatada 1,5% (Fettarme Milch)", brand: "ja! / Weihenstephan", mode: "grams", defaultQty: 200, unitLbl: "ml", kcal100: 47, prot100: 3.4, carbs100: 4.8, fat100: 1.5, sugar100: 4.8 },
+      // Peruvian, LatAm & Restaurant Dishes
+      { id: "db_pollo_brasa_fit", title: "Pollo a la brasa (1/4 pecho sin piel, solo pollo)", brand: "Plato peruano · ~220 g carne", mode: "serving", servingLabel: "1/4 pecho", kcal: 345, protein: 52, carbs: 2, fat: 14 },
+      { id: "db_pollo_brasa_full", title: "Pollo a la brasa (1/4 con piel + papas fritas + ensalada)", brand: "Plato completo de pollería", mode: "serving", servingLabel: "1 plato", kcal: 790, protein: 50, carbs: 58, fat: 39 },
+      { id: "db_pollo_brasa_pierna", title: "Pollo a la brasa (1/4 pierna con piel, sin papas)", brand: "Plato peruano · ~210 g", mode: "serving", servingLabel: "1/4 pierna", kcal: 445, protein: 42, carbs: 2, fat: 29 },
+      { id: "db_ceviche_clasico", title: "Ceviche de pescado clásico (solo pescado + cebolla + limón)", brand: "Plato peruano · ligero / IR", mode: "serving", servingLabel: "1 plato", kcal: 280, protein: 36, carbs: 16, fat: 6 },
+      { id: "db_ceviche_completo", title: "Ceviche de pescado con camote y choclo", brand: "Plato peruano completo", mode: "serving", servingLabel: "1 plato", kcal: 430, protein: 38, carbs: 44, fat: 10 },
+      { id: "db_lomo_saltado", title: "Lomo saltado (con arroz blanco y papas fritas)", brand: "Plato peruano de restaurante", mode: "serving", servingLabel: "1 plato", kcal: 695, protein: 38, carbs: 68, fat: 29 },
+      { id: "db_aji_gallina", title: "Ají de gallina (con arroz y huevo)", brand: "Plato peruano tradicional", mode: "serving", servingLabel: "1 plato", kcal: 620, protein: 32, carbs: 54, fat: 30 },
+      { id: "db_chaufa", title: "Arroz chaufa de pollo", brand: "Chifa / peruano", mode: "serving", servingLabel: "1 plato", kcal: 590, protein: 30, carbs: 72, fat: 19 },
+      { id: "db_causa", title: "Causa limeña de pollo o atún", brand: "Entrada peruana", mode: "serving", servingLabel: "1 porción", kcal: 390, protein: 22, carbs: 36, fat: 17 },
+      { id: "db_anticuchos", title: "Anticuchos de corazón (2 palitos + papa dorada)", brand: "Plato peruano · alto hierro", mode: "serving", servingLabel: "1 porción", kcal: 410, protein: 36, carbs: 28, fat: 16 },
+      { id: "db_doner", title: "Döner Kebab de pollo (con pan pita y salsa yogur)", brand: "Restaurante / Alemania", mode: "serving", servingLabel: "1 unidad", kcal: 640, protein: 38, carbs: 62, fat: 25 },
+      { id: "db_doner_teller", title: "Döner Teller sin pan (carne pollo + ensalada + salsa)", brand: "Opción baja en carbos", mode: "serving", servingLabel: "1 plato", kcal: 430, protein: 44, carbs: 14, fat: 21 },
+      { id: "db_sushi8", title: "Sushi variado (8 piezas Maki / Nigiri salmón)", brand: "Japonés", mode: "serving", servingLabel: "8 piezas", kcal: 320, protein: 16, carbs: 46, fat: 7 },
+      { id: "db_poke_salmon", title: "Poke Bowl de salmón, arroz, edamame y palta", brand: "Restaurante", mode: "serving", servingLabel: "1 bowl", kcal: 580, protein: 32, carbs: 62, fat: 21 },
+      { id: "db_pizza2", title: "Pizza Margherita / Prosciutto (2 porciones)", brand: "Restaurante italiano", mode: "serving", servingLabel: "2 porciones", kcal: 490, protein: 20, carbs: 58, fat: 19 },
+      { id: "db_burger", title: "Hamburguesa clásica de res (sin papas)", brand: "Restaurante", mode: "serving", servingLabel: "1 unidad", kcal: 540, protein: 30, carbs: 42, fat: 27 },
+      { id: "db_tacos3", title: "Tacos de pollo o carne (3 uds tortilla maíz)", brand: "Mexicano", mode: "serving", servingLabel: "3 tacos", kcal: 465, protein: 32, carbs: 42, fat: 18 },
+      { id: "db_empanada", title: "Empanada de carne o pollo al horno", brand: "Panadería", mode: "serving", servingLabel: "1 unidad", kcal: 295, protein: 12, carbs: 32, fat: 13 },
+      { id: "db_brezel", title: "Laugenbrezel / Pretzel alemán", brand: "Bäckerei / REWE", mode: "serving", servingLabel: "1 unidad", kcal: 245, protein: 8, carbs: 49, fat: 2 },
+      { id: "db_croissant", title: "Croissant de mantequilla", brand: "Bäckerei", mode: "serving", servingLabel: "1 unidad", kcal: 285, protein: 6, carbs: 34, fat: 14 },
+      // Everyday Base Ingredients (exact per 100g)
+      { id: "db_huevo", title: "Huevo entero cocido / plancha (1 ud L)", brand: "Genérico · ~60 g", mode: "serving", servingLabel: "1 huevo", kcal: 74, protein: 6.5, carbs: 0.5, fat: 5.2 },
+      { id: "db_pollo100", title: "Pechuga de pollo cocida / plancha", brand: "Genérico · peso cocido", mode: "grams", defaultQty: 150, kcal100: 165, prot100: 31.0, carbs100: 0.0, fat100: 3.6 },
+      { id: "db_salmon100", title: "Salmón al horno / plancha", brand: "Genérico · rico Omega-3", mode: "grams", defaultQty: 150, kcal100: 206, prot100: 22.0, carbs100: 0.0, fat100: 13.0 },
+      { id: "db_atun100", title: "Atún al natural escurrido (en agua)", brand: "ja! / Saupiquet", mode: "grams", defaultQty: 140, kcal100: 108, prot100: 25.0, carbs100: 0.0, fat100: 0.8 },
+      { id: "db_arroz100", title: "Arroz blanco o integral (cocido)", brand: "Genérico · peso ya cocido", mode: "grams", defaultQty: 150, kcal100: 130, prot100: 2.7, carbs100: 28.0, fat100: 0.3 },
+      { id: "db_avena100", title: "Avena en hojuelas (Haferflocken cruda)", brand: "Kölln / ja! · Integral", mode: "grams", defaultQty: 45, kcal100: 372, prot100: 13.5, carbs100: 59.0, fat100: 7.0 },
+      { id: "db_palta100", title: "Palta / Aguacate fresco", brand: "Genérico · grasa saludable", mode: "grams", defaultQty: 60, kcal100: 160, prot100: 2.0, carbs100: 8.5, fat100: 14.7 },
+      { id: "db_pan_int", title: "Pan integral / Vollkornbrot (1 rebanada 50 g)", brand: "REWE / Mestemacher", mode: "serving", servingLabel: "1 rebanada", kcal: 115, protein: 4.5, carbs: 20, fat: 1.2 },
+      { id: "db_platano", title: "Plátano / Banana (1 ud mediana)", brand: "Fruta · ~115 g", mode: "serving", servingLabel: "1 unidad", kcal: 105, protein: 1.3, carbs: 27, fat: 0.4 },
+      { id: "db_frutos_rojos", title: "Frutos rojos / Arándanos / Fresas", brand: "Bajo índice glucémico", mode: "grams", defaultQty: 100, kcal100: 45, prot100: 1.0, carbs100: 9.0, fat100: 0.4 },
+      { id: "db_almendras", title: "Almendras / Nueces al natural", brand: "Seeberger / ja!", mode: "grams", defaultQty: 25, kcal100: 605, prot100: 21.0, carbs100: 10.0, fat100: 53.0 },
+      { id: "db_mani100", title: "Mantequilla de maní 100% (sin azúcar)", brand: "REWE Bio / Koro", mode: "grams", defaultQty: 15, kcal100: 595, prot100: 26.0, carbs100: 12.0, fat100: 50.0 },
+      { id: "db_whey", title: "Proteína Whey Isolate / Concentrate (1 scoop 30 g)", brand: "ESN / Optimum / Myprotein", mode: "serving", servingLabel: "1 scoop", kcal: 118, protein: 24, carbs: 2, fat: 1.5 },
+      { id: "db_cappuccino", title: "Cappuccino / Café con leche sin azúcar", brand: "250 ml leche 1,5%", mode: "serving", servingLabel: "1 taza", kcal: 85, protein: 5, carbs: 7, fat: 3.5 },
+      { id: "db_matcha_latte", title: "Matcha Latte con leche de avena", brand: "Cafetería · 300 ml", mode: "serving", servingLabel: "1 vaso", kcal: 145, protein: 3, carbs: 22, fat: 4.5 },
+      { id: "db_lindt85", title: "Chocolate negro 85% Cacao", brand: "Lindt Excellence · por 100g", mode: "grams", defaultQty: 20, kcal100: 584, prot100: 12.5, carbs100: 19.0, fat100: 46.0, sugar100: 14.0 }
+    ];
+
+    let onlineFoodResults = [];
+    let onlineFoodLoading = false;
+    let onlineFoodMsg = "";
+    let selectedFoodDetail = null;
+
     function openAddFoodSheet(slot, dateKey = null) {
       if (dateKey) diaryDateKey = dateKey;
-      const defaultMode = slot === "almuerzo" ? "recipes" : "presets";
-      activeFoodSheet = { slot: slot || "desayuno", mode: defaultMode, search: "", portion: 1 };
+      onlineFoodResults = [];
+      onlineFoodLoading = false;
+      onlineFoodMsg = "";
+      selectedFoodDetail = null;
+      activeFoodSheet = { slot: slot || "desayuno", mode: "search", search: "", portion: 1 };
       renderAddFoodSheetContent();
+    }
+
+    function normalizeSearchItem(raw) {
+      if (raw.mode === "grams") {
+        const qty = Number(raw.qty || raw.defaultQty || 100);
+        const factor = qty / 100;
+        return {
+          ...raw,
+          qty,
+          calcKcal: Math.round((raw.kcal100 || 0) * factor),
+          calcProt: Math.round((raw.prot100 || 0) * factor * 10) / 10,
+          calcCarbs: Math.round((raw.carbs100 || 0) * factor * 10) / 10,
+          calcFat: Math.round((raw.fat100 || 0) * factor * 10) / 10
+        };
+      }
+      const mult = Number(raw.qty || 1);
+      return {
+        ...raw,
+        qty: mult,
+        calcKcal: Math.round((raw.kcal || 0) * mult),
+        calcProt: Math.round((raw.protein || 0) * mult * 10) / 10,
+        calcCarbs: Math.round((raw.carbs || 0) * mult * 10) / 10,
+        calcFat: Math.round((raw.fat || 0) * mult * 10) / 10
+      };
+    }
+
+    function getLocalSearchFoodMatches(query) {
+      const q = String(query || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const customPool = (state.customFoods || []).map(cf => ({ ...cf, isCustom: true }));
+      const allPool = [...customPool, ...EXTENDED_FOOD_DB];
+      if (!q) return allPool.slice(0, 14);
+      const terms = q.split(/\s+/).filter(Boolean);
+      return allPool.filter(item => {
+        const hay = norm(`${item.title} ${item.brand || ""} ${item.servingLabel || ""}`);
+        return terms.every(t => hay.includes(t));
+      });
+    }
+
+    async function searchOpenFoodFactsLive() {
+      const q = String(activeFoodSheet.search || "").trim();
+      if (q.length < 2) {
+        showToast("Escribe un producto o marca (ej. Fage 0,2, Arla Skyr)");
+        return;
+      }
+      onlineFoodLoading = true;
+      onlineFoodMsg = "";
+      onlineFoodResults = [];
+      updateFoodSearchListDom();
+
+      try {
+        const isBarcode = /^\d{8,14}$/.test(q);
+        let products = [];
+        if (isBarcode) {
+          const resp = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(q)}.json`);
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data?.product) products = [data.product];
+          }
+        } else {
+          const url = `https://de.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=12&fields=code,product_name,brands,nutriments,serving_size,quantity`;
+          const resp = await fetch(url);
+          if (resp.ok) {
+            const data = await resp.json();
+            products = Array.isArray(data?.products) ? data.products : [];
+          }
+        }
+
+        const mapped = products
+          .filter(p => p && p.product_name && p.nutriments && (Number(p.nutriments["energy-kcal_100g"]) > 0 || Number(p.nutriments["energy-kcal"]) > 0))
+          .map((p, idx) => {
+            const nu = p.nutriments || {};
+            const kcal100 = Math.round(Number(nu["energy-kcal_100g"] || nu["energy-kcal"] || 0));
+            const prot100 = Number(Number(nu.proteins_100g || 0).toFixed(1));
+            const carbs100 = Number(Number(nu.carbohydrates_100g || 0).toFixed(1));
+            const fat100 = Number(Number(nu.fat_100g || 0).toFixed(1));
+            const sugar100 = nu.sugars_100g !== undefined ? Number(Number(nu.sugars_100g).toFixed(1)) : null;
+            const brandParts = [p.brands, p.quantity || p.serving_size].filter(Boolean).join(" · ");
+            return {
+              id: "off_" + (p.code || idx),
+              title: String(p.product_name).trim(),
+              brand: brandParts || "Open Food Facts",
+              mode: "grams",
+              defaultQty: 100,
+              kcal100,
+              prot100,
+              carbs100,
+              fat100,
+              sugar100,
+              fromOnline: true
+            };
+          })
+          .slice(0, 10);
+
+        onlineFoodResults = mapped;
+        onlineFoodMsg = mapped.length ? `✓ ${mapped.length} producto(s) reales encontrados en Open Food Facts` : "Sin resultados exactos online para esa búsqueda. Prueba otra palabra o usa ✏️ Manual.";
+      } catch (e) {
+        onlineFoodMsg = "No se pudo conectar al buscador online ahora (revisa tu internet o usa la base local / ✏️ Manual).";
+      }
+      onlineFoodLoading = false;
+      updateFoodSearchListDom();
+    }
+
+    function openFoodItemDetail(source, id) {
+      let item = null;
+      if (source === "online") item = onlineFoodResults.find(x => x.id === id);
+      else if (source === "custom") item = (state.customFoods || []).find(x => x.id === id);
+      else if (source === "db") item = EXTENDED_FOOD_DB.find(x => x.id === id);
+      else if (source === "recipe") {
+        const r = state.recipes.find(x => x.id === id);
+        if (r) item = { id: r.id, title: r.title, brand: "Tu recetario", mode: "serving", servingLabel: "1 porción", kcal: r.kcal, protein: r.protein, carbs: r.carbs, fat: r.fat };
+      }
+      if (!item) return;
+      selectedFoodDetail = normalizeSearchItem({ ...item, qty: item.mode === "grams" ? (item.defaultQty || 100) : 1 });
+      renderAddFoodSheetContent();
+    }
+
+    function setSelectedFoodQty(val) {
+      if (!selectedFoodDetail) return;
+      const n = Number(String(val).replace(",", "."));
+      if (!(n > 0)) return;
+      selectedFoodDetail = normalizeSearchItem({ ...selectedFoodDetail, qty: n });
+      renderAddFoodSheetContent();
+    }
+
+    function confirmSelectedFoodToDiary(alsoSaveCustom = false) {
+      if (!selectedFoodDetail) return;
+      const item = selectedFoodDetail;
+      const unitTxt = item.mode === "grams" ? `${Math.round(item.qty)} ${item.unitLbl || "g"}` : (item.qty !== 1 ? `×${String(item.qty).replace(".", ",")}` : "");
+      const titleWithQty = item.brand && item.mode === "grams"
+        ? `${item.title} (${unitTxt})`
+        : (unitTxt ? `${item.title} (${unitTxt})` : item.title);
+      addFoodEntryToDiary(diaryDateKey || getTodayDateKey(), activeFoodSheet.slot, {
+        title: titleWithQty,
+        kcal: item.calcKcal,
+        protein: Math.round(item.calcProt),
+        carbs: Math.round(item.calcCarbs),
+        fat: Math.round(item.calcFat),
+        portion: item.mode === "serving" ? item.qty : 1
+      });
+      if (alsoSaveCustom && !item.isCustom) {
+        if (!Array.isArray(state.customFoods)) state.customFoods = [];
+        if (!state.customFoods.some(x => x.title.toLowerCase() === item.title.toLowerCase())) {
+          state.customFoods.unshift({
+            id: "cf_" + Date.now(),
+            title: item.title,
+            brand: item.brand || "Guardado por ti",
+            mode: item.mode,
+            defaultQty: item.mode === "grams" ? Math.round(item.qty) : 1,
+            unitLbl: item.unitLbl || "g",
+            servingLabel: item.servingLabel || "1 porción",
+            kcal100: item.kcal100, prot100: item.prot100, carbs100: item.carbs100, fat100: item.fat100, sugar100: item.sugar100,
+            kcal: item.kcal, protein: item.protein, carbs: item.carbs, fat: item.fat
+          });
+          saveState();
+        }
+      }
+      selectedFoodDetail = null;
+      closeSheet();
+      showToast(`Añadido a ${activeFoodSheet.slot} ✓`);
+    }
+
+    function buildSearchResultsListHtml() {
+      const q = String(activeFoodSheet.search || "").trim();
+      const localMatches = getLocalSearchFoodMatches(q);
+      const allToShow = [
+        ...onlineFoodResults.map(x => ({ item: x, src: "online" })),
+        ...localMatches.map(x => ({ item: x, src: x.isCustom ? "custom" : "db" }))
+      ];
+
+      const statusBar = onlineFoodLoading
+        ? `<div style="padding:8px 10px; border-radius:10px; background:var(--rose-pale); color:var(--rose-dark); font-size:11.5px; font-weight:750; margin-bottom:7px;">⏳ Buscando "${escapeHtml(q)}" en Open Food Facts...</div>`
+        : (onlineFoodMsg ? `<div style="padding:7px 10px; border-radius:10px; background:var(--mint-bg); color:var(--mint-text); font-size:11px; font-weight:700; margin-bottom:7px;">${escapeHtml(onlineFoodMsg)}</div>` : "");
+
+      const rowsHtml = allToShow.length ? `
+        <div style="display:flex; flex-direction:column; gap:7px; max-height:44vh; overflow-y:auto;">
+          ${allToShow.map(({ item, src }) => {
+            const perTxt = item.mode === "grams"
+              ? `<strong>${item.kcal100}</strong> kcal · ${item.prot100}g P · ${item.carbs100}g C · ${item.fat100}g G <span style="color:var(--text-soft);">/100${item.unitLbl || "g"}</span>`
+              : `<strong>${item.kcal}</strong> kcal · ${item.protein}g P · ${item.carbs}g C · ${item.fat}g G <span style="color:var(--text-soft);">(${escapeHtml(item.servingLabel || "1 porc.")})</span>`;
+            return `
+              <div class="preset-pick-row" onclick="openFoodItemDetail('${src}','${escapeAttr(item.id)}')" style="cursor:pointer;">
+                <div style="min-width:0; flex:1;">
+                  <div style="font-size:12.5px; font-weight:800; color:var(--text-main);">${item.fromOnline ? "🌐 " : (item.isCustom ? "⭐ " : "")}${escapeHtml(item.title)}</div>
+                  ${item.brand ? `<div style="font-size:10.5px; color:var(--rose-dark); font-weight:650;">${escapeHtml(item.brand)}</div>` : ""}
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:1px;">${perTxt}</div>
+                </div>
+                <span class="btn-primary btn-sm" style="flex-shrink:0;">Elegir</span>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      ` : `<div class="empty-note">Sin coincidencias locales para "${escapeHtml(q)}". Pulsa <strong>🌐 Buscar marca online</strong> arriba o usa <strong>✏️ Manual</strong>.</div>`;
+
+      return statusBar + rowsHtml;
+    }
+
+    function updateFoodSearchListDom() {
+      const area = document.getElementById("foodSheetListArea");
+      if (!area) return;
+      if (activeFoodSheet.mode === "search") {
+        area.innerHTML = buildSearchResultsListHtml();
+      }
     }
 
     function renderAddFoodSheetContent() {
@@ -5569,13 +5836,64 @@
       const q = (activeFoodSheet.search || "").trim().toLowerCase();
       const mult = Number(activeFoodSheet.portion || 1);
 
+      // Detail gram/portion picker view (MyFitnessPal style)
+      if (selectedFoodDetail) {
+        const it = selectedFoodDetail;
+        const unit = it.unitLbl || "g";
+        const quickChips = it.mode === "grams" ? [50, 100, 150, 170, 200, 250] : [0.5, 1, 1.5, 2];
+        openSheet(`${slotMeta.icon} Ajustar cantidad`, `
+          <div class="section-gap">
+            <button type="button" class="btn-ghost btn-sm" style="align-self:flex-start; padding:2px 0;" onclick="selectedFoodDetail=null; renderAddFoodSheetContent();">← Volver a resultados</button>
+
+            <div class="card-soft">
+              <div style="font-size:14.5px; font-weight:850; color:var(--text-main);">${escapeHtml(it.title)}</div>
+              ${it.brand ? `<div style="font-size:11.5px; font-weight:700; color:var(--rose-dark); margin-top:2px;">${escapeHtml(it.brand)}</div>` : ""}
+              ${it.mode === "grams" ? `
+                <div style="font-size:11px; color:var(--text-soft); margin-top:4px;">
+                  Por 100 ${unit}: ${it.kcal100} kcal · ${it.prot100}g P · ${it.carbs100}g C · ${it.fat100}g G${it.sugar100 !== null && it.sugar100 !== undefined ? ` · Azúcares ${it.sugar100}g` : ""}
+                </div>
+              ` : ""}
+            </div>
+
+            <div>
+              <label>${it.mode === "grams" ? `Cantidad exacta (${unit})` : `Porciones (${it.servingLabel || "porción"})`}</label>
+              <div class="chip-row" style="margin-bottom:8px;">
+                ${quickChips.map(val => `
+                  <button type="button" class="chip ${Number(it.qty) === val ? "active" : ""}" onclick="setSelectedFoodQty(${val})">${it.mode === "grams" ? `${val} ${unit}` : `×${String(val).replace(".", ",")}`}</button>
+                `).join("")}
+              </div>
+              <input type="text" inputmode="decimal" value="${String(it.qty).replace(".", ",")}" onchange="setSelectedFoodQty(this.value)" placeholder="${it.mode === "grams" ? "Ej. 170" : "Ej. 1"}" />
+            </div>
+
+            <div class="macro-bars-grid" style="margin-top:0;">
+              <div class="macro-bar-card" style="text-align:center;">
+                <div class="macro-bar-lbl">Calorías</div>
+                <div class="macro-bar-val" style="font-size:15px; color:var(--rose-dark); margin:2px 0 0;">${it.calcKcal}</div>
+              </div>
+              <div class="macro-bar-card" style="text-align:center;">
+                <div class="macro-bar-lbl">Proteína</div>
+                <div class="macro-bar-val" style="font-size:15px; color:var(--mint-text); margin:2px 0 0;">${String(it.calcProt).replace(".", ",")}g</div>
+              </div>
+              <div class="macro-bar-card" style="text-align:center;">
+                <div class="macro-bar-lbl">Carb / Grasa</div>
+                <div class="macro-bar-val" style="font-size:12.5px; margin:3px 0 0;">${String(it.calcCarbs).replace(".", ",")} / ${String(it.calcFat).replace(".", ",")}g</div>
+              </div>
+            </div>
+
+            <button type="button" class="btn-primary" style="width:100%;" onclick="confirmSelectedFoodToDiary(false)">+ Añadir a ${slotMeta.label}</button>
+            ${!it.isCustom ? `<button type="button" class="btn-secondary btn-sm" style="width:100%;" onclick="confirmSelectedFoodToDiary(true)">⭐ Añadir y guardar en mis alimentos</button>` : ""}
+          </div>
+        `);
+        return;
+      }
+
       let listHtml = "";
       if (activeFoodSheet.mode === "manual") {
         listHtml = `
           <div class="section-gap">
             <div>
-              <label>Nombre de la comida o alimento</label>
-              <input type="text" id="manualFoodTitle" placeholder="Ej. Yogur griego con avena, Latte, Café..." />
+              <label>Nombre y marca del alimento / plato</label>
+              <input type="text" id="manualFoodTitle" placeholder="Ej. Fage 0,2% 170g, Pollo a la brasa, Latte..." />
             </div>
             <div class="grid-2">
               <div>
@@ -5597,6 +5915,10 @@
                 <input type="number" id="manualFoodFat" min="0" placeholder="Ej. 11" />
               </div>
             </div>
+            <label style="display:flex; align-items:center; gap:7px; font-size:12px; cursor:pointer;">
+              <input type="checkbox" id="manualSaveCustom" checked style="width:15px; height:15px; accent-color:var(--rose);" />
+              Guardar en mi buscador para próximas veces
+            </label>
             <button class="btn-primary" style="width:100%;" onclick="saveManualFoodEntry()">Añadir a ${slotMeta.label}</button>
           </div>
         `;
@@ -5610,7 +5932,7 @@
             return (getRecipeProfileMeta(b, m).score + matchB) - (getRecipeProfileMeta(a, m).score + matchA);
           });
         listHtml = recs.length ? `
-          <div style="display:flex; flex-direction:column; gap:7px; max-height:46vh; overflow-y:auto;">
+          <div style="display:flex; flex-direction:column; gap:7px; max-height:44vh; overflow-y:auto;">
             ${recs.map(r => `
               <div class="preset-pick-row">
                 <div style="min-width:0; flex:1;">
@@ -5623,14 +5945,14 @@
               </div>
             `).join("")}
           </div>
-        ` : `<div class="empty-note">Sin recetas que coincidan. Prueba en <strong>✏️ Manual</strong>.</div>`;
-      } else {
+        ` : `<div class="empty-note">Sin recetas que coincidan. Prueba en <strong>🔍 Buscar</strong> o <strong>✏️ Manual</strong>.</div>`;
+      } else if (activeFoodSheet.mode === "presets") {
         const filteredPresets = DEFAULT_MEAL_PRESETS.filter(p => {
           if (q) return p.title.toLowerCase().includes(q) || (p.tag || "").toLowerCase().includes(q);
           return p.slot === activeFoodSheet.slot || (activeFoodSheet.slot === "almuerzo" && p.slot === "cena");
         });
         listHtml = filteredPresets.length ? `
-          <div style="display:flex; flex-direction:column; gap:7px; max-height:46vh; overflow-y:auto;">
+          <div style="display:flex; flex-direction:column; gap:7px; max-height:44vh; overflow-y:auto;">
             ${filteredPresets.map(p => `
               <div class="preset-pick-row">
                 <div style="min-width:0; flex:1;">
@@ -5643,30 +5965,38 @@
               </div>
             `).join("")}
           </div>
-        ` : `<div class="empty-note">Sin coincidencias. Usa <strong>Recetas</strong> o <strong>✏️ Manual</strong>.</div>`;
+        ` : `<div class="empty-note">Sin coincidencias. Usa <strong>🔍 Buscar</strong> o <strong>✏️ Manual</strong>.</div>`;
+      } else {
+        listHtml = buildSearchResultsListHtml();
       }
 
       openSheet(`${slotMeta.icon} Añadir a ${slotMeta.label}`, `
         <div class="section-gap">
-          <div class="seg-control cols-3">
+          <div class="seg-control cols-4">
+            <button class="seg-btn ${activeFoodSheet.mode === "search" ? "active" : ""}" onclick="setFoodSheetMode('search')">🔍 Buscar</button>
+            <button class="seg-btn ${activeFoodSheet.mode === "recipes" ? "active" : ""}" onclick="setFoodSheetMode('recipes')">🍲 Recetas</button>
             <button class="seg-btn ${activeFoodSheet.mode === "presets" ? "active" : ""}" onclick="setFoodSheetMode('presets')">⚡ Rápidos</button>
-            <button class="seg-btn ${activeFoodSheet.mode === "recipes" ? "active" : ""}" onclick="setFoodSheetMode('recipes')">🍲 Recetas (${state.recipes.length})</button>
             <button class="seg-btn ${activeFoodSheet.mode === "manual" ? "active" : ""}" onclick="setFoodSheetMode('manual')">✏️ Manual</button>
           </div>
 
           ${activeFoodSheet.mode !== "manual" ? `
-            <div class="search-box" style="margin-top:0;">
-              <span class="search-ico">🔍</span>
-              <input type="text" id="foodSheetSearchInput" value="${escapeAttr(activeFoodSheet.search)}" oninput="onFoodSheetSearch(this.value)" placeholder="Buscar: huevos, skyr, salmón, pollo, avena..." />
-            </div>
-            <div class="row-between" style="gap:6px;">
-              <span style="font-size:11px; font-weight:750; color:var(--text-soft);">Porción:</span>
-              <div class="chip-row" style="padding:0;">
-                ${[0.5, 1, 1.5, 2].map(sc => `
-                  <button class="chip ${activeFoodSheet.portion === sc ? "active" : ""}" onclick="setFoodSheetPortion(${sc})">×${String(sc).replace(".", ",")}</button>
-                `).join("")}
+            <div style="display:flex; gap:6px; align-items:center;">
+              <div class="search-box" style="margin-top:0; flex:1;">
+                <span class="search-ico">🔍</span>
+                <input type="text" id="foodSheetSearchInput" value="${escapeAttr(activeFoodSheet.search)}" oninput="onFoodSheetSearch(this.value)" onkeydown="if(event.key==='Enter' && activeFoodSheet.mode==='search'){ searchOpenFoodFactsLive(); }" placeholder="${activeFoodSheet.mode === "search" ? "Fage 0,2, Skyr natural, pollo a la brasa, código..." : "Buscar..."}" />
               </div>
+              ${activeFoodSheet.mode === "search" ? `<button type="button" class="btn-primary btn-sm" style="white-space:nowrap; padding:10px 10px;" onclick="searchOpenFoodFactsLive()" title="Buscar marca real en Open Food Facts">🌐 Marca</button>` : ""}
             </div>
+            ${activeFoodSheet.mode !== "search" ? `
+              <div class="row-between" style="gap:6px;">
+                <span style="font-size:11px; font-weight:750; color:var(--text-soft);">Porción:</span>
+                <div class="chip-row" style="padding:0;">
+                  ${[0.5, 1, 1.5, 2].map(sc => `
+                    <button class="chip ${activeFoodSheet.portion === sc ? "active" : ""}" onclick="setFoodSheetPortion(${sc})">×${String(sc).replace(".", ",")}</button>
+                  `).join("")}
+                </div>
+              </div>
+            ` : ""}
           ` : ""}
 
           <div id="foodSheetListArea">${listHtml}</div>
@@ -5675,6 +6005,7 @@
     }
 
     function setFoodSheetMode(mode) {
+      selectedFoodDetail = null;
       activeFoodSheet.mode = mode;
       renderAddFoodSheetContent();
     }
@@ -5688,6 +6019,12 @@
       activeFoodSheet.search = val;
       const area = document.getElementById("foodSheetListArea");
       if (!area) return;
+      if (activeFoodSheet.mode === "search") {
+        onlineFoodResults = [];
+        onlineFoodMsg = "";
+        area.innerHTML = buildSearchResultsListHtml();
+        return;
+      }
       const q = (val || "").trim().toLowerCase();
       const mult = Number(activeFoodSheet.portion || 1);
       if (activeFoodSheet.mode === "recipes") {
@@ -5700,7 +6037,7 @@
             return (getRecipeProfileMeta(b, m).score + matchB) - (getRecipeProfileMeta(a, m).score + matchA);
           });
         area.innerHTML = recs.length ? `
-          <div style="display:flex; flex-direction:column; gap:7px; max-height:46vh; overflow-y:auto;">
+          <div style="display:flex; flex-direction:column; gap:7px; max-height:44vh; overflow-y:auto;">
             ${recs.map(r => `
               <div class="preset-pick-row">
                 <div style="min-width:0; flex:1;">
@@ -5713,14 +6050,14 @@
               </div>
             `).join("")}
           </div>
-        ` : `<div class="empty-note">Sin coincidencias. Prueba en <strong>✏️ Manual</strong>.</div>`;
+        ` : `<div class="empty-note">Sin coincidencias. Prueba en <strong>🔍 Buscar</strong> o <strong>✏️ Manual</strong>.</div>`;
       } else if (activeFoodSheet.mode === "presets") {
         const filteredPresets = DEFAULT_MEAL_PRESETS.filter(p => {
           if (q) return p.title.toLowerCase().includes(q) || (p.tag || "").toLowerCase().includes(q);
           return p.slot === activeFoodSheet.slot || (activeFoodSheet.slot === "almuerzo" && p.slot === "cena");
         });
         area.innerHTML = filteredPresets.length ? `
-          <div style="display:flex; flex-direction:column; gap:7px; max-height:46vh; overflow-y:auto;">
+          <div style="display:flex; flex-direction:column; gap:7px; max-height:44vh; overflow-y:auto;">
             ${filteredPresets.map(p => `
               <div class="preset-pick-row">
                 <div style="min-width:0; flex:1;">
@@ -5733,7 +6070,7 @@
               </div>
             `).join("")}
           </div>
-        ` : `<div class="empty-note">Sin coincidencias. Usa <strong>Recetas</strong> o <strong>✏️ Manual</strong>.</div>`;
+        ` : `<div class="empty-note">Sin coincidencias. Usa <strong>🔍 Buscar</strong> o <strong>✏️ Manual</strong>.</div>`;
       }
     }
 
@@ -5779,9 +6116,27 @@
         showToast("Escribe el nombre de la comida");
         return;
       }
+      const saveCustom = Boolean(document.getElementById("manualSaveCustom")?.checked);
+      const finalKcal = kcal || Math.round(protein * 4 + carbs * 4 + fat * 9);
+      if (saveCustom) {
+        if (!Array.isArray(state.customFoods)) state.customFoods = [];
+        if (!state.customFoods.some(x => x.title.toLowerCase() === title.toLowerCase())) {
+          state.customFoods.unshift({
+            id: "cf_" + Date.now(),
+            title,
+            brand: "Guardado por ti",
+            mode: "serving",
+            servingLabel: "1 porción",
+            kcal: finalKcal,
+            protein,
+            carbs,
+            fat
+          });
+        }
+      }
       addFoodEntryToDiary(diaryDateKey || getTodayDateKey(), activeFoodSheet.slot, {
         title,
-        kcal: kcal || Math.round(protein * 4 + carbs * 4 + fat * 9),
+        kcal: finalKcal,
         protein,
         carbs,
         fat,
