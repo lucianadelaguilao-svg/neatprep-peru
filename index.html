@@ -1857,6 +1857,72 @@
       color: var(--rose-dark);
       letter-spacing: -0.01em;
     }
+
+    .med-due-banner {
+      background: linear-gradient(135deg, #FFF7FA, #FDEBF3);
+      border: 1.5px solid var(--rose-soft);
+      border-radius: var(--radius-lg);
+      padding: 11px 13px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .med-slot-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin: 8px 0 5px;
+    }
+
+    .med-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .med-row.taken {
+      background: #F4FBF7;
+      border-color: #CDE8DC;
+    }
+
+    .med-row.overdue {
+      background: #FFF7FA;
+      border-color: var(--rose-soft);
+    }
+
+    .med-time-tag {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--rose-dark);
+      background: var(--rose-pale);
+      padding: 2px 6px;
+      border-radius: 7px;
+      flex-shrink: 0;
+    }
+
+    .med-adherence-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .med-day-dot {
+      flex: 1;
+      height: 6px;
+      border-radius: 99px;
+      background: #ECE2E7;
+    }
+
+    .med-day-dot.full { background: #2E8B63; }
+    .med-day-dot.part { background: #D6913A; }
   </style>
 </head>
 <body>
@@ -3310,11 +3376,12 @@
         { date: "2026-11-23", steps: 8450 }
       ],
       meds: [
-        { id: "m1", name: "Metformina", dose: "850 mg · con comida", checked: true },
-        { id: "m2", name: "Mio-Inositol + D-Chiro", dose: "2000 mg · mañana", checked: true },
-        { id: "m3", name: "Omega-3 EPA/DHA", dose: "1000 mg · comida principal", checked: false },
-        { id: "m4", name: "Magnesio", dose: "300 mg · noche", checked: false }
+        { id: "m1", name: "Metformina", dose: "500 mg · con comida", category: "metabolic", time: "14:00", withFood: true, stock: 30, followUp15: true, checked: false },
+        { id: "m2", name: "Mio-Inositol + D-Chiro", dose: "2000 mg · mañana", category: "vitamin", time: "08:30", withFood: false, stock: null, followUp15: false, checked: false },
+        { id: "m3", name: "Omega-3 EPA/DHA", dose: "1000 mg · comida", category: "vitamin", time: "14:00", withFood: true, stock: null, followUp15: false, checked: false },
+        { id: "m4", name: "Magnesio", dose: "300 mg · noche", category: "vitamin", time: "21:30", withFood: false, stock: null, followUp15: false, checked: false }
       ],
+      medLogs: {},
       glucoseNote: "Glucosa ayunas estable · buena saciedad post-comida",
       workouts: [
         { id: "wo1", date: "2026-11-22", type: "Fuerza (Gym)", minutes: 55, intensity: "Alta" },
@@ -3453,7 +3520,32 @@
         bodyGoals: { ...base.bodyGoals, ...(parsed.bodyGoals || {}) },
         weightLogs: Array.isArray(parsed.weightLogs) && parsed.weightLogs.length ? parsed.weightLogs : base.weightLogs,
         stepsLogs: Array.isArray(parsed.stepsLogs) ? parsed.stepsLogs : base.stepsLogs,
-        meds: Array.isArray(parsed.meds) ? parsed.meds : base.meds,
+        meds: (Array.isArray(parsed.meds) ? parsed.meds : base.meds).map((med, idx) => {
+          const nLow = String(med.name || "").toLowerCase();
+          const dLow = String(med.dose || "").toLowerCase();
+          const inferredCat = med.category || (
+            nLow.includes("tdah") || nLow.includes("ritalin") || nLow.includes("elvanse") || nLow.includes("concerta") || nLow.includes("medikinet") || nLow.includes("vyvanse") || nLow.includes("atomox") ? "tdah" :
+            nLow.includes("antidep") || nLow.includes("sertral") || nLow.includes("fluox") || nLow.includes("escital") || nLow.includes("buprop") || nLow.includes("venlaf") ? "antidepressant" :
+            nLow.includes("anticonc") || nLow.includes("píldora") || nLow.includes("pildora") || nLow.includes("yasmin") || nLow.includes("slinda") || nLow.includes("cerazette") ? "contraceptive" :
+            nLow.includes("metform") ? "metabolic" : "vitamin"
+          );
+          const inferredTime = med.time || (
+            dLow.includes("noche") || dLow.includes("cena") ? "21:30" :
+            dLow.includes("almuerzo") || dLow.includes("comida") ? "14:00" : "08:30"
+          );
+          return {
+            id: med.id || ("m_" + idx),
+            name: med.name || "Toma diaria",
+            dose: med.dose || "Diario",
+            category: inferredCat,
+            time: inferredTime,
+            withFood: med.withFood !== undefined ? Boolean(med.withFood) : (dLow.includes("comida") || dLow.includes("almuerzo") || inferredCat === "metabolic"),
+            stock: (med.stock !== undefined && med.stock !== null && Number(med.stock) >= 0) ? Number(med.stock) : null,
+            followUp15: med.followUp15 !== undefined ? Boolean(med.followUp15) : ["tdah", "antidepressant", "contraceptive", "metabolic"].includes(inferredCat),
+            checked: Boolean(med.checked)
+          };
+        }),
+        medLogs: (parsed.medLogs && typeof parsed.medLogs === "object") ? parsed.medLogs : {},
         workouts: Array.isArray(parsed.workouts) ? parsed.workouts : base.workouts,
         labLogs: Array.isArray(parsed.labLogs) ? parsed.labLogs : [],
         cycleProfile: (() => {
@@ -4389,7 +4481,7 @@
         return true;
       }).sort((a, b) => getRecipeProfileMeta(b, m).score - getRecipeProfileMeta(a, m).score);
 
-      const medsDone = state.meds.filter(med => med.checked).length;
+      const medsDone = state.meds.filter(med => isMedTakenToday(med)).length;
       const todayStr = new Date().toISOString().slice(0, 10);
       const todayStepsObj = state.stepsLogs.find(s => s.date === todayStr) || state.stepsLogs[state.stepsLogs.length - 1] || { steps: 0 };
       const g = getBodyGoalMetrics();
@@ -4470,6 +4562,7 @@
       container.innerHTML = `
         <div class="section-gap">
           ${topSwitcherHtml}
+          ${buildHoyDueMedsBannerHtml()}
 
           <div class="hero-today-card">
             <div class="row-between" style="margin-bottom:6px;">
@@ -6585,7 +6678,7 @@
       const todayStepsObj = state.stepsLogs.find(s => s.date === todayStr) || state.stepsLogs[state.stepsLogs.length - 1] || { date: todayStr, steps: 0 };
       const stepsPct = Math.min(100, Math.round((Number(todayStepsObj.steps || 0) / Math.max(1000, state.stepsGoal)) * 100));
 
-      const medsDone = state.meds.filter(med => med.checked).length;
+      const medsDone = state.meds.filter(med => isMedTakenToday(med)).length;
       const activeConds = state.clinicalProfile.conditions || [];
       const clinicalBlocks = getClinicalRecommendations(m);
       const microList = getMicronutrientGuide(m);
@@ -6796,29 +6889,7 @@
               </button>
             </div>
 
-            <div class="card">
-              <div class="row-between" style="margin-bottom:8px;">
-                <div>
-                  <div class="card-title" style="margin:0;">Protocolo de hoy</div>
-                  <div class="card-sub">${medsDone}/${state.meds.length} completadas</div>
-                </div>
-                <button class="btn-secondary btn-sm" onclick="openAddMedSheet()">+ Toma</button>
-              </div>
-              <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:9px;">
-                ${state.meds.map(med => `
-                  <div class="check-item ${med.checked ? "done" : ""}" onclick="toggleMed('${med.id}')">
-                    <div class="check-left">
-                      <div class="check-box">${med.checked ? "✓" : ""}</div>
-                      <div>
-                        <div class="check-label">${med.name}</div>
-                        <div style="font-size:11px; color:var(--text-soft);">${med.dose}</div>
-                      </div>
-                    </div>
-                  </div>
-                `).join("")}
-              </div>
-              <input type="text" value="${escapeAttr(state.glucoseNote || "")}" onchange="updateGlucoseNote(this.value)" placeholder="Nota rápida de energía o glucemia..." />
-            </div>
+            ${buildMedsCardHtml()}
 
             ${m.sex === "F" ? `<div class="card">${buildCycleSelectorHtml(m, true)}</div>` : ""}
 
@@ -8314,9 +8385,9 @@
     </div>
   </div>
 
-  <h2>${metfPdfHtml ? "5" : "4"}. Protocolo / Suplementación Habitual y Notas</h2>
+  <h2>${metfPdfHtml ? "5" : "4"}. Medicación, Suplementación y Adherencia (7 días: ${getMedAdherence7Days().pct}%)</h2>
   <div class="box">
-    ${(state.meds || []).map(med => `• <b>${escapeHtml(med.name)}</b> — ${escapeHtml(med.dose)}`).join("<br/>") || "Sin tomas registradas"}
+    ${(state.meds || []).map(med => `• <b>${escapeHtml(med.time || "08:30")}</b> · <b>${escapeHtml(med.name)}</b> — ${escapeHtml(med.dose)}${med.stock !== null && med.stock !== undefined ? ` (stock: ${med.stock} uds)` : ""}`).join("<br/>") || "Sin tomas registradas"}
     ${state.glucoseNote ? `<div style="margin-top:6px; border-top:1px solid #E7DCE1; padding-top:6px;"><b>Nota personal:</b> ${escapeHtml(state.glucoseNote)}</div>` : ""}
   </div>
 
@@ -8989,13 +9060,397 @@
       showToast(`Metas aplicadas: ${kcal} kcal · ${prot}g prot · ${carbsMax}g carb`);
     }
 
-    function toggleMed(id) {
-      const item = state.meds.find(m => m.id === id);
-      if (item) {
-        item.checked = !item.checked;
-        saveState();
-        render();
+    const MED_CATEGORY_META = {
+      tdah:           { id: "tdah",           icon: "🧠", label: "TDAH",           defTime: "08:00", defStock: 30, followUp15: true,  withFood: false, sampleName: "Medicación TDAH",    sampleDose: "Según pauta médica" },
+      antidepressant: { id: "antidepressant", icon: "💜", label: "Antidepresivo",  defTime: "08:30", defStock: 30, followUp15: true,  withFood: false, sampleName: "Antidepresivo",      sampleDose: "Toma diaria fija" },
+      contraceptive:  { id: "contraceptive",  icon: "🌸", label: "Anticonceptivo", defTime: "21:30", defStock: 28, followUp15: true,  withFood: false, sampleName: "Anticonceptivo",     sampleDose: "1 comprimido · misma hora" },
+      metabolic:      { id: "metabolic",      icon: "💊", label: "Metformina",     defTime: "14:00", defStock: 30, followUp15: true,  withFood: true,  sampleName: "Metformina",         sampleDose: "500 mg · con comida" },
+      vitamin:        { id: "vitamin",        icon: "✨", label: "Vitamina",       defTime: "14:00", defStock: null, followUp15: false, withFood: true, sampleName: "Vitamina D3 / B12", sampleDose: "Con comida" },
+      other:          { id: "other",          icon: "🩺", label: "Otro",           defTime: "09:00", defStock: null, followUp15: false, withFood: false, sampleName: "",                  sampleDose: "Diario" }
+    };
+
+    function getCurrentHHMM() {
+      const now = new Date();
+      return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function timeToMinutes(hhmm) {
+      const parts = String(hhmm || "08:30").split(":");
+      return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    }
+
+    function getMedLog(medId, dateKey = null) {
+      const key = dateKey || getTodayDateKey();
+      const dayMap = state.medLogs?.[key];
+      if (dayMap && dayMap[medId]) return dayMap[medId];
+      if (key === getTodayDateKey()) {
+        const med = (state.meds || []).find(m => m.id === medId);
+        if (med && med.checked) return { status: "taken", takenAt: "" };
       }
+      return null;
+    }
+
+    function isMedTakenToday(med, dateKey = null) {
+      const log = getMedLog(med.id, dateKey);
+      return Boolean(log && log.status === "taken");
+    }
+
+    function getMedSlot(med) {
+      const mins = timeToMinutes(med.time || "08:30");
+      if (mins < 12 * 60) return "manana";
+      if (mins < 18 * 60) return "mediodia";
+      return "noche";
+    }
+
+    function getDueMedsNow() {
+      const today = getTodayDateKey();
+      const nowMins = timeToMinutes(getCurrentHHMM());
+      const overdue = [];
+      const upcoming = [];
+
+      (state.meds || []).forEach(med => {
+        const log = getMedLog(med.id, today);
+        if (log && (log.status === "taken" || log.status === "skipped")) return;
+        if (log && log.status === "snoozed" && log.snoozeUntil && nowMins < timeToMinutes(log.snoozeUntil)) return;
+        const sched = timeToMinutes(med.time || "08:30");
+        if (nowMins >= sched) {
+          overdue.push(med);
+        } else if (sched - nowMins <= 30) {
+          upcoming.push(med);
+        }
+      });
+
+      overdue.sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+      upcoming.sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+      return { overdue, upcoming };
+    }
+
+    function getMedAdherence7Days() {
+      const totalMeds = (state.meds || []).length;
+      if (!totalMeds) return { pct: 0, days: [] };
+      const today = getTodayDateKey();
+      const days = [];
+      let sumPct = 0;
+      for (let i = 6; i >= 0; i--) {
+        const dKey = shiftDateKey(today, -i);
+        let taken = 0;
+        state.meds.forEach(med => {
+          if (isMedTakenToday(med, dKey)) taken++;
+        });
+        const ratio = taken / totalMeds;
+        sumPct += ratio;
+        days.push({
+          date: dKey,
+          status: ratio >= 1 ? "full" : (ratio > 0 ? "part" : "none")
+        });
+      }
+      return { pct: Math.round((sumPct / 7) * 100), days };
+    }
+
+    function getSmartMedInteractionTips() {
+      const meds = state.meds || [];
+      const tips = [];
+      const hasTdah = meds.some(m => m.category === "tdah");
+      const hasContra = meds.some(m => m.category === "contraceptive");
+      const hasAnti = meds.some(m => m.category === "antidepressant");
+      const hasMetf = meds.some(m => m.category === "metabolic" || String(m.name || "").toLowerCase().includes("metform"));
+      const hasIron = meds.some(m => String(m.name || "").toLowerCase().includes("hierro"));
+      const lowStock = meds.filter(m => m.stock !== null && m.stock !== undefined && Number(m.stock) <= 5);
+
+      if (lowStock.length) {
+        tips.push(`<strong>🔄 Reponer pronto:</strong> ${lowStock.map(m => `${escapeHtml(m.name)} (${m.stock} uds)`).join(", ")}.`);
+      }
+      if (hasTdah) {
+        tips.push("<strong>🧠 TDAH + Vitamina C:</strong> si tomas estimulantes, evita dosis altas de Vitamina C o zumos cítricos justo a la misma hora (sepáralos ~1 h; confírmalo con tu médico/farmacéutico).");
+      }
+      if (hasContra) {
+        tips.push("<strong>🌸 Anticonceptivo:</strong> mantén siempre la misma hora diaria y activa el recordatorio doble (+15 min) para evitar olvidos.");
+      }
+      if (hasAnti) {
+        tips.push("<strong>💜 Antidepresivo:</strong> la constancia diaria importa más que la perfección; si olvidas una toma, no dupliques dosis sin consultar a tu médico.");
+      }
+      if (hasIron) {
+        tips.push("<strong>🩸 Hierro:</strong> tómalo con Vitamina C y separado 1–2 h de café, té o lácteos.");
+      } else if (hasMetf && tips.length < 2) {
+        tips.push("<strong>💊 Metformina:</strong> mejor a mitad o final de comida principal para buena tolerancia digestiva.");
+      }
+      return tips.slice(0, 3);
+    }
+
+    function toggleMed(id) {
+      const item = (state.meds || []).find(m => m.id === id);
+      if (!item) return;
+      const today = getTodayDateKey();
+      if (!state.medLogs || typeof state.medLogs !== "object") state.medLogs = {};
+      if (!state.medLogs[today]) state.medLogs[today] = {};
+      const wasTaken = isMedTakenToday(item, today);
+
+      if (wasTaken) {
+        delete state.medLogs[today][id];
+        item.checked = false;
+        if (item.stock !== null && item.stock !== undefined) item.stock = Number(item.stock) + 1;
+        showToast(`${item.name} marcada como pendiente`);
+      } else {
+        const hhmm = getCurrentHHMM();
+        state.medLogs[today][id] = { status: "taken", takenAt: hhmm };
+        item.checked = true;
+        if (item.stock !== null && item.stock !== undefined && Number(item.stock) > 0) {
+          item.stock = Math.max(0, Number(item.stock) - 1);
+          if (item.stock <= 5) {
+            showToast(`✓ ${item.name} (${hhmm}) · ¡Quedan ${item.stock} uds!`);
+          } else {
+            showToast(`✓ ${item.name} tomada a las ${hhmm}`);
+          }
+        } else {
+          showToast(`✓ ${item.name} tomada a las ${hhmm}`);
+        }
+      }
+      saveState();
+      render();
+    }
+
+    function snoozeMed(id, mins = 15) {
+      const item = (state.meds || []).find(m => m.id === id);
+      if (!item) return;
+      const today = getTodayDateKey();
+      if (!state.medLogs || typeof state.medLogs !== "object") state.medLogs = {};
+      if (!state.medLogs[today]) state.medLogs[today] = {};
+      const targetDate = new Date(Date.now() + mins * 60000);
+      const until = `${String(targetDate.getHours()).padStart(2, "0")}:${String(targetDate.getMinutes()).padStart(2, "0")}`;
+      state.medLogs[today][id] = { status: "snoozed", snoozeUntil: until };
+      saveState();
+      render();
+      showToast(`⏰ ${item.name} pospuesta hasta las ${until}`);
+    }
+
+    function buildHoyDueMedsBannerHtml() {
+      const { overdue, upcoming } = getDueMedsNow();
+      const activeList = overdue.length ? overdue : upcoming;
+      if (!activeList.length) return "";
+      const isOverdue = overdue.length > 0;
+      const first = activeList[0];
+      const cat = MED_CATEGORY_META[first.category] || MED_CATEGORY_META.other;
+      return `
+        <div class="med-due-banner">
+          <div class="row-between" style="gap:8px; margin-bottom:7px;">
+            <div style="min-width:0;">
+              <div style="font-size:11px; font-weight:850; color:var(--rose-dark); text-transform:uppercase;">
+                ${isOverdue ? `⏰ Toma pendiente (${overdue.length})` : `🔔 Próxima toma (${first.time})`}
+              </div>
+              <div style="font-size:13.5px; font-weight:800; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${cat.icon} ${escapeHtml(first.name)} <span style="font-size:11.5px; font-weight:650; color:var(--text-muted);">· ${first.time}${first.withFood ? " · con comida" : ""}</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-primary btn-sm" style="flex:1;" onclick="toggleMed('${first.id}')">✓ Ya la tomé</button>
+            <button class="btn-secondary btn-sm" onclick="snoozeMed('${first.id}', 15)">⏰ +15 min</button>
+            ${activeList.length > 1 ? `<button class="btn-ghost btn-sm" onclick="switchTab('progreso', 'diario')">+${activeList.length - 1}</button>` : ""}
+          </div>
+        </div>
+      `;
+    }
+
+    function buildMedsCardHtml() {
+      const today = getTodayDateKey();
+      const meds = state.meds || [];
+      const medsDone = meds.filter(med => isMedTakenToday(med, today)).length;
+      const adh = getMedAdherence7Days();
+      const nowMins = timeToMinutes(getCurrentHHMM());
+      const tips = getSmartMedInteractionTips();
+
+      const slotOrder = [
+        { id: "manana",   title: "🌅 Mañana" },
+        { id: "mediodia", title: "☀️ Mediodía / Almuerzo" },
+        { id: "noche",    title: "🌙 Noche" }
+      ];
+
+      const groupsHtml = slotOrder.map(sl => {
+        const items = meds
+          .filter(m => getMedSlot(m) === sl.id)
+          .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+        if (!items.length) return "";
+        return `
+          <div class="med-slot-label">${sl.title}</div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            ${items.map(med => {
+              const log = getMedLog(med.id, today);
+              const taken = Boolean(log && log.status === "taken");
+              const snoozed = Boolean(log && log.status === "snoozed" && log.snoozeUntil && nowMins < timeToMinutes(log.snoozeUntil));
+              const overdue = !taken && !snoozed && nowMins >= timeToMinutes(med.time || "08:30");
+              const cat = MED_CATEGORY_META[med.category] || MED_CATEGORY_META.other;
+              const lowStock = med.stock !== null && med.stock !== undefined && Number(med.stock) <= 5;
+              return `
+                <div class="med-row ${taken ? "taken" : (overdue ? "overdue" : "")}" onclick="toggleMed('${med.id}')" style="cursor:pointer;">
+                  <div class="check-left" style="min-width:0; flex:1;">
+                    <div class="check-box" style="${taken ? "background:var(--mint-text); border-color:var(--mint-text); color:#fff;" : ""}">${taken ? "✓" : ""}</div>
+                    <div style="min-width:0; flex:1;">
+                      <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                        <span class="med-time-tag">${escapeHtml(med.time || "08:30")}</span>
+                        <span class="check-label" style="${taken ? "text-decoration:line-through; color:var(--text-soft);" : ""}">${cat.icon} ${escapeHtml(med.name)}</span>
+                      </div>
+                      <div style="font-size:11px; color:var(--text-soft); margin-top:2px;">
+                        ${escapeHtml(med.dose)}${med.withFood ? " · 🍽️ con comida" : ""}
+                        ${taken && log.takenAt ? ` · <strong style="color:var(--mint-text);">✓ ${log.takenAt}</strong>` : ""}
+                        ${snoozed ? ` · <strong style="color:var(--amber-text);">⏰ ${log.snoozeUntil}</strong>` : ""}
+                        ${med.stock !== null && med.stock !== undefined ? ` · <span style="color:${lowStock ? "var(--rose-dark); font-weight:800;" : "var(--text-soft);"}">${lowStock ? "🔄 " : ""}${med.stock} uds</span>` : ""}
+                      </div>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:4px; flex-shrink:0;" onclick="event.stopPropagation();">
+                    ${!taken && overdue ? `<button class="btn-ghost btn-sm" style="padding:3px 6px; font-size:10.5px; color:var(--rose-dark);" onclick="snoozeMed('${med.id}', 15)" title="Posponer 15 min">+15m</button>` : ""}
+                    <button class="btn-ghost btn-sm" style="padding:3px 6px; color:var(--text-soft);" onclick="openAddMedSheet('${med.id}')" title="Editar">✎</button>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <div class="card">
+          <div class="row-between" style="margin-bottom:7px; gap:6px;">
+            <div>
+              <div class="card-title" style="margin:0;">💊 Medicación y Vitaminas</div>
+              <div class="card-sub">${medsDone}/${meds.length} hoy · Adherencia 7d: <strong>${adh.pct}%</strong></div>
+            </div>
+            <div style="display:flex; gap:5px; flex-shrink:0;">
+              <button class="btn-secondary btn-sm" onclick="openMedRemindersSheet()" title="Recordatorios inteligentes iPhone">🔔</button>
+              <button class="btn-primary btn-sm" onclick="openAddMedSheet()">+ Añadir</button>
+            </div>
+          </div>
+
+          <div class="med-adherence-row" title="Últimos 7 días de adherencia">
+            ${adh.days.map(d => `<div class="med-day-dot ${d.status}"></div>`).join("")}
+          </div>
+
+          ${groupsHtml || `<div class="empty-note">Añade tus medicamentos (TDAH, antidepresivos, anticonceptivos, metformina o vitaminas) con horario y recordatorio doble.</div>`}
+
+          ${tips.length ? `
+            <div style="margin-top:9px; padding:8px 10px; border-radius:10px; background:var(--bg-soft); border:1px solid var(--border); font-size:11px; color:var(--text-muted); line-height:1.42;">
+              ${tips.map(t => `<div style="margin-bottom:3px;">${t}</div>`).join("")}
+            </div>
+          ` : ""}
+
+          <input type="text" style="margin-top:9px;" value="${escapeAttr(state.glucoseNote || "")}" onchange="updateGlucoseNote(this.value)" placeholder="Nota rápida de síntomas, ánimo o energía..." />
+        </div>
+      `;
+    }
+
+    function openMedRemindersSheet() {
+      const notifSupported = typeof Notification !== "undefined";
+      const notifState = notifSupported ? Notification.permission : "unsupported";
+      openSheet("🔔 Recordatorios Inteligentes (0 €)", `
+        <div class="section-gap">
+          <div class="card-soft">
+            <div style="font-size:13px; font-weight:800; color:var(--rose-dark); margin-bottom:4px;">1. Alertas en pantalla bloqueada de iPhone (.ics)</div>
+            <div style="font-size:11.5px; color:var(--text-muted); line-height:1.45; margin-bottom:9px;">
+              Genera una alarma diaria nativa en tu iPhone para <strong>cada uno de tus ${(state.meds || []).length} medicamentos</strong> a su hora exacta, incluyendo un <strong>segundo aviso a los +15 min</strong> en TDAH, anticonceptivo, antidepresivo o metformina (igual que Medisafe, 100% gratis).
+            </div>
+            <button class="btn-primary" style="width:100%;" onclick="exportMedicationsIcs()">🔔 Descargar alertas de medicación (.ics)</button>
+          </div>
+
+          <div class="card-soft">
+            <div style="font-size:12.5px; font-weight:800; color:var(--text-main); margin-bottom:4px;">2. Notificaciones en la app</div>
+            <div style="font-size:11.5px; color:var(--text-muted); line-height:1.4; margin-bottom:8px;">
+              Cuando entres a la app, siempre verás arriba tus tomas pendientes con <strong>✓ Ya la tomé</strong>, hora exacta registrada y botón <strong>⏰ +15 min</strong>.
+            </div>
+            ${notifSupported ? `
+              <button class="btn-secondary btn-sm" style="width:100%;" onclick="requestBrowserMedNotifications()">
+                ${notifState === "granted" ? "✓ Notificaciones del navegador activas" : "Activar avisos del navegador"}
+              </button>
+            ` : `<div style="font-size:11px; color:var(--text-soft);">En iPhone, usa el botón <strong>.ics</strong> de arriba para avisos confiables incluso con el móvil bloqueado.</div>`}
+          </div>
+        </div>
+      `);
+    }
+
+    function requestBrowserMedNotifications() {
+      if (typeof Notification === "undefined") {
+        showToast("Usa el archivo .ics para alertas nativas en iPhone");
+        return;
+      }
+      Notification.requestPermission().then(res => {
+        if (res === "granted") {
+          showToast("✓ Notificaciones activadas");
+          closeSheet();
+        } else {
+          showToast("Permiso no concedido · usa el archivo .ics");
+        }
+      });
+    }
+
+    function exportMedicationsIcs() {
+      const meds = state.meds || [];
+      if (!meds.length) {
+        showToast("Añade primero al menos un medicamento");
+        return;
+      }
+      const pad2 = n => String(n).padStart(2, "0");
+      const now = new Date();
+      const y = now.getFullYear(), mo = pad2(now.getMonth() + 1), da = pad2(now.getDate());
+      const dtStamp = `${y}${mo}${da}T${pad2(now.getHours())}${pad2(now.getMinutes())}00`;
+
+      const events = meds.map(med => {
+        const parts = String(med.time || "08:30").split(":");
+        const hh = pad2(parseInt(parts[0], 10) || 8);
+        const mm = pad2(parseInt(parts[1], 10) || 30);
+        const endTot = (parseInt(hh, 10) * 60) + parseInt(mm, 10) + 15;
+        const endHh = pad2(Math.floor(endTot / 60) % 24);
+        const endMm = pad2(endTot % 60);
+        const cat = MED_CATEGORY_META[med.category] || MED_CATEGORY_META.other;
+        const summary = `${cat.icon} Toma: ${med.name} (${med.dose})`;
+        const desc = `${med.withFood ? "Tomar con comida. " : ""}Registra tu toma en MealPrep & NutriTrack para saber la hora exacta.`;
+        const alarms = [
+          "BEGIN:VALARM",
+          "TRIGGER:-PT0M",
+          "ACTION:DISPLAY",
+          `DESCRIPTION:${summary}`,
+          "END:VALARM"
+        ];
+        if (med.followUp15) {
+          alarms.push(
+            "BEGIN:VALARM",
+            "TRIGGER:PT15M",
+            "ACTION:DISPLAY",
+            `DESCRIPTION:⏰ Recordatorio (+15 min): ¿Ya tomaste ${med.name}?`,
+            "END:VALARM"
+          );
+        }
+        return [
+          "BEGIN:VEVENT",
+          `UID:med-${med.id}@mealprep-nutritrack`,
+          `DTSTAMP:${dtStamp}`,
+          `DTSTART:${y}${mo}${da}T${hh}${mm}00`,
+          `DTEND:${y}${mo}${da}T${endHh}${endMm}00`,
+          "RRULE:FREQ=DAILY",
+          `SUMMARY:${summary}`,
+          `DESCRIPTION:${desc}`,
+          ...alarms,
+          "END:VEVENT"
+        ].join("\r\n");
+      });
+
+      const ics = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//MealPrep NutriTrack//Smart Meds//ES",
+        "CALSCALE:GREGORIAN",
+        ...events,
+        "END:VCALENDAR"
+      ].join("\r\n");
+
+      const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "alertas-medicacion-iphone.ics";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast(`✓ Alertas .ics creadas para ${meds.length} toma(s)`);
     }
 
     function updateGlucoseNote(val) {
@@ -9645,29 +10100,128 @@
       showToast(`Pasos guardados: ${steps.toLocaleString("es-ES")}`);
     }
 
-    function openAddMedSheet() {
-      openSheet("Añadir toma / tratamiento", `
-        <div>
-          <label>Nombre (fármaco o suplemento)</label>
-          <input type="text" id="medName" placeholder="Ej. Vitamina D3 / Inositol" />
+    function openAddMedSheet(editId = null) {
+      const existing = editId ? (state.meds || []).find(m => m.id === editId) : null;
+      const curCat = existing?.category || "tdah";
+      openSheet(existing ? "Editar medicamento" : "💊 Añadir medicamento / vitamina", `
+        <div class="section-gap">
+          <div>
+            <label>Plantilla rápida (1 toque)</label>
+            <div class="chip-row" id="medCatChips">
+              ${Object.values(MED_CATEGORY_META).map(c => `
+                <button type="button" class="chip ${curCat === c.id ? "active" : ""}" data-cat="${c.id}" onclick="selectMedTemplate('${c.id}')">${c.icon} ${c.label}</button>
+              `).join("")}
+            </div>
+            <input type="hidden" id="medCategory" value="${escapeAttr(curCat)}" />
+            <input type="hidden" id="medEditId" value="${escapeAttr(editId || "")}" />
+          </div>
+
+          <div>
+            <label>Nombre del medicamento o vitamina</label>
+            <input type="text" id="medName" value="${escapeAttr(existing ? existing.name : "")}" placeholder="Ej. Elvanse / Sertralina / Píldora / Vit D3" />
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label>Dosis</label>
+              <input type="text" id="medDose" value="${escapeAttr(existing ? existing.dose : "")}" placeholder="Ej. 30 mg / 1 comp." />
+            </div>
+            <div>
+              <label>Hora recordatorio</label>
+              <input type="time" id="medTime" value="${escapeAttr(existing ? (existing.time || "08:30") : "08:00")}" />
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label>Pastillas en caja (opcional)</label>
+              <input type="number" id="medStock" min="0" max="500" value="${existing && existing.stock !== null && existing.stock !== undefined ? existing.stock : ""}" placeholder="Ej. 28 o 30" />
+            </div>
+            <div style="display:flex; flex-direction:column; justify-content:center; gap:6px; padding-top:12px;">
+              <label style="display:flex; align-items:center; gap:6px; margin:0; font-size:11.5px; cursor:pointer;">
+                <input type="checkbox" id="medWithFood" ${existing ? (existing.withFood ? "checked" : "") : ""} style="width:15px; height:15px; accent-color:var(--rose);" />
+                Con comida
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; margin:0; font-size:11.5px; cursor:pointer;">
+                <input type="checkbox" id="medFollowUp15" ${existing ? (existing.followUp15 ? "checked" : "") : "checked"} style="width:15px; height:15px; accent-color:var(--rose);" />
+                Aviso doble (+15m)
+              </label>
+            </div>
+          </div>
+
+          <button class="btn-primary" style="width:100%;" onclick="saveMed()">${existing ? "Guardar cambios" : "Añadir a mi horario"}</button>
+          ${existing ? `<button class="btn-ghost btn-sm" style="width:100%; color:var(--danger-text);" onclick="deleteMed('${existing.id}')">Eliminar este medicamento</button>` : ""}
         </div>
-        <div>
-          <label>Dosis y momento del día</label>
-          <input type="text" id="medDose" placeholder="Ej. 2000 UI · con el almuerzo" />
-        </div>
-        <button class="btn-primary" onclick="saveMed()">Agregar toma</button>
       `);
     }
 
+    function selectMedTemplate(catId) {
+      const meta = MED_CATEGORY_META[catId];
+      if (!meta) return;
+      const catEl = document.getElementById("medCategory");
+      if (catEl) catEl.value = catId;
+      document.querySelectorAll("#medCatChips .chip").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-cat") === catId);
+      });
+      const nameEl = document.getElementById("medName");
+      const doseEl = document.getElementById("medDose");
+      const timeEl = document.getElementById("medTime");
+      const stockEl = document.getElementById("medStock");
+      const foodEl = document.getElementById("medWithFood");
+      const f15El = document.getElementById("medFollowUp15");
+      if (nameEl && !nameEl.value.trim() && meta.sampleName) nameEl.value = meta.sampleName;
+      if (doseEl && !doseEl.value.trim() && meta.sampleDose) doseEl.value = meta.sampleDose;
+      if (timeEl) timeEl.value = meta.defTime;
+      if (stockEl && meta.defStock) stockEl.value = meta.defStock;
+      if (foodEl) foodEl.checked = Boolean(meta.withFood);
+      if (f15El) f15El.checked = Boolean(meta.followUp15);
+    }
+
     function saveMed() {
-      const name = document.getElementById("medName").value.trim();
-      if (!name) return;
-      const dose = document.getElementById("medDose").value.trim() || "Diario";
-      state.meds.push({ id: "m_" + Date.now(), name, dose, checked: false });
+      const editId = document.getElementById("medEditId")?.value || "";
+      const name = String(document.getElementById("medName")?.value || "").trim();
+      if (!name) {
+        showToast("Escribe el nombre del medicamento");
+        return;
+      }
+      const dose = String(document.getElementById("medDose")?.value || "").trim() || "Diario";
+      const category = document.getElementById("medCategory")?.value || "other";
+      const time = document.getElementById("medTime")?.value || "08:30";
+      const rawStock = String(document.getElementById("medStock")?.value || "").trim();
+      const stock = rawStock !== "" && Number.isFinite(Number(rawStock)) && Number(rawStock) >= 0 ? Math.round(Number(rawStock)) : null;
+      const withFood = Boolean(document.getElementById("medWithFood")?.checked);
+      const followUp15 = Boolean(document.getElementById("medFollowUp15")?.checked);
+
+      if (editId) {
+        const idx = state.meds.findIndex(m => m.id === editId);
+        if (idx >= 0) {
+          state.meds[idx] = { ...state.meds[idx], name, dose, category, time, stock, withFood, followUp15 };
+        }
+      } else {
+        state.meds.push({
+          id: "m_" + Date.now(),
+          name,
+          dose,
+          category,
+          time,
+          stock,
+          withFood,
+          followUp15,
+          checked: false
+        });
+      }
       saveState();
       closeSheet();
       render();
-      showToast("Toma agregada");
+      showToast(editId ? "Medicamento actualizado ✓" : `${name} añadido (${time}) ✓`);
+    }
+
+    function deleteMed(id) {
+      state.meds = (state.meds || []).filter(m => m.id !== id);
+      saveState();
+      closeSheet();
+      render();
+      showToast("Medicamento eliminado");
     }
 
     function openAddWorkoutSheet() {
