@@ -2203,6 +2203,133 @@
     .blister-mini-dot.placebo-slot { background: #CBE8DA; }
     .blister-mini-dot.placebo-done { background: #2E8B63; }
     .blister-mini-dot.today-dot { outline: 1.5px solid var(--rose-dark); }
+
+    /* Intuitive section guide banners, hydration & Lyfta-style live workout player */
+    .section-hint-banner {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 13px;
+      border-radius: var(--radius-md);
+      background: var(--rose-pale);
+      color: var(--text-main);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .water-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .water-drops {
+      display: flex;
+      gap: 4px;
+      margin-top: 5px;
+    }
+
+    .water-drop {
+      width: 14px;
+      height: 7px;
+      border-radius: 99px;
+      background: #E8EFF5;
+      transition: background 0.15s ease;
+    }
+
+    .water-drop.filled {
+      background: #3B8CC4;
+    }
+
+    .workout-player-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 95;
+      background: var(--bg-app);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .workout-player-overlay.open {
+      display: flex;
+    }
+
+    .wp-header {
+      background: rgba(250, 245, 247, 0.94);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 0.5px solid rgba(216, 78, 125, 0.15);
+      padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+      flex-shrink: 0;
+    }
+
+    .wp-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px calc(24px + env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .wp-rest-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 13px;
+      border-radius: var(--radius-md);
+      background: #23181D;
+      color: #FFFFFF;
+      margin-top: 8px;
+    }
+
+    .wp-set-row {
+      display: grid;
+      grid-template-columns: 32px 1fr 1fr 38px;
+      gap: 7px;
+      align-items: center;
+      padding: 6px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .wp-set-row.done {
+      opacity: 0.72;
+    }
+
+    .wp-set-input {
+      width: 100%;
+      padding: 7px 6px !important;
+      font-size: 13px !important;
+      font-weight: 700;
+      text-align: center;
+      border-radius: 9px !important;
+    }
+
+    .wp-set-check {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--bg-soft);
+      color: var(--text-soft);
+      font-size: 15px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wp-set-check.done {
+      background: #2E8B63;
+      color: #FFFFFF;
+    }
   </style>
 </head>
 <body>
@@ -2215,6 +2342,9 @@
         </div>
         <div class="topbar-actions">
           <div class="pill-status" id="headerBudgetPill" onclick="switchTab('comida', 'diario')" style="cursor:pointer;">0 / 1640 kcal</div>
+          <button class="icon-btn" onclick="openSectionHelpSheet()" aria-label="Guía de esta sección" title="¿Cómo funciona esta sección?">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
           <button class="icon-btn" onclick="openSettingsSheet()" aria-label="Ajustes" title="Ajustes">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
@@ -2248,6 +2378,7 @@
       </button>
     </nav>
     <div class="onb-overlay" id="onboardingOverlay" role="dialog" aria-modal="true" aria-label="Configuración inicial"></div>
+    <div class="workout-player-overlay" id="workoutPlayerOverlay" role="dialog" aria-modal="true" aria-label="Sesión de entreno en vivo"></div>
   </div>
 
   <div class="sheet-backdrop" id="sheetBackdrop" onclick="handleBackdropClick(event)">
@@ -3681,6 +3812,9 @@
       },
       foodDiary: {},
       customFoods: [],
+      waterLogs: {},
+      exercisePRs: {},
+      dismissedHints: {},
       onboardingCompleted: false
     };
 
@@ -3870,6 +4004,9 @@
         })(),
         foodDiary: (parsed.foodDiary && typeof parsed.foodDiary === "object") ? parsed.foodDiary : {},
         customFoods: Array.isArray(parsed.customFoods) ? parsed.customFoods : [],
+        waterLogs: (parsed.waterLogs && typeof parsed.waterLogs === "object") ? parsed.waterLogs : {},
+        exercisePRs: (parsed.exercisePRs && typeof parsed.exercisePRs === "object") ? parsed.exercisePRs : {},
+        dismissedHints: (parsed.dismissedHints && typeof parsed.dismissedHints === "object") ? parsed.dismissedHints : {},
         onboardingCompleted: typeof parsed.onboardingCompleted === "boolean"
           ? parsed.onboardingCompleted
           : Boolean(parsed.healthPlanStatus?.ready || (parsed.labLogs && parsed.labLogs.length) || (parsed.foodDiary && Object.keys(parsed.foodDiary).length))
@@ -4962,6 +5099,7 @@
       container.innerHTML = `
         <div class="section-gap">
           ${topSwitcherHtml}
+          ${buildSectionHintHtml("hoy")}
           ${buildHoyDueMedsBannerHtml()}
 
           <div class="card">
@@ -4988,6 +5126,8 @@
               <button class="btn-secondary btn-sm" onclick="switchTab('comida', 'recetario')">Recetario</button>
             </div>
           </div>
+
+          ${buildWaterTrackerHtml(todayStr)}
 
           <div class="card">
             <div class="hairline-list">
@@ -5185,7 +5325,7 @@
       const m = getAdaptiveNutritionMetrics();
       const meta = getRecipeProfileMeta(r, m);
       const mealType = getRecipeMealType(r);
-      const mealTypeLabel = mealType === "desayuno" ? "🌅 Desayuno" : (mealType === "cena" ? "🌙 Cena" : "☀️ Almuerzo");
+      const mealTypeLabel = mealType === "desayuno" ? "Desayuno" : (mealType === "cena" ? "Cena" : "Almuerzo");
       const cyclePhase = getActiveCyclePhase(m);
       const matchesCycle = Boolean(cyclePhase && getRecipeCyclePhases(r).includes(cyclePhase.id));
       const cost = getRecipeCost(r, 1, true);
@@ -5235,8 +5375,9 @@
           </div>
           ${pantryHtml}
           <div class="row-between" style="margin-top:2px; gap:6px;">
-            <div style="display:flex; gap:5px;">
-              <button class="btn-secondary btn-sm" onclick="openRecipeSheet('${r.id}', ${meta.suggestedScale})">Preparación</button>
+            <div style="display:flex; gap:5px; flex-wrap:wrap;">
+              <button class="btn-secondary btn-sm" onclick="openRecipeSheet('${r.id}', ${meta.suggestedScale})">Ver / Cocinar</button>
+              <button class="btn-ghost btn-sm" onclick="openEditRecipeSheet('${r.id}')">Editar</button>
               <button class="btn-ghost btn-sm" onclick="logRecipeQuickToDiary('${r.id}')">+ Diario</button>
             </div>
             ${showAssignBtn && mealType === "almuerzo" ? `<button class="btn-primary btn-sm" onclick="openBatchAssignSheet('${r.id}')">+ Táper</button>` : ""}
@@ -5265,7 +5406,25 @@
     function getFilteredRecipes() {
       const m = getAdaptiveNutritionMetrics();
       const cyclePhase = getActiveCyclePhase(m);
-      const q = recipeSearch.trim().toLowerCase();
+      const qRaw = recipeSearch.trim();
+      const qNorm = normFoodStr(qRaw);
+      const tokens = tokenizeFoodQuery(qNorm);
+
+      // When user actively types a search query, search across ALL recipes using fuzzy Spanish matching
+      if (qNorm) {
+        const scored = [];
+        state.recipes.forEach(r => {
+          const mt = getRecipeMealType(r);
+          if (recipeMealTypeFilter !== "all" && mt !== recipeMealTypeFilter) return;
+          const titleNorm = normFoodStr(r.title);
+          const hayNorm = normFoodStr([r.title, r.category, mt, ...(r.ingredients || []).map(i => i.label)].join(" "));
+          const sc = scoreFoodCandidate(qNorm, tokens, hayNorm, titleNorm);
+          if (sc > 0) scored.push({ r, sc });
+        });
+        scored.sort((a, b) => b.sc - a.sc);
+        return scored.map(x => x.r);
+      }
+
       return state.recipes.filter(r => {
         const meta = getRecipeProfileMeta(r, m);
         const mt = getRecipeMealType(r);
@@ -5300,15 +5459,6 @@
         if (recipeQuickFilter === "pantry") {
           const pm = getRecipePantryMatch(r);
           if (pm.haveCount === 0) return false;
-        }
-        if (q) {
-          const hay = [
-            r.title,
-            r.category,
-            mt,
-            ...(r.ingredients || []).map(i => i.label)
-          ].join(" ").toLowerCase();
-          if (!hay.includes(q)) return false;
         }
         return true;
       }).sort((a, b) => {
@@ -5587,6 +5737,7 @@
         </div>
 
         ${slotsHtml}
+        ${buildWaterTrackerHtml(key)}
       `;
     }
 
@@ -5641,16 +5792,174 @@
       { id: "db_whey", title: "Proteína Whey Isolate / Concentrate (1 scoop 30 g)", brand: "ESN / Optimum / Myprotein", mode: "serving", servingLabel: "1 scoop", kcal: 118, protein: 24, carbs: 2, fat: 1.5 },
       { id: "db_cappuccino", title: "Cappuccino / Café con leche sin azúcar", brand: "250 ml leche 1,5%", mode: "serving", servingLabel: "1 taza", kcal: 85, protein: 5, carbs: 7, fat: 3.5 },
       { id: "db_matcha_latte", title: "Matcha Latte con leche de avena", brand: "Cafetería · 300 ml", mode: "serving", servingLabel: "1 vaso", kcal: 145, protein: 3, carbs: 22, fat: 4.5 },
-      { id: "db_lindt85", title: "Chocolate negro 85% Cacao", brand: "Lindt Excellence · por 100g", mode: "grams", defaultQty: 20, kcal100: 584, prot100: 12.5, carbs100: 19.0, fat100: 46.0, sugar100: 14.0 }
+      { id: "db_lindt85", title: "Chocolate negro 85% Cacao", brand: "Lindt Excellence · por 100g", mode: "grams", defaultQty: 20, kcal100: 584, prot100: 12.5, carbs100: 19.0, fat100: 46.0, sugar100: 14.0 },
+      // Everyday Home-Cooked Dishes (Mom-friendly & Spanish / Peruvian classics)
+      { id: "db_pollo_horno", title: "Pollo al horno (presa sin piel, peso cocido)", brand: "Casero · pechuga o muslo al horno", mode: "grams", defaultQty: 180, kcal100: 172, prot100: 29.0, carbs100: 0.5, fat100: 5.8 },
+      { id: "db_pollo_horno_papas", title: "Pollo al horno con papas doradas y ensalada", brand: "Plato casero completo", mode: "serving", servingLabel: "1 plato", kcal: 540, protein: 42, carbs: 46, fat: 19 },
+      { id: "db_pollo_plancha_ensalada", title: "Pechuga de pollo a la plancha con ensalada", brand: "Plato casero ligero", mode: "serving", servingLabel: "1 plato", kcal: 340, protein: 46, carbs: 10, fat: 12 },
+      { id: "db_arroz_con_pollo", title: "Arroz con pollo casero (con ensalada criolla)", brand: "Plato casero / peruano", mode: "serving", servingLabel: "1 plato", kcal: 560, protein: 34, carbs: 64, fat: 17 },
+      { id: "db_estofado_pollo", title: "Estofado de pollo con papa y zanahoria", brand: "Plato casero", mode: "serving", servingLabel: "1 plato", kcal: 480, protein: 36, carbs: 42, fat: 17 },
+      { id: "db_seco_carne", title: "Seco de carne o pollo con frejoles y arroz", brand: "Plato casero / peruano", mode: "serving", servingLabel: "1 plato", kcal: 610, protein: 38, carbs: 66, fat: 20 },
+      { id: "db_caldo_pollo", title: "Sopa / Caldo de pollo con verduras y fideos", brand: "Casero · 1 plato hondo", mode: "serving", servingLabel: "1 plato", kcal: 245, protein: 22, carbs: 24, fat: 6 },
+      { id: "db_pescado_horno", title: "Pescado blanco al horno (merluza / bacalao / tilapia)", brand: "Casero · peso cocido", mode: "grams", defaultQty: 160, kcal100: 112, prot100: 23.0, carbs100: 0.0, fat100: 2.0 },
+      { id: "db_bistec_plancha", title: "Bistec / Filete de res a la plancha", brand: "Casero · carne magra cocida", mode: "grams", defaultQty: 150, kcal100: 195, prot100: 28.0, carbs100: 0.0, fat100: 8.5 },
+      { id: "db_huevos_revueltos", title: "Huevos revueltos / Tortilla francesa (2 huevos)", brand: "Desayuno casero · 1 cdta aceite", mode: "serving", servingLabel: "2 huevos", kcal: 195, protein: 13.5, carbs: 1.5, fat: 14.5 },
+      { id: "db_tostada_palta_huevo", title: "Tostada integral con palta y huevo", brand: "Desayuno casero · 1 rebanada", mode: "serving", servingLabel: "1 tostada", kcal: 290, protein: 12, carbs: 24, fat: 16 },
+      { id: "db_pan_queso", title: "Pan integral con queso fresco (1 rebanada)", brand: "Desayuno / merienda", mode: "serving", servingLabel: "1 unidad", kcal: 195, protein: 11, carbs: 21, fat: 7 },
+      { id: "db_avena_cocida", title: "Avena cocida con leche y fruta (1 bowl)", brand: "Desayuno casero · ~300 g", mode: "serving", servingLabel: "1 bowl", kcal: 310, protein: 13, carbs: 48, fat: 7 },
+      { id: "db_yogur_natural", title: "Yogur natural sin azúcar (3,5% grasa)", brand: "Genérico · sin azúcares añadidos", mode: "grams", defaultQty: 150, kcal100: 63, prot100: 3.8, carbs100: 4.7, fat100: 3.5, sugar100: 4.7 },
+      { id: "db_ensalada_cesar", title: "Ensalada César con pollo a la plancha", brand: "Casero / restaurante", mode: "serving", servingLabel: "1 plato", kcal: 420, protein: 35, carbs: 18, fat: 22 },
+      { id: "db_ensalada_mixta", title: "Ensalada mixta (lechuga, tomate, pepino + 1 cda aceite)", brand: "Acompañamiento", mode: "serving", servingLabel: "1 bowl", kcal: 135, protein: 2.5, carbs: 9, fat: 10 },
+      { id: "db_pasta_bolonesa", title: "Pasta / Tallarines a la boloñesa (carne magra)", brand: "Plato casero", mode: "serving", servingLabel: "1 plato", kcal: 545, protein: 31, carbs: 64, fat: 17 },
+      { id: "db_pure_papa", title: "Puré de papa casero (con leche)", brand: "Acompañamiento", mode: "grams", defaultQty: 180, kcal100: 95, prot100: 2.2, carbs100: 15.5, fat100: 2.8 },
+      { id: "db_papa_cocida", title: "Papa / Patata sancochada o al horno (sin aceite)", brand: "Genérico · peso cocido", mode: "grams", defaultQty: 180, kcal100: 87, prot100: 2.0, carbs100: 20.0, fat100: 0.1 },
+      { id: "db_camote_horno", title: "Camote / Boniato al horno o cocido", brand: "Genérico · peso cocido", mode: "grams", defaultQty: 160, kcal100: 90, prot100: 2.0, carbs100: 21.0, fat100: 0.2 },
+      { id: "db_lentejas_cocidas", title: "Lentejas guisadas / cocidas", brand: "Casero · peso cocido", mode: "grams", defaultQty: 200, kcal100: 116, prot100: 9.0, carbs100: 20.0, fat100: 0.4 },
+      { id: "db_quinua_cocida", title: "Quinua cocida", brand: "Genérico · peso cocido", mode: "grams", defaultQty: 150, kcal100: 120, prot100: 4.4, carbs100: 21.3, fat100: 1.9 },
+      { id: "db_manzana", title: "Manzana fresca (1 ud mediana)", brand: "Fruta · ~180 g", mode: "serving", servingLabel: "1 manzana", kcal: 95, protein: 0.5, carbs: 25, fat: 0.3 },
+      { id: "db_naranja", title: "Naranja / Mandarina (1 ud mediana)", brand: "Fruta · rica en Vitamina C", mode: "serving", servingLabel: "1 unidad", kcal: 62, protein: 1.2, carbs: 15.4, fat: 0.2 },
+      { id: "db_pera", title: "Pera fresca (1 ud mediana)", brand: "Fruta · alta fibra", mode: "serving", servingLabel: "1 pera", kcal: 100, protein: 0.6, carbs: 26, fat: 0.2 },
+      { id: "db_cafe_solo", title: "Café americano / Espresso / Infusión sin azúcar", brand: "Bebida · 0 azúcar", mode: "serving", servingLabel: "1 taza", kcal: 5, protein: 0.3, carbs: 0.5, fat: 0 }
     ];
 
     let onlineFoodResults = [];
     let onlineFoodLoading = false;
     let onlineFoodMsg = "";
     let selectedFoodDetail = null;
+    let foodAutoSearchTimer = null;
+
+    const FOOD_STOP_WORDS = new Set(["al", "a", "la", "el", "los", "las", "de", "del", "con", "sin", "en", "un", "una", "por", "para", "y", "o", "mi", "tu", "sus"]);
+    const FOOD_SYNONYMS = {
+      horno: ["horno", "asado", "brasa", "plancha", "rostizado"],
+      asado: ["horno", "asado", "brasa", "plancha"],
+      brasa: ["brasa", "horno", "asado"],
+      plancha: ["plancha", "cocida", "horno"],
+      palta: ["palta", "aguacate"],
+      aguacate: ["palta", "aguacate"],
+      papa: ["papa", "patata"],
+      papas: ["papa", "patata"],
+      patata: ["papa", "patata"],
+      patatas: ["papa", "patata"],
+      yogurt: ["yogur", "yogurt", "griego", "skyr"],
+      yogur: ["yogur", "yogurt", "griego", "skyr"],
+      pollo: ["pollo", "pechuga", "gallina"],
+      carne: ["carne", "res", "bistec", "lomo"],
+      pescado: ["pescado", "salmon", "atun", "ceviche"],
+      huevo: ["huevo", "huevos", "tortilla", "omelette"],
+      huevos: ["huevo", "huevos", "tortilla", "omelette"],
+      fideos: ["fideos", "pasta", "tallarines"],
+      tallarines: ["tallarines", "pasta", "fideos"],
+      pasta: ["pasta", "tallarines", "fideos"],
+      camote: ["camote", "boniato"],
+      boniato: ["camote", "boniato"],
+      platano: ["platano", "banana"],
+      banana: ["platano", "banana"],
+      pan: ["pan", "tostada", "vollkorn"]
+    };
+
+    function normFoodStr(s) {
+      return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function tokenizeFoodQuery(query) {
+      const raw = normFoodStr(query).replace(/[^a-z0-9,\.\s]/g, " ").trim();
+      if (!raw) return [];
+      const parts = raw.split(/\s+/).filter(Boolean);
+      const filtered = parts.filter(w => !FOOD_STOP_WORDS.has(w) && w.length >= 2);
+      return filtered.length ? filtered : parts;
+    }
+
+    function scoreFoodCandidate(queryNorm, tokens, hayNorm, titleNorm) {
+      if (!queryNorm) return 1;
+      let score = 0;
+      if (titleNorm.includes(queryNorm)) score += 120;
+      else if (hayNorm.includes(queryNorm)) score += 90;
+      let matchedTokens = 0;
+      tokens.forEach(tok => {
+        const syns = FOOD_SYNONYMS[tok] || [tok];
+        const stem = tok.length > 4 && tok.endsWith("s") ? tok.slice(0, -1) : tok;
+        const hitTitle = syns.some(s => titleNorm.includes(s)) || titleNorm.includes(stem);
+        const hitHay = hitTitle || syns.some(s => hayNorm.includes(s)) || hayNorm.includes(stem);
+        if (hitTitle) { score += 35; matchedTokens++; }
+        else if (hitHay) { score += 20; matchedTokens++; }
+      });
+      if (matchedTokens === tokens.length && tokens.length > 0) score += 45;
+      return matchedTokens > 0 ? score : 0;
+    }
+
+    function getRecentDiaryFoods(limit = 6) {
+      const seen = new Set();
+      const out = [];
+      const dates = Object.keys(state.foodDiary || {}).sort().reverse();
+      for (const dk of dates) {
+        const day = state.foodDiary[dk];
+        if (!day) continue;
+        for (const sl of ["desayuno", "almuerzo", "cena", "snacks"]) {
+          const arr = Array.isArray(day[sl]) ? day[sl] : [];
+          for (let i = arr.length - 1; i >= 0; i--) {
+            const it = arr[i];
+            const k = normFoodStr(it.title);
+            if (!k || seen.has(k)) continue;
+            seen.add(k);
+            out.push({
+              id: "rec_" + out.length,
+              title: it.title,
+              brand: "Reciente",
+              mode: "serving",
+              servingLabel: "1 porción",
+              kcal: Number(it.kcal) || 0,
+              protein: Number(it.protein) || 0,
+              carbs: Number(it.carbs) || 0,
+              fat: Number(it.fat) || 0,
+              isRecent: true
+            });
+            if (out.length >= limit) return out;
+          }
+        }
+      }
+      return out;
+    }
+
+    function estimateDishSmart(query) {
+      const q = normFoodStr(query);
+      let kcal = 380, protein = 24, carbs = 34, fat = 14;
+      if (q.includes("pollo") || q.includes("pavo") || q.includes("pechuga")) { kcal = 340; protein = 38; carbs = 12; fat = 13; }
+      else if (q.includes("pescado") || q.includes("salmon") || q.includes("atun") || q.includes("marisc")) { kcal = 320; protein = 34; carbs = 10; fat = 14; }
+      else if (q.includes("carne") || q.includes("res") || q.includes("cerdo") || q.includes("lomo") || q.includes("bistec")) { kcal = 440; protein = 34; carbs = 18; fat = 22; }
+      else if (q.includes("huevo") || q.includes("tortilla") || q.includes("omelette")) { kcal = 220; protein = 15; carbs = 4; fat = 15; }
+      else if (q.includes("sopa") || q.includes("caldo") || q.includes("crema")) { kcal = 230; protein = 14; carbs = 26; fat = 7; }
+      else if (q.includes("ensalada")) { kcal = 260; protein = 16; carbs = 16; fat = 14; }
+      else if (q.includes("pasta") || q.includes("tallarin") || q.includes("arroz") || q.includes("quinua") || q.includes("lentej")) { kcal = 490; protein = 22; carbs = 64; fat = 14; }
+      else if (q.includes("pan") || q.includes("tostada") || q.includes("sandwich") || q.includes("sanguche")) { kcal = 330; protein = 15; carbs = 38; fat = 12; }
+      else if (q.includes("yogur") || q.includes("skyr") || q.includes("avena")) { kcal = 210; protein = 15; carbs = 24; fat = 5; }
+      else if (q.includes("fruta") || q.includes("manzana") || q.includes("platano") || q.includes("fresa")) { kcal = 95; protein = 1; carbs = 23; fat = 0.5; }
+      if (q.includes("papa") || q.includes("arroz") || q.includes("fideo") || q.includes("pure")) { kcal += 140; carbs += 30; }
+      if (q.includes("frit") || q.includes("empaniz") || q.includes("cremos") || q.includes("salsa")) { kcal += 110; fat += 11; }
+      if (q.includes("horno") || q.includes("plancha") || q.includes("vapor") || q.includes("sancoch")) { fat = Math.max(4, fat - 3); }
+      return {
+        id: "est_" + Date.now(),
+        title: String(query || "Plato casero").trim(),
+        brand: "Estimación inteligente (puedes ajustar porción)",
+        mode: "serving",
+        servingLabel: "1 plato",
+        kcal: Math.round(kcal),
+        protein: Math.round(protein),
+        carbs: Math.round(carbs),
+        fat: Math.round(fat)
+      };
+    }
+
+    function openSmartDishEstimate() {
+      const q = String(activeFoodSheet.search || "").trim();
+      if (!q) return;
+      const est = estimateDishSmart(q);
+      selectedFoodDetail = normalizeSearchItem({ ...est, qty: 1 });
+      renderAddFoodSheetContent();
+    }
 
     function openAddFoodSheet(slot, dateKey = null) {
       if (dateKey) diaryDateKey = dateKey;
+      if (foodAutoSearchTimer) { clearTimeout(foodAutoSearchTimer); foodAutoSearchTimer = null; }
       onlineFoodResults = [];
       onlineFoodLoading = false;
       onlineFoodMsg = "";
@@ -5684,16 +5993,49 @@
     }
 
     function getLocalSearchFoodMatches(query) {
-      const q = String(query || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const customPool = (state.customFoods || []).map(cf => ({ ...cf, isCustom: true }));
-      const allPool = [...customPool, ...EXTENDED_FOOD_DB];
-      if (!q) return allPool.slice(0, 14);
-      const terms = q.split(/\s+/).filter(Boolean);
-      return allPool.filter(item => {
-        const hay = norm(`${item.title} ${item.brand || ""} ${item.servingLabel || ""}`);
-        return terms.every(t => hay.includes(t));
+      const qNorm = normFoodStr(query).trim();
+      const customPool = (state.customFoods || []).map(cf => ({ ...cf, isCustom: true, _src: "custom" }));
+      const dbPool = EXTENDED_FOOD_DB.map(it => ({ ...it, _src: "db" }));
+      const recipePool = (state.recipes || []).map(r => ({
+        id: r.id,
+        title: r.title,
+        brand: `Recetario · ${r.timeMin} min`,
+        mode: "serving",
+        servingLabel: "1 porción",
+        kcal: r.kcal,
+        protein: r.protein,
+        carbs: r.carbs,
+        fat: r.fat,
+        _src: "recipe",
+        _extraHay: (r.ingredients || []).map(i => i.label).join(" ")
+      }));
+      const presetPool = (DEFAULT_MEAL_PRESETS || []).map(p => ({
+        id: p.id,
+        title: p.title,
+        brand: "Opción rápida",
+        mode: "serving",
+        servingLabel: "1 porción",
+        kcal: p.kcal,
+        protein: p.protein,
+        carbs: p.carbs,
+        fat: p.fat,
+        _src: "preset"
+      }));
+
+      if (!qNorm) {
+        return [...customPool, ...dbPool.slice(0, 14)];
+      }
+      const tokens = tokenizeFoodQuery(qNorm);
+      const combined = [...customPool, ...dbPool, ...recipePool, ...presetPool];
+      const scored = [];
+      combined.forEach(item => {
+        const titleNorm = normFoodStr(item.title);
+        const hayNorm = normFoodStr(`${item.title} ${item.brand || ""} ${item.servingLabel || ""} ${item._extraHay || ""}`);
+        const sc = scoreFoodCandidate(qNorm, tokens, hayNorm, titleNorm);
+        if (sc > 0) scored.push({ item, sc });
       });
+      scored.sort((a, b) => b.sc - a.sc);
+      return scored.slice(0, 18).map(x => x.item);
     }
 
     async function searchOpenFoodFactsLive() {
@@ -5765,13 +6107,98 @@
       if (source === "online") item = onlineFoodResults.find(x => x.id === id);
       else if (source === "custom") item = (state.customFoods || []).find(x => x.id === id);
       else if (source === "db") item = EXTENDED_FOOD_DB.find(x => x.id === id);
-      else if (source === "recipe") {
+      else if (source === "recent") item = getRecentDiaryFoods(12).find(x => x.id === id);
+      else if (source === "preset") {
+        const p = (DEFAULT_MEAL_PRESETS || []).find(x => x.id === id);
+        if (p) item = { id: p.id, title: p.title, brand: "Opción rápida", mode: "serving", servingLabel: "1 porción", kcal: p.kcal, protein: p.protein, carbs: p.carbs, fat: p.fat };
+      } else if (source === "recipe") {
         const r = state.recipes.find(x => x.id === id);
         if (r) item = { id: r.id, title: r.title, brand: "Tu recetario", mode: "serving", servingLabel: "1 porción", kcal: r.kcal, protein: r.protein, carbs: r.carbs, fat: r.fat };
       }
       if (!item) return;
       selectedFoodDetail = normalizeSearchItem({ ...item, qty: item.mode === "grams" ? (item.defaultQty || 100) : 1 });
       renderAddFoodSheetContent();
+    }
+
+    function openBarcodeScannerSheet() {
+      const hasDetector = typeof window.BarcodeDetector === "function";
+      openSheet("Escanear código de barras", `
+        <div class="section-gap">
+          <p class="card-sub">Apunta al código de barras de cualquier producto (yogur, cereales, snacks) o escríbelo abajo para traer sus calorías y macros reales.</p>
+          ${hasDetector ? `
+            <div style="position:relative; border-radius:14px; overflow:hidden; background:#1C1C1E; min-height:200px; display:flex; align-items:center; justify-content:center;">
+              <video id="barcodeVideo" autoplay playsinline muted style="width:100%; max-height:240px; object-fit:cover; display:block;"></video>
+              <div style="position:absolute; inset:28% 12%; border:2px solid var(--rose); border-radius:10px; pointer-events:none;"></div>
+            </div>
+            <button type="button" class="btn-secondary btn-sm" onclick="stopBarcodeCamera()">Detener cámara</button>
+          ` : `
+            <div class="card-soft" style="font-size:12px; color:var(--text-muted);">
+              Tu navegador no permite escanear directo con cámara aquí. Escribe los números debajo del código de barras (8–14 dígitos) y lo buscamos al instante.
+            </div>
+          `}
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="barcodeManualInput" inputmode="numeric" placeholder="Ej. 4008400404127" />
+            <button type="button" class="btn-primary btn-sm" onclick="submitManualBarcode()">Buscar</button>
+          </div>
+          <button type="button" class="btn-ghost btn-sm" onclick="stopBarcodeCamera(); renderAddFoodSheetContent();">← Volver al buscador</button>
+        </div>
+      `);
+      if (hasDetector) startBarcodeCamera();
+    }
+
+    let activeBarcodeStream = null;
+    let activeBarcodeLoop = null;
+
+    async function startBarcodeCamera() {
+      stopBarcodeCamera();
+      try {
+        const video = document.getElementById("barcodeVideo");
+        if (!video || !navigator.mediaDevices?.getUserMedia) return;
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        activeBarcodeStream = stream;
+        video.srcObject = stream;
+        const detector = new window.BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] });
+        const scanTick = async () => {
+          if (!activeBarcodeStream) return;
+          try {
+            const codes = await detector.detect(video);
+            if (codes && codes.length && codes[0].rawValue) {
+              const code = String(codes[0].rawValue).trim();
+              stopBarcodeCamera();
+              activeFoodSheet.search = code;
+              activeFoodSheet.mode = "search";
+              renderAddFoodSheetContent();
+              searchOpenFoodFactsLive();
+              return;
+            }
+          } catch (e) {}
+          activeBarcodeLoop = setTimeout(scanTick, 450);
+        };
+        activeBarcodeLoop = setTimeout(scanTick, 500);
+      } catch (e) {
+        showToast("No se pudo abrir la cámara; escribe el código debajo");
+      }
+    }
+
+    function stopBarcodeCamera() {
+      if (activeBarcodeLoop) { clearTimeout(activeBarcodeLoop); activeBarcodeLoop = null; }
+      if (activeBarcodeStream) {
+        activeBarcodeStream.getTracks().forEach(t => t.stop());
+        activeBarcodeStream = null;
+      }
+    }
+
+    function submitManualBarcode() {
+      const code = String(document.getElementById("barcodeManualInput")?.value || "").replace(/\D/g, "");
+      if (code.length < 6) {
+        showToast("Escribe el número completo del código de barras");
+        return;
+      }
+      stopBarcodeCamera();
+      activeFoodSheet.search = code;
+      activeFoodSheet.mode = "search";
+      renderAddFoodSheetContent();
+      searchOpenFoodFactsLive();
     }
 
     function setSelectedFoodQty(val) {
@@ -5822,26 +6249,55 @@
     function buildSearchResultsListHtml() {
       const q = String(activeFoodSheet.search || "").trim();
       const localMatches = getLocalSearchFoodMatches(q);
+      const recents = !q ? getRecentDiaryFoods(5) : [];
       const allToShow = [
         ...onlineFoodResults.map(x => ({ item: x, src: "online" })),
-        ...localMatches.map(x => ({ item: x, src: x.isCustom ? "custom" : "db" }))
+        ...localMatches.map(x => ({ item: x, src: x._src || (x.isCustom ? "custom" : "db") }))
       ];
 
       const statusBar = onlineFoodLoading
-        ? `<div style="padding:8px 10px; border-radius:10px; background:var(--rose-pale); color:var(--rose-dark); font-size:11.5px; font-weight:750; margin-bottom:7px;">⏳ Buscando "${escapeHtml(q)}" en Open Food Facts...</div>`
+        ? `<div style="padding:8px 10px; border-radius:10px; background:var(--rose-pale); color:var(--rose-dark); font-size:11.5px; font-weight:700; margin-bottom:7px;">Buscando "${escapeHtml(q)}" en Open Food Facts...</div>`
         : (onlineFoodMsg ? `<div style="padding:7px 10px; border-radius:10px; background:var(--mint-bg); color:var(--mint-text); font-size:11px; font-weight:700; margin-bottom:7px;">${escapeHtml(onlineFoodMsg)}</div>` : "");
 
+      const recentsHtml = recents.length ? `
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10.5px; font-weight:750; color:var(--text-soft); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:5px;">Recientes (1 toque)</div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            ${recents.map(it => `
+              <div class="preset-pick-row" onclick="openFoodItemDetail('recent','${escapeAttr(it.id)}')" style="cursor:pointer;">
+                <div style="min-width:0; flex:1;">
+                  <div style="font-size:12.5px; font-weight:750; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(it.title)}</div>
+                  <div style="font-size:11px; color:var(--text-muted);"><strong>${it.kcal}</strong> kcal · ${it.protein}g P · ${it.carbs}g C · ${it.fat}g G</div>
+                </div>
+                <span class="btn-secondary btn-sm" style="flex-shrink:0;">+ Igual</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      ` : "";
+
+      const smartEstimateHtml = q.length >= 3 ? `
+        <div class="preset-pick-row" onclick="openSmartDishEstimate()" style="cursor:pointer; background:var(--rose-pale); margin-top:7px;">
+          <div style="min-width:0; flex:1;">
+            <div style="font-size:12.5px; font-weight:750; color:var(--rose-dark);">Estimar "${escapeHtml(q)}" automáticamente</div>
+            <div style="font-size:11px; color:var(--text-muted);">Calcula calorías y macros aproximados de plato casero y ajusta tu porción</div>
+          </div>
+          <span class="btn-primary btn-sm" style="flex-shrink:0;">Estimar</span>
+        </div>
+      ` : "";
+
       const rowsHtml = allToShow.length ? `
-        <div style="display:flex; flex-direction:column; gap:7px; max-height:44vh; overflow-y:auto;">
+        <div style="display:flex; flex-direction:column; gap:7px; max-height:42vh; overflow-y:auto;">
           ${allToShow.map(({ item, src }) => {
             const perTxt = item.mode === "grams"
               ? `<strong>${item.kcal100}</strong> kcal · ${item.prot100}g P · ${item.carbs100}g C · ${item.fat100}g G <span style="color:var(--text-soft);">/100${item.unitLbl || "g"}</span>`
               : `<strong>${item.kcal}</strong> kcal · ${item.protein}g P · ${item.carbs}g C · ${item.fat}g G <span style="color:var(--text-soft);">(${escapeHtml(item.servingLabel || "1 porc.")})</span>`;
+            const tag = src === "online" ? "Marca online" : (src === "recipe" ? "Recetario" : (src === "custom" ? "Guardado" : ""));
             return `
               <div class="preset-pick-row" onclick="openFoodItemDetail('${src}','${escapeAttr(item.id)}')" style="cursor:pointer;">
                 <div style="min-width:0; flex:1;">
-                  <div style="font-size:12.5px; font-weight:800; color:var(--text-main);">${item.fromOnline ? "🌐 " : (item.isCustom ? "⭐ " : "")}${escapeHtml(item.title)}</div>
-                  ${item.brand ? `<div style="font-size:10.5px; color:var(--rose-dark); font-weight:650;">${escapeHtml(item.brand)}</div>` : ""}
+                  <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">${escapeHtml(item.title)}</div>
+                  ${item.brand || tag ? `<div style="font-size:10.5px; color:var(--rose-dark); font-weight:650;">${escapeHtml(item.brand || tag)}</div>` : ""}
                   <div style="font-size:11px; color:var(--text-muted); margin-top:1px;">${perTxt}</div>
                 </div>
                 <span class="btn-primary btn-sm" style="flex-shrink:0;">Elegir</span>
@@ -5849,9 +6305,9 @@
             `;
           }).join("")}
         </div>
-      ` : `<div class="empty-note">Sin coincidencias locales para "${escapeHtml(q)}". Pulsa <strong>🌐 Buscar marca online</strong> arriba o usa <strong>✏️ Manual</strong>.</div>`;
+      ` : `<div class="empty-note">Sin coincidencias exactas para "${escapeHtml(q)}". Pulsa <strong>Online</strong> arriba, usa <strong>Estimar</strong> abajo o <strong>Manual</strong>.</div>`;
 
-      return statusBar + rowsHtml;
+      return statusBar + recentsHtml + rowsHtml + smartEstimateHtml;
     }
 
     function updateFoodSearchListDom() {
@@ -6014,9 +6470,14 @@
             <div style="display:flex; gap:6px; align-items:center;">
               <div class="search-box" style="margin-top:0; flex:1;">
                 <span class="search-ico" style="display:inline-flex;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-                <input type="text" id="foodSheetSearchInput" value="${escapeAttr(activeFoodSheet.search)}" oninput="onFoodSheetSearch(this.value)" onkeydown="if(event.key==='Enter' && activeFoodSheet.mode==='search'){ searchOpenFoodFactsLive(); }" placeholder="${activeFoodSheet.mode === "search" ? "Fage 0,2, Skyr natural, pollo a la brasa, código..." : "Buscar..."}" />
+                <input type="text" id="foodSheetSearchInput" value="${escapeAttr(activeFoodSheet.search)}" oninput="onFoodSheetSearch(this.value)" onkeydown="if(event.key==='Enter' && activeFoodSheet.mode==='search'){ searchOpenFoodFactsLive(); }" placeholder="${activeFoodSheet.mode === "search" ? "Pollo al horno, Fage 0,2, Skyr, código..." : "Buscar..."}" />
               </div>
-              ${activeFoodSheet.mode === "search" ? `<button type="button" class="btn-primary btn-sm" style="white-space:nowrap; padding:10px 11px;" onclick="searchOpenFoodFactsLive()" title="Buscar marca real en Open Food Facts">Marca</button>` : ""}
+              ${activeFoodSheet.mode === "search" ? `
+                <button type="button" class="btn-secondary btn-sm" style="padding:10px 9px;" onclick="openBarcodeScannerSheet()" title="Escanear código de barras">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></svg>
+                </button>
+                <button type="button" class="btn-primary btn-sm" style="white-space:nowrap; padding:10px 10px;" onclick="searchOpenFoodFactsLive()" title="Buscar marca en internet">Online</button>
+              ` : ""}
             </div>
             ${activeFoodSheet.mode !== "search" ? `
               <div class="row-between" style="gap:6px;">
@@ -6054,6 +6515,16 @@
         onlineFoodResults = [];
         onlineFoodMsg = "";
         area.innerHTML = buildSearchResultsListHtml();
+        if (foodAutoSearchTimer) clearTimeout(foodAutoSearchTimer);
+        const trimmed = String(val || "").trim();
+        const localCount = getLocalSearchFoodMatches(trimmed).length;
+        if (trimmed.length >= 3 && (localCount < 3 || /^\d{8,14}$/.test(trimmed))) {
+          foodAutoSearchTimer = setTimeout(() => {
+            if (activeFoodSheet.mode === "search" && String(activeFoodSheet.search || "").trim() === trimmed && !onlineFoodLoading) {
+              searchOpenFoodFactsLive();
+            }
+          }, 700);
+        }
         return;
       }
       const q = (val || "").trim().toLowerCase();
@@ -6197,6 +6668,7 @@
       container.innerHTML = `
         <div class="section-gap">
           ${subNavHtml}
+          ${buildSectionHintHtml("comida_" + comidaSubTab)}
           ${bodyHtml}
         </div>
       `;
@@ -6222,6 +6694,175 @@
         </div>
         ${g.items.map(r => renderRecipeCardHtml(r, true)).join("")}
       `).join("");
+    }
+
+    let onlineRecipeResults = [];
+    let onlineRecipeLoading = false;
+    let onlineRecipeMsg = "";
+
+    const RECIPE_ES_EN_MAP = [
+      ["pollo", "chicken"], ["pechuga", "chicken"], ["pavo", "turkey"],
+      ["salmon", "salmon"], ["atun", "tuna"], ["pescado", "fish"], ["camaron", "shrimp"], ["langostin", "shrimp"],
+      ["carne", "beef"], ["res", "beef"], ["lomo", "beef"], ["cerdo", "pork"],
+      ["lenteja", "lentil"], ["garbanz", "chickpea"], ["frijol", "bean"], ["frejol", "bean"],
+      ["arroz", "rice"], ["pasta", "pasta"], ["tallarin", "pasta"], ["fideo", "noodle"],
+      ["ensalada", "salad"], ["sopa", "soup"], ["caldo", "soup"], ["crema", "soup"],
+      ["huevo", "egg"], ["tortilla", "omelette"], ["avena", "oat"], ["panqueq", "pancake"],
+      ["taco", "taco"], ["curry", "curry"], ["papa", "potato"], ["patata", "potato"],
+      ["espinaca", "spinach"], ["brocoli", "broccoli"], ["tomate", "tomato"], ["palta", "avocado"]
+    ];
+
+    function translateRecipeQueryToEn(rawQuery) {
+      const qNorm = normFoodStr(rawQuery).trim();
+      for (const [es, en] of RECIPE_ES_EN_MAP) {
+        if (qNorm.includes(es)) return en;
+      }
+      const tokens = tokenizeFoodQuery(qNorm);
+      return tokens[0] || qNorm;
+    }
+
+    async function searchOnlineRecipesLive() {
+      const q = String(recipeSearch || "").trim();
+      if (q.length < 2) {
+        showToast("Escribe qué receta quieres buscar (ej. pollo al horno, salmón)");
+        return;
+      }
+      onlineRecipeLoading = true;
+      onlineRecipeMsg = "";
+      onlineRecipeResults = [];
+      updateRecipeResultsDom();
+
+      try {
+        const enTerm = translateRecipeQueryToEn(q);
+        const resp = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(enTerm)}`);
+        let meals = [];
+        if (resp.ok) {
+          const data = await resp.json();
+          meals = Array.isArray(data?.meals) ? data.meals : [];
+        }
+        onlineRecipeResults = meals.slice(0, 8).map(meal => {
+          const ings = [];
+          for (let i = 1; i <= 20; i++) {
+            const ing = String(meal[`strIngredient${i}`] || "").trim();
+            const meas = String(meal[`strMeasure${i}`] || "").trim();
+            if (ing) ings.push({ key: "custom", qty: 1, label: meas ? `${meas} ${ing}` : ing });
+          }
+          const steps = String(meal.strInstructions || "")
+            .split(/\r?\n+/)
+            .map(s => s.trim())
+            .filter(s => s.length > 6)
+            .slice(0, 6);
+          const est = estimateDishSmart(`${q} ${meal.strMeal || ""} ${meal.strCategory || ""}`);
+          return {
+            id: "web_" + meal.idMeal,
+            title: meal.strMeal || q,
+            area: [meal.strArea, meal.strCategory].filter(Boolean).join(" · "),
+            thumb: meal.strMealThumb || "",
+            sourceUrl: meal.strSource || meal.strYoutube || "",
+            kcal: est.kcal,
+            protein: est.protein,
+            carbs: est.carbs,
+            fat: est.fat,
+            timeMin: 25,
+            ingredients: ings,
+            steps: steps.length ? steps : ["Prepara los ingredientes y cocina según tu preferencia."]
+          };
+        });
+        onlineRecipeMsg = onlineRecipeResults.length
+          ? `${onlineRecipeResults.length} ideas encontradas en internet (puedes importarlas y editarlas)`
+          : `Sin resultados directos online para "${q}". Puedes crearla al instante abajo con macros estimados.`;
+      } catch (e) {
+        onlineRecipeMsg = "Sin conexión al buscador online ahora. Puedes crear la receta al instante abajo.";
+      }
+      onlineRecipeLoading = false;
+      updateRecipeResultsDom();
+    }
+
+    function importOnlineRecipe(webId) {
+      const item = onlineRecipeResults.find(x => x.id === webId);
+      if (!item) return;
+      const newRec = {
+        id: "rec_" + Date.now(),
+        title: item.title,
+        category: inferRecipeCategory(item.title),
+        mealType: recipeMealTypeFilter !== "all" ? recipeMealTypeFilter : "almuerzo",
+        goals: ["deficit", "maintenance"],
+        conditions: [],
+        timeMin: item.timeMin || 25,
+        quickToday: false,
+        taperFriendly: true,
+        taperTip: "Importada desde internet — puedes editar ingredientes y macros cuando quieras.",
+        appliances: ["sarten", "olla"],
+        kcal: item.kcal,
+        protein: item.protein,
+        carbs: item.carbs,
+        fat: item.fat,
+        tiktokUrl: item.sourceUrl || "",
+        ingredients: item.ingredients || [],
+        steps: item.steps || []
+      };
+      state.recipes.unshift(newRec);
+      saveState();
+      onlineRecipeResults = [];
+      onlineRecipeMsg = "";
+      recipeSearch = "";
+      render();
+      showToast(`"${newRec.title}" guardada en tu recetario ✓`);
+      openEditRecipeSheet(newRec.id);
+    }
+
+    function inferRecipeCategory(title) {
+      const t = normFoodStr(title);
+      if (t.includes("pollo") || t.includes("pechuga") || t.includes("pavo") || t.includes("chicken")) return "Pollo";
+      if (t.includes("salmon") || t.includes("atun") || t.includes("pescado") || t.includes("fish") || t.includes("tuna")) return "Atún / Salmón";
+      if (t.includes("lentej") || t.includes("garbanz") || t.includes("lentil") || t.includes("bean")) return "Lentejas";
+      if (t.includes("carne") || t.includes("res") || t.includes("lomo") || t.includes("beef")) return "Carne";
+      return "Pollo";
+    }
+
+    function buildOnlineRecipesSectionHtml(q) {
+      const statusHtml = onlineRecipeLoading
+        ? `<div class="card-soft" style="font-size:12px; color:var(--rose-dark); font-weight:700;">Buscando recetas en internet para "${escapeHtml(q)}"...</div>`
+        : (onlineRecipeMsg ? `<div style="font-size:11.5px; color:var(--mint-text); background:var(--mint-bg); padding:8px 11px; border-radius:11px; font-weight:650;">${escapeHtml(onlineRecipeMsg)}</div>` : "");
+
+      const cardsHtml = onlineRecipeResults.length ? onlineRecipeResults.map(r => `
+        <div class="recipe-card">
+          <div class="row-between" style="gap:10px; align-items:flex-start;">
+            ${r.thumb ? `<img src="${escapeAttr(r.thumb)}" alt="" style="width:54px; height:54px; border-radius:11px; object-fit:cover; flex-shrink:0;" />` : ""}
+            <div style="min-width:0; flex:1;">
+              <div style="font-size:10.5px; font-weight:750; color:var(--rose-dark);">${escapeHtml(r.area || "Internet")}</div>
+              <div class="recipe-title" style="font-size:13.5px;">${escapeHtml(r.title)}</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">~${r.kcal} kcal · ${r.protein}g P · ${r.carbs}g C · ${r.ingredients.length} ingr.</div>
+            </div>
+            <button class="btn-primary btn-sm" style="flex-shrink:0;" onclick="importOnlineRecipe('${escapeAttr(r.id)}')">Guardar</button>
+          </div>
+        </div>
+      `).join("") : "";
+
+      const quickCreateHtml = q.length >= 2 ? `
+        <div class="card" style="background:var(--rose-pale); box-shadow:none;">
+          <div class="row-between" style="gap:8px;">
+            <div style="min-width:0;">
+              <div style="font-size:13px; font-weight:750; color:var(--rose-dark);">¿No está exacta? Crea "${escapeHtml(q)}"</div>
+              <div style="font-size:11.5px; color:var(--text-muted);">Te prellenamos calorías y macros estimados para editarla a tu gusto.</div>
+            </div>
+            <button class="btn-primary btn-sm" style="flex-shrink:0;" onclick="openEditRecipeSheet(null, '${escapeAttr(q)}')">+ Crear</button>
+          </div>
+        </div>
+      ` : "";
+
+      return statusHtml + cardsHtml + quickCreateHtml;
+    }
+
+    function updateRecipeResultsDom() {
+      const box = document.getElementById("recipeResultsContainer");
+      if (!box) return;
+      const filtered = getFilteredRecipes();
+      const q = recipeSearch.trim();
+      const localHtml = filtered.length
+        ? renderGroupedRecipesHtml(filtered)
+        : (q ? `<div class="empty-note">No tienes aún una receta exacta de "${escapeHtml(q)}" en tu recetario. Pulsa <strong>Online</strong> arriba o créala en 1 toque abajo.</div>` : `<div class="empty-note">No hay recetas con este filtro.</div>`);
+      box.innerHTML = localHtml + buildOnlineRecipesSectionHtml(q);
     }
 
     function buildRecetarioHtml() {
@@ -6250,6 +6891,7 @@
       const desCount = state.recipes.filter(r => getRecipeMealType(r) === "desayuno").length;
       const almCount = state.recipes.filter(r => getRecipeMealType(r) === "almuerzo").length;
       const cenCount = state.recipes.filter(r => getRecipeMealType(r) === "cena").length;
+      const q = recipeSearch.trim();
 
       return `
         <div class="card">
@@ -6258,7 +6900,7 @@
               <div class="card-title" style="margin:0;">Recetario (${state.recipes.length})</div>
               <div class="card-sub" style="font-size:11.5px;">${profileTag}</div>
             </div>
-            <button class="btn-primary btn-sm" style="white-space:nowrap;" onclick="openAddTikTokSheet()">+ Receta</button>
+            <button class="btn-primary btn-sm" style="white-space:nowrap;" onclick="openEditRecipeSheet(null)">+ Nueva receta</button>
           </div>
 
           <div class="seg-control cols-4" style="margin-bottom:9px;">
@@ -6268,9 +6910,12 @@
             <button class="seg-btn ${recipeMealTypeFilter === "cena" ? "active" : ""}" onclick="setRecipeMealTypeFilter('cena')">Cena (${cenCount})</button>
           </div>
 
-          <div class="search-box" style="margin-top:0;">
-            <span class="search-ico" style="display:inline-flex;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-            <input type="text" id="recipeSearchInput" value="${escapeAttr(recipeSearch)}" oninput="onRecipeSearchInput(this.value)" placeholder="Buscar: huevos, salmón, pollo, lentejas..." />
+          <div style="display:flex; gap:6px; align-items:center;">
+            <div class="search-box" style="margin-top:0; flex:1;">
+              <span class="search-ico" style="display:inline-flex;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+              <input type="text" id="recipeSearchInput" value="${escapeAttr(recipeSearch)}" oninput="onRecipeSearchInput(this.value)" onkeydown="if(event.key==='Enter'){ searchOnlineRecipesLive(); }" placeholder="Buscar: pollo al horno, huevos, salmón..." />
+            </div>
+            <button type="button" class="btn-secondary btn-sm" style="white-space:nowrap; padding:10px 11px;" onclick="searchOnlineRecipesLive()" title="Buscar recetas nuevas en internet">Online</button>
           </div>
 
           <div class="chip-scroll" style="margin-top:8px;">
@@ -6289,7 +6934,8 @@
         </div>
 
         <div id="recipeResultsContainer" class="section-gap">
-          ${renderGroupedRecipesHtml(filtered)}
+          ${filtered.length ? renderGroupedRecipesHtml(filtered) : (q ? `<div class="empty-note">No tienes aún una receta exacta de "${escapeHtml(q)}". Pulsa <strong>Online</strong> arriba o créala en 1 toque abajo.</div>` : `<div class="empty-note">No hay recetas con este filtro.</div>`)}
+          ${buildOnlineRecipesSectionHtml(q)}
         </div>
       `;
     }
@@ -6302,15 +6948,9 @@
 
     function onRecipeSearchInput(val) {
       recipeSearch = val;
-      const box = document.getElementById("recipeResultsContainer");
-      if (!box) {
-        render();
-        return;
-      }
-      const filtered = getFilteredRecipes();
-      box.innerHTML = filtered.length
-        ? renderGroupedRecipesHtml(filtered)
-        : `<div class="empty-note">No encontramos recetas con "${escapeHtml(val)}". Prueba otro ingrediente.</div>`;
+      onlineRecipeResults = [];
+      onlineRecipeMsg = "";
+      updateRecipeResultsDom();
     }
 
     function setRecipeFilter(cat) {
@@ -6653,6 +7293,7 @@
 
       container.innerHTML = `
         <div class="section-gap">
+          ${buildSectionHintHtml("super")}
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div>
@@ -7193,9 +7834,12 @@
                 </div>
               `).join("")}
             </div>
-            <div class="row-between">
-              <span style="font-size:11px; color:var(--text-soft);">Esfuerzo sugerido: <strong>${plan.rpeLabel}</strong></span>
-              <button class="btn-secondary btn-sm" onclick="logPlannedWorkoutToday('${day.id}')">+ Registrar hoy</button>
+            <div class="row-between" style="gap:6px;">
+              <span style="font-size:11px; color:var(--text-soft);">Esfuerzo: <strong>${plan.rpeLabel}</strong></span>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-secondary btn-sm" onclick="logPlannedWorkoutToday('${day.id}')">Registro rápido</button>
+                <button class="btn-primary btn-sm" onclick="openLiveWorkoutPlayer('${day.id}')">Iniciar entreno</button>
+              </div>
             </div>
           </div>
         `;
@@ -7203,6 +7847,7 @@
 
       container.innerHTML = `
         <div class="section-gap">
+          ${buildSectionHintHtml("entreno")}
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div class="card-title" style="margin:0;">Entrenamiento</div>
@@ -7344,6 +7989,258 @@
           <div class="disclaimer-box" role="note">
             Plan orientativo y educativo. Si tienes anemia marcada, diabetes con insulina o lesiones, valida la intensidad con tu profesional de salud.
           </div>
+        </div>
+      `;
+    }
+
+    let activeWorkoutSession = null;
+    let wpElapsedInterval = null;
+    let wpRestInterval = null;
+
+    function parseExerciseScheme(scheme) {
+      const s = String(scheme || "3×10");
+      const m = s.match(/(\d+)\s*[×xX]\s*(\d+)/);
+      const setsCount = m ? Math.max(1, Math.min(8, Number(m[1]))) : 3;
+      const targetReps = m ? Number(m[2]) : 10;
+      return { setsCount, targetReps };
+    }
+
+    function openLiveWorkoutPlayer(dayId) {
+      const m = getAdaptiveNutritionMetrics();
+      const plan = getAdaptiveTrainingPlan(m);
+      const day = plan.schedule.find(d => d.id === dayId) || plan.schedule[0];
+      if (!day) return;
+
+      const prs = state.exercisePRs || {};
+      const exercises = (day.exercises || []).map((ex, idx) => {
+        const { setsCount, targetReps } = parseExerciseScheme(ex.scheme);
+        const prev = prs[ex.name] || null;
+        return {
+          id: "ex_" + idx,
+          name: ex.name,
+          scheme: ex.scheme,
+          prevPr: prev,
+          sets: Array.from({ length: setsCount }, () => ({
+            kg: prev && prev.kg ? String(prev.kg) : "",
+            reps: String(prev && prev.reps ? prev.reps : targetReps),
+            done: false
+          }))
+        };
+      });
+
+      activeWorkoutSession = {
+        dayId: day.id,
+        title: day.title,
+        type: day.type || "Fuerza",
+        startedAt: Date.now(),
+        restSec: 0,
+        defaultRestSec: 75,
+        exercises
+      };
+
+      const ov = document.getElementById("workoutPlayerOverlay");
+      if (ov) ov.classList.add("open");
+      startWorkoutTimers();
+      renderLiveWorkoutPlayer();
+    }
+
+    function startWorkoutTimers() {
+      if (wpElapsedInterval) clearInterval(wpElapsedInterval);
+      wpElapsedInterval = setInterval(() => {
+        if (!activeWorkoutSession) return;
+        const el = document.getElementById("wpElapsedClock");
+        if (el) el.textContent = formatWorkoutClock(Math.floor((Date.now() - activeWorkoutSession.startedAt) / 1000));
+      }, 1000);
+    }
+
+    function formatWorkoutClock(sec) {
+      const s = Math.max(0, Number(sec) || 0);
+      const mm = String(Math.floor(s / 60)).padStart(2, "0");
+      const ss = String(s % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+    function startWpRestTimer(seconds = 75) {
+      if (!activeWorkoutSession) return;
+      activeWorkoutSession.restSec = Math.max(0, seconds);
+      if (wpRestInterval) clearInterval(wpRestInterval);
+      wpRestInterval = setInterval(() => {
+        if (!activeWorkoutSession) { clearInterval(wpRestInterval); return; }
+        activeWorkoutSession.restSec = Math.max(0, activeWorkoutSession.restSec - 1);
+        const el = document.getElementById("wpRestClock");
+        if (el) el.textContent = formatWorkoutClock(activeWorkoutSession.restSec);
+        if (activeWorkoutSession.restSec <= 0) {
+          clearInterval(wpRestInterval);
+          wpRestInterval = null;
+          renderLiveWorkoutPlayer();
+          showToast("Descanso terminado — lista para tu siguiente serie");
+        }
+      }, 1000);
+    }
+
+    function adjustWpRest(delta) {
+      if (!activeWorkoutSession) return;
+      const next = Math.max(0, activeWorkoutSession.restSec + delta);
+      if (next <= 0) {
+        if (wpRestInterval) { clearInterval(wpRestInterval); wpRestInterval = null; }
+        activeWorkoutSession.restSec = 0;
+        renderLiveWorkoutPlayer();
+      } else {
+        startWpRestTimer(next);
+        renderLiveWorkoutPlayer();
+      }
+    }
+
+    function updateWpSetField(exIdx, setIdx, field, val) {
+      if (!activeWorkoutSession) return;
+      const setObj = activeWorkoutSession.exercises[exIdx]?.sets[setIdx];
+      if (!setObj) return;
+      setObj[field] = String(val || "").replace(",", ".");
+    }
+
+    function toggleWpSetDone(exIdx, setIdx) {
+      if (!activeWorkoutSession) return;
+      const setObj = activeWorkoutSession.exercises[exIdx]?.sets[setIdx];
+      if (!setObj) return;
+      setObj.done = !setObj.done;
+      if (setObj.done) startWpRestTimer(activeWorkoutSession.defaultRestSec || 75);
+      renderLiveWorkoutPlayer();
+    }
+
+    function addWpSet(exIdx) {
+      if (!activeWorkoutSession) return;
+      const ex = activeWorkoutSession.exercises[exIdx];
+      if (!ex) return;
+      const last = ex.sets[ex.sets.length - 1] || { kg: "", reps: "10" };
+      ex.sets.push({ kg: last.kg, reps: last.reps, done: false });
+      renderLiveWorkoutPlayer();
+    }
+
+    function closeLiveWorkoutPlayer(confirmCancel = false) {
+      if (confirmCancel && activeWorkoutSession) {
+        const doneSets = activeWorkoutSession.exercises.reduce((sum, ex) => sum + ex.sets.filter(s => s.done).length, 0);
+        if (doneSets > 0 && !confirm("¿Salir sin guardar este entreno?")) return;
+      }
+      if (wpElapsedInterval) { clearInterval(wpElapsedInterval); wpElapsedInterval = null; }
+      if (wpRestInterval) { clearInterval(wpRestInterval); wpRestInterval = null; }
+      activeWorkoutSession = null;
+      const ov = document.getElementById("workoutPlayerOverlay");
+      if (ov) {
+        ov.classList.remove("open");
+        ov.innerHTML = "";
+      }
+    }
+
+    function finishLiveWorkoutPlayer() {
+      if (!activeWorkoutSession) return;
+      const sess = activeWorkoutSession;
+      const elapsedMins = Math.max(1, Math.round((Date.now() - sess.startedAt) / 60000));
+      let doneSets = 0;
+      let totalVol = 0;
+      let newPrCount = 0;
+      const today = getTodayDateKey();
+      if (!state.exercisePRs || typeof state.exercisePRs !== "object") state.exercisePRs = {};
+
+      sess.exercises.forEach(ex => {
+        ex.sets.forEach(s => {
+          if (!s.done) return;
+          doneSets++;
+          const kg = Math.max(0, Number(s.kg) || 0);
+          const reps = Math.max(1, Number(s.reps) || 1);
+          totalVol += kg * reps;
+          const prev = state.exercisePRs[ex.name];
+          const prevScore = prev ? ((Number(prev.kg) || 0) * (Number(prev.reps) || 1)) : -1;
+          const curScore = kg * reps;
+          if (kg > 0 && curScore > prevScore) {
+            state.exercisePRs[ex.name] = { kg, reps, date: today };
+            newPrCount++;
+          } else if (!prev && reps > 0) {
+            state.exercisePRs[ex.name] = { kg, reps, date: today };
+          }
+        });
+      });
+
+      const summarySuffix = totalVol > 0 ? ` · ${Math.round(totalVol).toLocaleString("es-ES")} kg vol.` : (doneSets > 0 ? ` · ${doneSets} series` : "");
+      state.workouts.push({
+        id: "wo_" + Date.now(),
+        date: today,
+        type: `${sess.title}${summarySuffix}`,
+        minutes: elapsedMins,
+        intensity: doneSets >= 8 ? "Alta" : "Moderada"
+      });
+      if (!state.trainingProfile.completedPlanDays) state.trainingProfile.completedPlanDays = {};
+      state.trainingProfile.completedPlanDays[sess.dayId] = true;
+      saveState();
+      closeLiveWorkoutPlayer(false);
+      render();
+      showToast(newPrCount > 0 ? `Entreno guardado ✓ · ${newPrCount} nuevo(s) récord personal` : `Entreno guardado (${elapsedMins} min · ${doneSets} series) ✓`);
+    }
+
+    function renderLiveWorkoutPlayer() {
+      const ov = document.getElementById("workoutPlayerOverlay");
+      if (!ov || !activeWorkoutSession) return;
+      const sess = activeWorkoutSession;
+      const totalSets = sess.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+      const doneSets = sess.exercises.reduce((sum, ex) => sum + ex.sets.filter(s => s.done).length, 0);
+      const elapsedSec = Math.floor((Date.now() - sess.startedAt) / 1000);
+
+      ov.innerHTML = `
+        <div class="wp-header">
+          <div class="row-between" style="gap:8px;">
+            <button type="button" class="btn-ghost btn-sm" style="padding:4px 0;" onclick="closeLiveWorkoutPlayer(true)">Cancelar</button>
+            <div style="text-align:center;">
+              <div style="font-size:13.5px; font-weight:800; color:var(--text-main);">Entreno en vivo</div>
+              <div style="font-size:11.5px; color:var(--rose-dark); font-weight:750;"><span id="wpElapsedClock">${formatWorkoutClock(elapsedSec)}</span> · ${doneSets}/${totalSets} series</div>
+            </div>
+            <button type="button" class="btn-primary btn-sm" onclick="finishLiveWorkoutPlayer()">Finalizar</button>
+          </div>
+          ${sess.restSec > 0 ? `
+            <div class="wp-rest-bar">
+              <div>
+                <div style="font-size:10px; opacity:0.75; text-transform:uppercase; font-weight:700;">Descanso automático</div>
+                <div style="font-size:18px; font-weight:850;" id="wpRestClock">${formatWorkoutClock(sess.restSec)}</div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button type="button" class="btn-sm" style="background:rgba(255,255,255,0.16); color:#fff; font-weight:700;" onclick="adjustWpRest(15)">+15s</button>
+                <button type="button" class="btn-sm" style="background:var(--rose); color:#fff; font-weight:700;" onclick="adjustWpRest(-999)">Saltar</button>
+              </div>
+            </div>
+          ` : ""}
+        </div>
+
+        <div class="wp-body">
+          <div class="card-soft" style="padding:11px 13px;">
+            <div style="font-size:14.5px; font-weight:800; color:var(--text-main);">${escapeHtml(sess.title)}</div>
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Anota el peso (si usas) y toca <strong>✓</strong> al terminar cada serie; el descanso corre solo.</div>
+          </div>
+
+          ${sess.exercises.map((ex, exIdx) => `
+            <div class="card">
+              <div class="row-between" style="margin-bottom:6px; gap:6px;">
+                <div style="min-width:0;">
+                  <div style="font-size:14px; font-weight:750; color:var(--text-main);">${escapeHtml(ex.name)}</div>
+                  <div style="font-size:11px; color:var(--text-soft);">Objetivo: ${escapeHtml(ex.scheme)}${ex.prevPr && ex.prevPr.kg ? ` · <strong style="color:var(--rose-dark);">Mejor: ${ex.prevPr.kg} kg × ${ex.prevPr.reps}</strong>` : ""}</div>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns: 32px 1fr 1fr 38px; gap:7px; font-size:10px; font-weight:750; color:var(--text-soft); text-transform:uppercase; padding-bottom:4px; text-align:center;">
+                <span>Set</span><span>Peso (kg)</span><span>Reps</span><span>Listo</span>
+              </div>
+
+              ${ex.sets.map((st, setIdx) => `
+                <div class="wp-set-row ${st.done ? "done" : ""}">
+                  <span style="text-align:center; font-size:12px; font-weight:750; color:var(--text-muted);">${setIdx + 1}</span>
+                  <input type="text" inputmode="decimal" class="wp-set-input" value="${escapeAttr(st.kg)}" placeholder="—" onchange="updateWpSetField(${exIdx}, ${setIdx}, 'kg', this.value)" />
+                  <input type="number" inputmode="numeric" class="wp-set-input" value="${escapeAttr(st.reps)}" onchange="updateWpSetField(${exIdx}, ${setIdx}, 'reps', this.value)" />
+                  <button type="button" class="wp-set-check ${st.done ? "done" : ""}" onclick="toggleWpSetDone(${exIdx}, ${setIdx})">✓</button>
+                </div>
+              `).join("")}
+
+              <button type="button" class="btn-ghost btn-sm" style="width:100%; margin-top:6px; color:var(--rose-dark);" onclick="addWpSet(${exIdx})">+ Añadir serie</button>
+            </div>
+          `).join("")}
+
+          <button type="button" class="btn-primary" style="width:100%; padding:13px;" onclick="finishLiveWorkoutPlayer()">Finalizar y guardar entreno</button>
         </div>
       `;
     }
@@ -7606,6 +8503,7 @@
         container.innerHTML = `
           <div class="section-gap">
             ${saludSwitcherHtml}
+            ${buildSectionHintHtml("salud")}
 
             <div class="quick-log-grid">
               <button class="quick-log-btn" onclick="openWeightLogSheet()">
@@ -10980,6 +11878,185 @@
       }
     }
 
+    const SECTION_GUIDE_META = {
+      hoy: {
+        title: "Hoy · Tu resumen diario",
+        short: "Registra comidas con + Añadir, suma tus vasos de agua y revisa tus anillos del día.",
+        bullets: [
+          "Toca + Añadir en Desayuno, Almuerzo, Cena o Snacks para buscar cualquier plato o marca.",
+          "Los 3 anillos muestran tu progreso real de calorías, proteína y pasos (o medicación).",
+          "Si comes en restaurante, toca Como fuera para ver consejos simples para tu perfil."
+        ],
+        ctaLabel: "Registrar comida ahora",
+        ctaAction: "closeSheet(); openAddFoodSheet('almuerzo');"
+      },
+      comida_diario: {
+        title: "Comida · Diario",
+        short: "Busca platos caseros (ej. pollo al horno), marcas exactas, tus recientes o escanea códigos.",
+        bullets: [
+          "Usa las flechas ‹ y › arriba para revisar días anteriores o copiar lo que comiste ayer.",
+          "Al pulsar + Añadir puedes buscar platos caseros, marcas online o escanear códigos de barras.",
+          "Si un plato no aparece exacto, toca Estimar para calcular sus calorías en 1 segundo."
+        ],
+        ctaLabel: "Buscar comida ahora",
+        ctaAction: "closeSheet(); openAddFoodSheet('almuerzo');"
+      },
+      comida_recetario: {
+        title: "Comida · Recetario",
+        short: "Explora recetas, toca Editar para cambiarlas a tu gusto o pulsa Online para buscar más.",
+        bullets: [
+          "Escribe cualquier ingrediente o plato (ej. pollo al horno) y pulsa Online para traer ideas nuevas.",
+          "Toca Editar en cualquier receta para cambiar ingredientes, pasos o calorías.",
+          "Pulsa + Nueva receta para guardar tus propias recetas familiares."
+        ],
+        ctaLabel: "Crear mi propia receta",
+        ctaAction: "closeSheet(); openEditRecipeSheet(null);"
+      },
+      comida_tapers: {
+        title: "Comida · Tápers (Batch Cooking)",
+        short: "Elige tus almuerzos de lunes a viernes y tu lista del súper se arma automáticamente.",
+        bullets: [
+          "Toca cualquier día para cambiar el plato asignado.",
+          "Repetir una receta en 2 o 3 días reduce el tiempo de cocina y genera menos sobrantes.",
+          "Los ingredientes necesarios pasan solos a la pestaña Súper."
+        ],
+        ctaLabel: "Ir a mi lista del Súper",
+        ctaAction: "closeSheet(); switchTab('super');"
+      },
+      comida_despensa: {
+        title: "Comida · En casa",
+        short: "Marca lo que ya tienes en tu cocina para no comprarlo dos veces en el súper.",
+        bullets: [
+          "Todo lo que marques aquí se descuenta automáticamente del costo en la pestaña Súper.",
+          "En Recetas puedes filtrar por Mi casa para cocinar solo con lo que ya tienes."
+        ],
+        ctaLabel: "Ver recetas con lo que tengo",
+        ctaAction: "closeSheet(); recipeQuickFilter='pantry'; switchTab('comida', 'recetario');"
+      },
+      super: {
+        title: "Súper · Lista inteligente",
+        short: "Tu compra semanal organizada por pasillos según tus tápers. Tacha lo que metes al carrito.",
+        bullets: [
+          "Se calcula sola con tus platos de la semana y descuenta lo que ya marcaste en Casa.",
+          "Abre Anti-desperdicio para ver ideas rápidas con los sobrantes de envases.",
+          "Toca cualquier ingrediente para ver foto de referencia y precio aproximado."
+        ],
+        ctaLabel: "Ajustar mis tápers",
+        ctaAction: "closeSheet(); switchTab('comida', 'tapers');"
+      },
+      entreno: {
+        title: "Entreno · Rutina guiada",
+        short: "Elige días y lugar, y toca Iniciar entreno para marcar series y descansar con reloj.",
+        bullets: [
+          "Cambia entre 3, 4 o 5 días y Gym o Casa — la rutina se adapta sola.",
+          "Pulsa Iniciar entreno para anotar tus pesos, marcar cada serie y activar el descanso automático.",
+          "Guardamos tus récords personales automáticamente para que veas tu progreso."
+        ],
+        ctaLabel: "Empezar primer entreno",
+        ctaAction: "closeSheet(); openLiveWorkoutPlayer(getAdaptiveTrainingPlan(getAdaptiveNutritionMetrics()).schedule[0].id);"
+      },
+      salud: {
+        title: "Salud · Diario, Clínica y Perfil",
+        short: "Anota peso, pasos, ciclo, medicación y sube fotos o PDFs de tus analíticas.",
+        bullets: [
+          "Diario: registra peso, pasos, ciclo/anticonceptivos y marca tus tomas con recordatorio.",
+          "Clínica: sube fotos o PDFs de análisis de sangre para ver gráficas y generar un resumen PDF.",
+          "Perfil: cambia tus metas, condiciones o activa/desactiva medicación cuando quieras."
+        ],
+        ctaLabel: "Registrar peso hoy",
+        ctaAction: "closeSheet(); openWeightLogSheet();"
+      }
+    };
+
+    function getActiveSectionGuideKey() {
+      if (currentTab === "comida") return `comida_${comidaSubTab}`;
+      if (currentTab === "progreso") return "salud";
+      if (SECTION_GUIDE_META[currentTab]) return currentTab;
+      return "hoy";
+    }
+
+    function buildSectionHintHtml(key) {
+      if (state.dismissedHints && state.dismissedHints[key]) return "";
+      const meta = SECTION_GUIDE_META[key];
+      if (!meta) return "";
+      return `
+        <div class="section-hint-banner">
+          <div style="min-width:0; flex:1;">
+            <strong style="color:var(--rose-dark); font-size:12px;">${escapeHtml(meta.title)}</strong>
+            <div style="color:var(--text-muted); font-size:11.5px; margin-top:2px;">${escapeHtml(meta.short)}</div>
+          </div>
+          <button type="button" class="btn-ghost btn-sm" style="color:var(--rose-dark); font-weight:750; padding:3px 6px; flex-shrink:0;" onclick="dismissSectionHint('${escapeAttr(key)}')">Entendido</button>
+        </div>
+      `;
+    }
+
+    function dismissSectionHint(key) {
+      if (!state.dismissedHints || typeof state.dismissedHints !== "object") state.dismissedHints = {};
+      state.dismissedHints[key] = true;
+      saveState();
+      render();
+    }
+
+    function resetSectionHints() {
+      state.dismissedHints = {};
+      saveState();
+      closeSheet();
+      render();
+      showToast("Guías rápidas activadas de nuevo en todas las secciones");
+    }
+
+    function openSectionHelpSheet() {
+      const key = getActiveSectionGuideKey();
+      const meta = SECTION_GUIDE_META[key] || SECTION_GUIDE_META.hoy;
+      openSheet(`Guía · ${meta.title.split("·")[0].trim()}`, `
+        <div class="section-gap">
+          <div class="card-soft">
+            <div style="font-size:14.5px; font-weight:800; color:var(--rose-dark); margin-bottom:6px;">${escapeHtml(meta.title)}</div>
+            <div style="display:flex; flex-direction:column; gap:7px; font-size:12.5px; color:var(--text-main); line-height:1.45;">
+              ${meta.bullets.map((b, i) => `<div><strong style="color:var(--rose);">${i + 1}.</strong> ${escapeHtml(b)}</div>`).join("")}
+            </div>
+          </div>
+
+          <button type="button" class="btn-primary" style="width:100%;" onclick="${meta.ctaAction}">${escapeHtml(meta.ctaLabel)}</button>
+
+          <div class="grid-2">
+            <button type="button" class="btn-secondary btn-sm" onclick="openAppTourSheet(0)">Tour de las 5 pestañas</button>
+            <button type="button" class="btn-ghost btn-sm" onclick="closeSheet(); openOnboarding(0);">Repetir configuración</button>
+          </div>
+        </div>
+      `);
+    }
+
+    const APP_TOUR_STEPS = [
+      { tab: "hoy", name: "Hoy", headline: "Tu tablero simple del día", desc: "Mira de un vistazo tus calorías, proteína, pasos y vasos de agua. Desde aquí puedes añadir comidas o marcar tu táper con 1 toque." },
+      { tab: "comida", name: "Comida", headline: "Diario, Recetas, Tápers y Casa", desc: "Busca cualquier plato casero (ej. pollo al horno), escanea códigos de barras, edita recetas o busca ideas nuevas en internet." },
+      { tab: "super", name: "Súper", headline: "Lista de compras automática", desc: "Se arma sola según tus platos de la semana, descuenta lo que ya tienes en casa y sugiere recetas con tus sobrantes." },
+      { tab: "entreno", name: "Entreno", headline: "Rutina guiada estilo Lyfta", desc: "Elige tus días y si entrenas en casa o gym. Pulsa Iniciar entreno para anotar pesos, marcar series y descansar con reloj." },
+      { tab: "progreso", name: "Salud", headline: "Peso, Ciclo, Medicación y Clínica", desc: "Todo tu seguimiento de salud en un solo lugar: peso, pasos, ciclo o anticonceptivos, recordatorios de tomas y escáner de analíticas." }
+    ];
+
+    function openAppTourSheet(stepIdx = 0) {
+      const idx = Math.max(0, Math.min(APP_TOUR_STEPS.length - 1, Number(stepIdx) || 0));
+      const s = APP_TOUR_STEPS[idx];
+      openSheet(`Tour LuTrack (${idx + 1}/${APP_TOUR_STEPS.length})`, `
+        <div class="section-gap">
+          <div style="display:flex; gap:5px;">
+            ${APP_TOUR_STEPS.map((_, i) => `<div style="flex:1; height:5px; border-radius:99px; background:${i <= idx ? "var(--rose)" : "var(--bg-tint)"};"></div>`).join("")}
+          </div>
+          <div class="card-soft" style="padding:16px;">
+            <div style="font-size:11px; font-weight:800; color:var(--rose); text-transform:uppercase; letter-spacing:0.04em;">Pestaña ${idx + 1} · ${escapeHtml(s.name)}</div>
+            <div style="font-size:18px; font-weight:850; color:var(--text-main); margin:4px 0 6px;">${escapeHtml(s.headline)}</div>
+            <p style="margin:0; font-size:13px; color:var(--text-muted); line-height:1.5;">${escapeHtml(s.desc)}</p>
+          </div>
+          <button type="button" class="btn-secondary btn-sm" style="width:100%;" onclick="closeSheet(); switchTab('${s.tab}');">Ir ahora a ${escapeHtml(s.name)}</button>
+          <div class="grid-2">
+            ${idx > 0 ? `<button type="button" class="btn-ghost" onclick="openAppTourSheet(${idx - 1})">← Anterior</button>` : `<button type="button" class="btn-ghost" onclick="closeSheet()">Cerrar</button>`}
+            ${idx < APP_TOUR_STEPS.length - 1 ? `<button type="button" class="btn-primary" onclick="openAppTourSheet(${idx + 1})">Siguiente →</button>` : `<button type="button" class="btn-primary" onclick="closeSheet()">¡Entendido!</button>`}
+          </div>
+        </div>
+      `);
+    }
+
     function openSettingsSheet() {
       const appliancesList = [
         { id: "sarten", label: "Sartén" },
@@ -10988,16 +12065,16 @@
         { id: "horno", label: "Horno" },
         { id: "licuadora", label: "Licuadora" }
       ];
-      openSheet("⚙️ Ajustes de Cocina y Respaldo", `
+      openSheet("Ajustes y Respaldo", `
         <div id="settingsSheetMarker" style="display:none;"></div>
         <div class="card">
-          <div class="row-between">
-            <div>
-              <div class="card-title" style="margin:0;">Guía interactiva de inicio</div>
-              <div class="card-sub" style="font-size:11.5px;">Configura tu perfil paso a paso</div>
-            </div>
-            <button class="btn-primary btn-sm" onclick="closeSheet(); openOnboarding(0);">✨ Abrir guía</button>
+          <div class="card-title" style="margin:0 0 3px;">Ayuda y guías</div>
+          <div class="card-sub" style="font-size:11.5px; margin-bottom:10px;">Aprende cada sección en menos de 1 minuto</div>
+          <div class="grid-2">
+            <button class="btn-primary btn-sm" onclick="openAppTourSheet(0)">Tour 5 pestañas</button>
+            <button class="btn-secondary btn-sm" onclick="closeSheet(); openOnboarding(0);">Configuración</button>
           </div>
+          <button class="btn-ghost btn-sm" style="width:100%; margin-top:6px;" onclick="resetSectionHints()">Volver a mostrar consejos en cada sección</button>
         </div>
         <div class="card">
           <div class="card-title">Presupuesto &amp; Metas Diarias</div>
@@ -11100,7 +12177,43 @@
       document.getElementById("sheetBackdrop").classList.add("open");
     }
 
+    function getWaterGlasses(dateKey = null) {
+      const k = dateKey || getTodayDateKey();
+      return Math.max(0, Math.min(20, Number((state.waterLogs && state.waterLogs[k]) || 0)));
+    }
+
+    function adjustWaterGlasses(delta, dateKey = null) {
+      const k = dateKey || getTodayDateKey();
+      if (!state.waterLogs || typeof state.waterLogs !== "object") state.waterLogs = {};
+      const next = Math.max(0, Math.min(20, getWaterGlasses(k) + delta));
+      state.waterLogs[k] = next;
+      saveState();
+      render();
+    }
+
+    function buildWaterTrackerHtml(dateKey = null) {
+      const k = dateKey || getTodayDateKey();
+      const glasses = getWaterGlasses(k);
+      const ml = glasses * 250;
+      const goal = 8;
+      return `
+        <div class="water-row">
+          <div style="min-width:0;">
+            <div style="font-size:13px; font-weight:750; color:var(--text-main);">Agua hoy · <strong>${(ml / 1000).toFixed(2).replace(".", ",")} L</strong> <span style="font-weight:500; color:var(--text-soft); font-size:11.5px;">(${glasses}/${goal} vasos)</span></div>
+            <div class="water-drops">
+              ${Array.from({ length: goal }, (_, i) => `<span class="water-drop ${i < glasses ? "filled" : ""}"></span>`).join("")}
+            </div>
+          </div>
+          <div style="display:flex; gap:5px; flex-shrink:0;">
+            ${glasses > 0 ? `<button class="btn-ghost btn-sm" style="padding:5px 9px;" onclick="adjustWaterGlasses(-1, '${k}')" aria-label="Quitar vaso">−</button>` : ""}
+            <button class="btn-secondary btn-sm" onclick="adjustWaterGlasses(1, '${k}')">+ Vaso</button>
+          </div>
+        </div>
+      `;
+    }
+
     function closeSheet() {
+      if (typeof stopBarcodeCamera === "function") stopBarcodeCamera();
       document.getElementById("sheetBackdrop").classList.remove("open");
     }
 
@@ -11232,10 +12345,233 @@
         </div>
 
         <div class="grid-2">
-          <button class="btn-secondary" onclick="shareRecipe('${r.id}')">Compartir receta</button>
+          <button class="btn-secondary" onclick="openEditRecipeSheet('${r.id}')">Editar receta</button>
           <button class="btn-primary" onclick="openBatchAssignSheet('${r.id}')">+ Batch / Tápers</button>
         </div>
+        <button class="btn-ghost btn-sm" style="width:100%;" onclick="shareRecipe('${r.id}')">Compartir receta</button>
       `);
+    }
+
+    function openEditRecipeSheet(recipeId = null, prefillTitle = "") {
+      const existing = recipeId ? state.recipes.find(x => x.id === recipeId) : null;
+      const isEdit = Boolean(existing);
+      const est = !isEdit && prefillTitle ? estimateDishSmart(prefillTitle) : null;
+      const title = isEdit ? existing.title : (prefillTitle || "");
+      const mealType = isEdit ? getRecipeMealType(existing) : (recipeMealTypeFilter !== "all" ? recipeMealTypeFilter : "almuerzo");
+      const category = isEdit ? (existing.category || "Pollo") : (prefillTitle ? inferRecipeCategory(prefillTitle) : "Pollo");
+      const timeMin = isEdit ? (existing.timeMin || 20) : 20;
+      const kcal = isEdit ? (existing.kcal || 0) : (est ? est.kcal : 420);
+      const protein = isEdit ? (existing.protein || 0) : (est ? est.protein : 32);
+      const carbs = isEdit ? (existing.carbs || 0) : (est ? est.carbs : 36);
+      const fat = isEdit ? (existing.fat || 0) : (est ? est.fat : 14);
+      const ingLines = isEdit ? (existing.ingredients || []).map(i => i.label).join("\n") : "";
+      const stepLines = isEdit ? (existing.steps || []).join("\n") : "";
+      const tiktokUrl = isEdit ? (existing.tiktokUrl || "") : "";
+
+      openSheet(isEdit ? "Editar receta" : "Nueva receta", `
+        <div class="section-gap">
+          <div>
+            <label>Nombre de la receta</label>
+            <input type="text" id="erTitle" value="${escapeAttr(title)}" placeholder="Ej. Pollo al horno con papas y ensalada" />
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label>Comida del día</label>
+              <select id="erMealType">
+                <option value="desayuno" ${mealType === "desayuno" ? "selected" : ""}>Desayuno</option>
+                <option value="almuerzo" ${mealType === "almuerzo" ? "selected" : ""}>Almuerzo</option>
+                <option value="cena" ${mealType === "cena" ? "selected" : ""}>Cena</option>
+              </select>
+            </div>
+            <div>
+              <label>Categoría</label>
+              <select id="erCat">
+                ${["Pollo", "Carne", "Atún / Salmón", "Lentejas", "TikTok Fit", "Vegetariano", "Otro"].map(c => `
+                  <option value="${c}" ${category === c ? "selected" : ""}>${c}</option>
+                `).join("")}
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div>
+              <label>Tiempo (min)</label>
+              <input type="number" id="erTime" min="1" value="${timeMin}" />
+            </div>
+            <div>
+              <label>Calorías (kcal)</label>
+              <input type="number" id="erKcal" min="0" value="${kcal}" />
+            </div>
+            <div>
+              <label>Proteína (g)</label>
+              <input type="number" id="erProt" min="0" value="${protein}" />
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label>Carbohidratos (g)</label>
+              <input type="number" id="erCarbs" min="0" value="${carbs}" />
+            </div>
+            <div>
+              <label>Grasas (g)</label>
+              <input type="number" id="erFat" min="0" value="${fat}" />
+            </div>
+          </div>
+
+          <div>
+            <label>Ingredientes (uno por línea)</label>
+            <textarea id="erIngs" rows="4" placeholder="180 g pechuga o presa de pollo&#10;180 g papa en cubos&#10;1 cda aceite de oliva, ajo y romero">${escapeHtml(ingLines)}</textarea>
+          </div>
+
+          <div>
+            <label>Pasos de preparación (uno por línea)</label>
+            <textarea id="erSteps" rows="4" placeholder="Sazona el pollo con ajo, limón y especias.&#10;Hornea 30 min a 200 °C junto con las papas.">${escapeHtml(stepLines)}</textarea>
+          </div>
+
+          <div>
+            <label>Enlace de video o web (opcional)</label>
+            <input type="url" id="erUrl" value="${escapeAttr(tiktokUrl)}" placeholder="https://..." />
+          </div>
+
+          <button class="btn-primary" style="width:100%;" onclick="saveEditedRecipe('${isEdit ? escapeAttr(existing.id) : ""}')">${isEdit ? "Guardar cambios" : "Guardar en mi recetario"}</button>
+
+          ${isEdit ? `
+            <div class="grid-2">
+              <button class="btn-secondary btn-sm" onclick="duplicateRecipe('${escapeAttr(existing.id)}')">Duplicar</button>
+              <button class="btn-ghost btn-sm" style="color:var(--danger-text);" onclick="deleteRecipe('${escapeAttr(existing.id)}')">Eliminar</button>
+            </div>
+          ` : ""}
+        </div>
+      `);
+    }
+
+    function matchIngredientKeyFromLabel(label) {
+      const l = normFoodStr(label);
+      if (l.includes("pollo") || l.includes("pechuga")) return "pechuga_pollo";
+      if (l.includes("salmon")) return "salmon";
+      if (l.includes("atun")) return "atun_lata";
+      if (l.includes("carne") || l.includes("res") || l.includes("lomo")) return "carne_magra";
+      if (l.includes("lentej")) return "lentejas";
+      if (l.includes("arroz")) return "arroz";
+      if (l.includes("pasta") || l.includes("tallarin") || l.includes("fideo")) return "pasta";
+      if (l.includes("papa") || l.includes("patata")) return "papa";
+      if (l.includes("huevo")) return "huevos";
+      if (l.includes("espinaca")) return "espinaca";
+      if (l.includes("brocoli")) return "brocoli";
+      if (l.includes("tomate")) return "tomate";
+      if (l.includes("palta") || l.includes("aguacate")) return "palta";
+      if (l.includes("yogur") || l.includes("skyr")) return "yogur_griego";
+      if (l.includes("aceite")) return "aceite_oliva";
+      if (l.includes("limon")) return "limon";
+      return "custom";
+    }
+
+    function saveEditedRecipe(recipeId) {
+      const title = String(document.getElementById("erTitle")?.value || "").trim();
+      if (!title) {
+        showToast("Escribe un nombre para la receta");
+        return;
+      }
+      const mealType = document.getElementById("erMealType")?.value || "almuerzo";
+      const category = document.getElementById("erCat")?.value || "Pollo";
+      const timeMin = Math.max(1, Number(document.getElementById("erTime")?.value) || 20);
+      const kcal = Math.max(0, Math.round(Number(document.getElementById("erKcal")?.value) || 0));
+      const protein = Math.max(0, Math.round(Number(document.getElementById("erProt")?.value) || 0));
+      const carbs = Math.max(0, Math.round(Number(document.getElementById("erCarbs")?.value) || 0));
+      const fat = Math.max(0, Math.round(Number(document.getElementById("erFat")?.value) || 0));
+      const url = String(document.getElementById("erUrl")?.value || "").trim();
+
+      const rawIngs = String(document.getElementById("erIngs")?.value || "")
+        .split(/\r?\n/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      const rawSteps = String(document.getElementById("erSteps")?.value || "")
+        .split(/\r?\n/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const existing = recipeId ? state.recipes.find(x => x.id === recipeId) : null;
+      const ingredients = rawIngs.map((lbl, idx) => {
+        const prev = existing && existing.ingredients && existing.ingredients[idx];
+        const key = (prev && prev.label === lbl) ? prev.key : matchIngredientKeyFromLabel(lbl);
+        const qty = (prev && prev.label === lbl) ? prev.qty : 0.15;
+        return { key, qty, label: lbl };
+      });
+      const steps = rawSteps.length ? rawSteps : ["Prepara los ingredientes y cocina a tu gusto."];
+
+      if (existing) {
+        existing.title = title;
+        existing.mealType = mealType;
+        existing.category = category;
+        existing.timeMin = timeMin;
+        existing.kcal = kcal;
+        existing.protein = protein;
+        existing.carbs = carbs;
+        existing.fat = fat;
+        existing.tiktokUrl = url;
+        if (ingredients.length) existing.ingredients = ingredients;
+        existing.steps = steps;
+      } else {
+        const m = getAdaptiveNutritionMetrics();
+        const newRec = {
+          id: "rec_" + Date.now(),
+          title,
+          mealType,
+          category,
+          goals: [m.goal || "maintenance", "deficit"],
+          conditions: [],
+          timeMin,
+          quickToday: timeMin <= 20,
+          taperFriendly: mealType === "almuerzo",
+          taperTip: "Receta personalizada por ti.",
+          appliances: ["sarten", "olla"],
+          kcal,
+          protein,
+          carbs,
+          fat,
+          tiktokUrl: url,
+          ingredients: ingredients.length ? ingredients : [{ key: matchIngredientKeyFromLabel(title), qty: 0.18, label: title }],
+          steps
+        };
+        state.recipes.unshift(newRec);
+      }
+      saveState();
+      closeSheet();
+      render();
+      showToast(existing ? "Receta actualizada ✓" : "Receta guardada en tu recetario ✓");
+    }
+
+    function duplicateRecipe(recipeId) {
+      const r = state.recipes.find(x => x.id === recipeId);
+      if (!r) return;
+      const copy = JSON.parse(JSON.stringify(r));
+      copy.id = "rec_" + Date.now();
+      copy.title = `${r.title} (Copia)`;
+      state.recipes.unshift(copy);
+      saveState();
+      closeSheet();
+      render();
+      showToast("Receta duplicada — puedes editar tu versión ✓");
+      openEditRecipeSheet(copy.id);
+    }
+
+    function deleteRecipe(recipeId) {
+      if (state.recipes.length <= 1) {
+        showToast("Debes mantener al menos 1 receta");
+        return;
+      }
+      state.recipes = state.recipes.filter(x => x.id !== recipeId);
+      const fallbackId = state.recipes[0].id;
+      Object.keys(state.tapers || {}).forEach(d => {
+        if (state.tapers[d] === recipeId) state.tapers[d] = fallbackId;
+      });
+      state.favoriteRecipes = (state.favoriteRecipes || []).filter(id => id !== recipeId);
+      saveState();
+      closeSheet();
+      render();
+      showToast("Receta eliminada");
     }
 
     function openBatchAssignSheet(recipeId) {
@@ -12455,7 +13791,7 @@
           <h1 class="onb-title">✨ ¡Tu plan está listo!</h1>
           <p class="onb-sub">Preparamos tus metas, tus recetas recomendadas y tu rutina semanal sin ruido visual.</p>
 
-          <div class="card" style="background:#FFF8FB; border-color:var(--rose-soft);">
+          <div class="card" style="background:#FFF8FB;">
             <div class="grid-2" style="margin-bottom:10px;">
               <div>
                 <div style="font-size:11px; color:var(--text-soft); font-weight:700;">CALORÍAS DIARIAS</div>
@@ -12468,6 +13804,17 @@
             </div>
             <div style="font-size:11.5px; color:var(--text-muted); border-top:1px solid var(--border); padding-top:9px; display:flex; flex-direction:column; gap:4px;">
               ${modules.map(mod => `<div>✓ ${escapeHtml(mod)}</div>`).join("")}
+            </div>
+          </div>
+
+          <div class="card" style="padding:12px 14px;">
+            <div style="font-size:11px; font-weight:800; color:var(--rose-dark); text-transform:uppercase; margin-bottom:7px;">Así se organiza LuTrack (5 pestañas)</div>
+            <div style="display:flex; flex-direction:column; gap:5px; font-size:12px; color:var(--text-muted); line-height:1.35;">
+              <div><strong style="color:var(--text-main);">Hoy:</strong> resumen de calorías, proteína, pasos y vasos de agua.</div>
+              <div><strong style="color:var(--text-main);">Comida:</strong> diario con buscador inteligente, recetas editables y tápers.</div>
+              <div><strong style="color:var(--text-main);">Súper:</strong> lista de compras automática por pasillos.</div>
+              <div><strong style="color:var(--text-main);">Entreno:</strong> rutina guiada con series, pesos y descanso automático.</div>
+              <div><strong style="color:var(--text-main);">Salud:</strong> peso, ciclo/anticonceptivos, medicación y análisis de sangre.</div>
             </div>
           </div>
         `;
