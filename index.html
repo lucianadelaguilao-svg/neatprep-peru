@@ -701,6 +701,17 @@
       grid-template-columns: repeat(3, 1fr);
     }
 
+    .seg-control.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+
+    .seg-control.cols-4 .seg-btn {
+      font-size: 11px;
+      padding: 7px 3px;
+      white-space: nowrap;
+    }
+
     .seg-btn {
       padding: 7px 6px;
       border-radius: var(--radius-sm);
@@ -1659,6 +1670,88 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    .macro-bars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .macro-bar-card {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 8px 9px;
+    }
+
+    .macro-bar-lbl {
+      font-size: 10.5px;
+      font-weight: 750;
+      color: var(--text-soft);
+    }
+
+    .macro-bar-val {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 2px 0 5px;
+      white-space: nowrap;
+    }
+
+    .macro-mini-track {
+      height: 6px;
+      border-radius: 99px;
+      background: #ECE2E7;
+      overflow: hidden;
+    }
+
+    .macro-mini-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.2s ease;
+    }
+
+    .meal-slot-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .meal-entry-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--bg-soft);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .preset-pick-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 11px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+    }
+
+    .date-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 6px 8px;
+    }
   </style>
 </head>
 <body>
@@ -1677,7 +1770,7 @@
           <button class="icon-btn" onclick="openSettingsSheet()" aria-label="Ajustes de cocina y respaldo" title="Ajustes de cocina y respaldo">⚙️</button>
         </div>
       </div>
-      <div class="macro-strip" id="headerMacroStrip"></div>
+      <div class="macro-strip" id="headerMacroStrip" onclick="switchTab('comida', 'diario')" style="cursor:pointer;" title="Abrir diario de comidas de hoy"></div>
     </header>
 
     <main class="scroll-area" id="mainContent"></main>
@@ -2804,14 +2897,17 @@
         doseMg: 500,
         startDate: "",
         logs: []
-      }
+      },
+      foodDiary: {}
     };
 
     let state = loadState();
     let currentTab = "hoy";
     let hoySubTab = "hoy";
     let selectedCalendarDay = null;
-    let comidaSubTab = "recetario";
+    let comidaSubTab = "diario";
+    let diaryDateKey = new Date().toISOString().slice(0, 10);
+    let activeFoodSheet = { slot: "desayuno", mode: "presets", search: "", portion: 1 };
     let saludSubTab = "diario";
     let recipeFilter = "Todas";
     let recipeQuickFilter = "profile";
@@ -2928,7 +3024,8 @@
             startDate: typeof rawM.startDate === "string" ? rawM.startDate : "",
             logs: Array.isArray(rawM.logs) ? rawM.logs : []
           };
-        })()
+        })(),
+        foodDiary: (parsed.foodDiary && typeof parsed.foodDiary === "object") ? parsed.foodDiary : {}
       };
     }
 
@@ -3550,31 +3647,15 @@
       pill.textContent = `${fmtEur(spent)} / ${fmtEur(state.budget)}`;
       pill.classList.toggle("over-budget", spent > state.budget);
 
-      const days = Object.keys(state.tapers);
-      let avgKcal = 0, avgProt = 0, avgCarbs = 0, count = 0;
-      days.forEach(d => {
-        const r = state.recipes.find(x => x.id === state.tapers[d]);
-        if (r) {
-          avgKcal += r.kcal;
-          avgProt += r.protein;
-          avgCarbs += r.carbs;
-          count++;
-        }
-      });
-      if (count) {
-        avgKcal = Math.round(avgKcal / count);
-        avgProt = Math.round(avgProt / count);
-        avgCarbs = Math.round(avgCarbs / count);
-      }
-
+      const todayTot = getDailyDiaryTotals(getTodayDateKey());
       const carbPrefix = (hasCondition("diabetes") || hasCondition("insulin_resistance") || hasCondition("pcos")) ? "≤" : "";
 
       document.getElementById("headerMacroStrip").innerHTML = `
-        <span class="macro-strip-item"><strong>${avgKcal}</strong>/${state.targets.kcal} kcal</span>
+        <span class="macro-strip-item"><strong>${todayTot.kcal}</strong>/${state.targets.kcal} kcal</span>
         <span class="macro-strip-sep">·</span>
-        <span class="macro-strip-item">Prot <strong>${avgProt}</strong>/${state.targets.protein}g</span>
+        <span class="macro-strip-item">Prot <strong>${todayTot.protein}</strong>/${state.targets.protein}g</span>
         <span class="macro-strip-sep">·</span>
-        <span class="macro-strip-item">Carb <strong>${avgCarbs}</strong>/${carbPrefix}${state.targets.carbsMax}g</span>
+        <span class="macro-strip-item">Carb <strong>${todayTot.carbs}</strong>/${carbPrefix}${state.targets.carbsMax}g</span>
       `;
     }
 
@@ -3880,9 +3961,39 @@
         </div>
       ` : "";
 
+      const todayDiaryTot = getDailyDiaryTotals(todayStr);
+      const todayDiaryDay = getDayDiary(todayStr);
+      const kcalTargetHoy = Number(state.targets.kcal || m.targetKcal || 1640);
+      const protTargetHoy = Number(state.targets.protein || m.targetProtein || 130);
+      const carbTargetHoy = Number(state.targets.carbsMax || m.targetCarbs || 135);
+      const fatTargetHoy = Math.max(35, Number(m.targetFat || 55));
+      const kcalPctHoy = Math.min(100, Math.round((todayDiaryTot.kcal / Math.max(1, kcalTargetHoy)) * 100));
+      const kcalRemHoy = kcalTargetHoy - todayDiaryTot.kcal;
+
       container.innerHTML = `
         <div class="section-gap">
           ${topSwitcherHtml}
+
+          <div class="card">
+            <div class="row-between" style="margin-bottom:6px;">
+              <div>
+                <div style="font-size:13px; font-weight:800; color:var(--text-main);">Macros hoy · ${todayDiaryTot.kcal}/${kcalTargetHoy} kcal</div>
+                <div style="font-size:11px; color:var(--text-muted);">
+                  P <strong>${todayDiaryTot.protein}</strong>/${protTargetHoy}g · C <strong>${todayDiaryTot.carbs}</strong>/${carbTargetHoy}g · G <strong>${todayDiaryTot.fat}</strong>/${fatTargetHoy}g
+                </div>
+              </div>
+              <button class="btn-ghost btn-sm" style="color:var(--rose-dark);" onclick="switchTab('comida', 'diario')">Diario →</button>
+            </div>
+            <div class="progress-track" style="margin-bottom:8px;">
+              <div class="progress-fill" style="width:${kcalPctHoy}%; background:${kcalRemHoy < -120 ? "var(--amber)" : "linear-gradient(90deg, var(--rose), var(--rose-dark))"};"></div>
+            </div>
+            <div class="chip-row">
+              <button class="chip ${todayDiaryDay.desayuno.length ? "active" : ""}" onclick="openAddFoodSheet('desayuno','${todayStr}')">+ Desayuno</button>
+              <button class="chip ${todayDiaryDay.almuerzo.length ? "active" : ""}" onclick="openAddFoodSheet('almuerzo','${todayStr}')">+ Almuerzo</button>
+              <button class="chip ${todayDiaryDay.cena.length ? "active" : ""}" onclick="openAddFoodSheet('cena','${todayStr}')">+ Cena</button>
+              <button class="chip ${todayDiaryDay.snacks.length ? "active" : ""}" onclick="openAddFoodSheet('snacks','${todayStr}')">+ Snack</button>
+            </div>
+          </div>
 
           <div class="hero-today-card">
             <div class="row-between" style="margin-bottom:6px;">
@@ -3890,7 +4001,9 @@
                 <span class="badge">${todayDayName ? `Táper · ${todayDayName}` : "Próximo táper"}</span>
                 <span class="badge badge-mint">${todayRecipe.timeMin} min</span>
               </div>
-              <button class="btn-ghost btn-sm" style="color:var(--rose-dark);" onclick="setHoySubTab('semana')">Semana →</button>
+              ${todayDiaryDay.almuerzo.length === 0
+                ? `<button class="btn-ghost btn-sm" style="color:var(--mint-text); font-weight:800;" onclick="logPlannedLunchToDiary('${todayStr}')">✓ Comido</button>`
+                : `<button class="btn-ghost btn-sm" style="color:var(--rose-dark);" onclick="setHoySubTab('semana')">Semana →</button>`}
             </div>
             <div style="font-size:15px; font-weight:800; color:var(--text-main); margin-bottom:6px;">${todayRecipe.title}</div>
             <div class="macros-line" style="background:rgba(255,255,255,0.85); margin-bottom:10px;">
@@ -4202,18 +4315,515 @@
       });
     }
 
+    const MEAL_SLOTS_META = [
+      { id: "desayuno", icon: "🌅", label: "Desayuno" },
+      { id: "almuerzo", icon: "☀️", label: "Almuerzo" },
+      { id: "cena", icon: "🌙", label: "Cena" },
+      { id: "snacks", icon: "🍎", label: "Snacks" }
+    ];
+
+    const DEFAULT_MEAL_PRESETS = [
+      // Desayunos
+      { id: "pre_d1", slot: "desayuno", title: "Skyr / Yogur griego + frutos rojos + chía", kcal: 285, protein: 26, carbs: 24, fat: 8, tag: "IR / SOP" },
+      { id: "pre_d2", slot: "desayuno", title: "Omelette 3 huevos + espinaca + pan integral", kcal: 395, protein: 28, carbs: 24, fat: 20, tag: "Saciedad" },
+      { id: "pre_d3", slot: "desayuno", title: "Tostada integral + palta + 2 huevos", kcal: 410, protein: 19, carbs: 28, fat: 24, tag: "Equilibrado" },
+      { id: "pre_d4", slot: "desayuno", title: "Avena proteica (40g avena + whey/skyr + canela)", kcal: 360, protein: 30, carbs: 40, fat: 8, tag: "Pre-entreno" },
+      { id: "pre_d5", slot: "desayuno", title: "Bowl volumen: 80g avena + plátano + whey + maní", kcal: 640, protein: 40, carbs: 78, fat: 18, tag: "Volumen" },
+      { id: "pre_d6", slot: "desayuno", title: "Revuelto de claras + 1 huevo + pavo + tomate", kcal: 255, protein: 31, carbs: 8, fat: 10, tag: "Déficit / IR" },
+      { id: "pre_d7", slot: "desayuno", title: "Pan de centeno + salmón ahumado + queso light", kcal: 340, protein: 24, carbs: 26, fat: 15, tag: "Omega-3" },
+      { id: "pre_d8", slot: "desayuno", title: "Café con leche proteica + 2 huevos duros", kcal: 215, protein: 20, carbs: 8, fat: 11, tag: "Rápido" },
+      // Cenas
+      { id: "pre_c1", slot: "cena", title: "Omelette espinaca, champiñón y queso fresco", kcal: 310, protein: 26, carbs: 7, fat: 19, tag: "Bajo carb" },
+      { id: "pre_c2", slot: "cena", title: "Ensalada de atún (1 lata) + palta + pepino + limón", kcal: 340, protein: 32, carbs: 9, fat: 19, tag: "IR / Hierro" },
+      { id: "pre_c3", slot: "cena", title: "Salmón al horno/airfryer + brócoli y calabacín", kcal: 425, protein: 36, carbs: 10, fat: 26, tag: "SOP / Omega-3" },
+      { id: "pre_c4", slot: "cena", title: "Pechuga a la plancha + ensalada verde con AOVE", kcal: 330, protein: 42, carbs: 8, fat: 14, tag: "Alta proteína" },
+      { id: "pre_c5", slot: "cena", title: "Wrap integral de pollo, lechuga y yogur griego", kcal: 390, protein: 34, carbs: 32, fat: 12, tag: "Rápido" },
+      { id: "pre_c6", slot: "cena", title: "Crema de verduras + 150g pollo o 2 huevos", kcal: 315, protein: 31, carbs: 18, fat: 12, tag: "Ligera" },
+      { id: "pre_c7", slot: "cena", title: "Cena volumen: Carne magra + papa/camote + palta", kcal: 650, protein: 46, carbs: 56, fat: 25, tag: "Volumen" },
+      { id: "pre_c8", slot: "cena", title: "Skyr / Queso batido 250g + nueces + canela", kcal: 295, protein: 28, carbs: 13, fat: 14, tag: "Sin cocinar" },
+      // Snacks
+      { id: "pre_s1", slot: "snacks", title: "Batido Whey / Proteína (1 scoop en agua)", kcal: 120, protein: 24, carbs: 3, fat: 2, tag: "Post-entreno" },
+      { id: "pre_s2", slot: "snacks", title: "Skyr natural 150g + frutos rojos", kcal: 145, protein: 16, carbs: 14, fat: 1, tag: "Proteico" },
+      { id: "pre_s3", slot: "snacks", title: "Manzana/pera + 20g almendras o nueces", kcal: 205, protein: 5, carbs: 21, fat: 12, tag: "Saciedad" },
+      { id: "pre_s4", slot: "snacks", title: "2 huevos duros + pepino con limón", kcal: 165, protein: 13, carbs: 3, fat: 11, tag: "Bajo IG" },
+      { id: "pre_s5", slot: "snacks", title: "Plátano + 1 cda mantequilla de maní", kcal: 210, protein: 5, carbs: 29, fat: 9, tag: "Energía" },
+      { id: "pre_s6", slot: "snacks", title: "Atún al natural (1 lata) + 2 tortitas de arroz", kcal: 195, protein: 26, carbs: 16, fat: 2, tag: "Alta proteína" },
+      { id: "pre_s7", slot: "snacks", title: "Café con leche / Latte sin azúcar (200 ml)", kcal: 95, protein: 6, carbs: 9, fat: 3, tag: "Bebida" },
+      { id: "pre_s8", slot: "snacks", title: "Chocolate negro 85% (20g)", kcal: 115, protein: 2, carbs: 5, fat: 10, tag: "Antojo" }
+    ];
+
+    function getTodayDateKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function shiftDateKey(dateStr, deltaDays) {
+      const d = new Date(dateStr + "T12:00:00");
+      d.setDate(d.getDate() + deltaDays);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function formatDiaryDateLabel(dateStr) {
+      const today = getTodayDateKey();
+      const yest = shiftDateKey(today, -1);
+      const tom = shiftDateKey(today, 1);
+      const d = new Date(dateStr + "T12:00:00");
+      const nice = d.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
+      if (dateStr === today) return `Hoy · ${nice}`;
+      if (dateStr === yest) return `Ayer · ${nice}`;
+      if (dateStr === tom) return `Mañana · ${nice}`;
+      return nice;
+    }
+
+    function getDayDiary(dateKey) {
+      const key = dateKey || getTodayDateKey();
+      const raw = (state.foodDiary && state.foodDiary[key]) || {};
+      return {
+        desayuno: Array.isArray(raw.desayuno) ? raw.desayuno : [],
+        almuerzo: Array.isArray(raw.almuerzo) ? raw.almuerzo : [],
+        cena: Array.isArray(raw.cena) ? raw.cena : [],
+        snacks: Array.isArray(raw.snacks) ? raw.snacks : []
+      };
+    }
+
+    function getSlotTotals(entries) {
+      return (entries || []).reduce((acc, item) => ({
+        kcal: acc.kcal + Math.round(Number(item.kcal || 0)),
+        protein: acc.protein + Math.round(Number(item.protein || 0)),
+        carbs: acc.carbs + Math.round(Number(item.carbs || 0)),
+        fat: acc.fat + Math.round(Number(item.fat || 0))
+      }), { kcal: 0, protein: 0, carbs: 0, fat: 0 });
+    }
+
+    function getDailyDiaryTotals(dateKey) {
+      const day = getDayDiary(dateKey);
+      const all = [...day.desayuno, ...day.almuerzo, ...day.cena, ...day.snacks];
+      return { ...getSlotTotals(all), count: all.length };
+    }
+
+    function getPlannedLunchForDate(dateKey) {
+      const d = new Date((dateKey || getTodayDateKey()) + "T12:00:00");
+      const name = getFullWeekdayName(d.getDay());
+      const recipeId = state.tapers[name] || (state.weekendMeals && state.weekendMeals[name]) || state.tapers.Lunes;
+      return state.recipes.find(r => r.id === recipeId) || state.recipes[0];
+    }
+
+    function addFoodEntryToDiary(dateKey, slot, entry) {
+      const key = dateKey || diaryDateKey || getTodayDateKey();
+      if (!state.foodDiary || typeof state.foodDiary !== "object") state.foodDiary = {};
+      if (!state.foodDiary[key]) state.foodDiary[key] = { desayuno: [], almuerzo: [], cena: [], snacks: [] };
+      if (!Array.isArray(state.foodDiary[key][slot])) state.foodDiary[key][slot] = [];
+      state.foodDiary[key][slot].push({
+        id: "fd_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+        title: String(entry.title || "Comida").trim(),
+        kcal: Math.round(Number(entry.kcal || 0)),
+        protein: Math.round(Number(entry.protein || 0)),
+        carbs: Math.round(Number(entry.carbs || 0)),
+        fat: Math.round(Number(entry.fat || 0)),
+        portion: Number(entry.portion || 1)
+      });
+      saveState();
+      render();
+    }
+
+    function removeFoodEntry(dateKey, slot, entryId) {
+      if (!state.foodDiary?.[dateKey]?.[slot]) return;
+      state.foodDiary[dateKey][slot] = state.foodDiary[dateKey][slot].filter(x => x.id !== entryId);
+      saveState();
+      render();
+      showToast("Eliminado del diario");
+    }
+
+    function logPlannedLunchToDiary(dateKey) {
+      const key = dateKey || diaryDateKey || getTodayDateKey();
+      const r = getPlannedLunchForDate(key);
+      if (!r) return;
+      addFoodEntryToDiary(key, "almuerzo", {
+        title: r.title,
+        kcal: r.kcal,
+        protein: r.protein,
+        carbs: r.carbs,
+        fat: r.fat,
+        portion: 1
+      });
+      showToast(`Almuerzo registrado: ${r.title.slice(0, 28)} ✓`);
+    }
+
+    function copyYesterdayDiary(targetDateKey) {
+      const key = targetDateKey || diaryDateKey || getTodayDateKey();
+      const yestKey = shiftDateKey(key, -1);
+      const yest = getDayDiary(yestKey);
+      const totalYest = yest.desayuno.length + yest.almuerzo.length + yest.cena.length + yest.snacks.length;
+      if (!totalYest) {
+        showToast("No hay comidas registradas ayer");
+        return;
+      }
+      if (!state.foodDiary || typeof state.foodDiary !== "object") state.foodDiary = {};
+      state.foodDiary[key] = {
+        desayuno: yest.desayuno.map((e, i) => ({ ...e, id: "fd_" + Date.now() + "_d" + i })),
+        almuerzo: yest.almuerzo.map((e, i) => ({ ...e, id: "fd_" + Date.now() + "_a" + i })),
+        cena: yest.cena.map((e, i) => ({ ...e, id: "fd_" + Date.now() + "_c" + i })),
+        snacks: yest.snacks.map((e, i) => ({ ...e, id: "fd_" + Date.now() + "_s" + i }))
+      };
+      saveState();
+      render();
+      showToast("Comidas de ayer copiadas ✓");
+    }
+
+    function changeDiaryDate(delta) {
+      diaryDateKey = shiftDateKey(diaryDateKey || getTodayDateKey(), delta);
+      render();
+    }
+
+    function resetDiaryDateToday() {
+      diaryDateKey = getTodayDateKey();
+      render();
+    }
+
+    function buildDiarioComidaHtml() {
+      const m = getAdaptiveNutritionMetrics();
+      const key = diaryDateKey || getTodayDateKey();
+      const day = getDayDiary(key);
+      const tot = getDailyDiaryTotals(key);
+      const kcalTarget = Number(state.targets.kcal || m.targetKcal || 1640);
+      const protTarget = Number(state.targets.protein || m.targetProtein || 130);
+      const carbTarget = Number(state.targets.carbsMax || m.targetCarbs || 135);
+      const fatTarget = Math.max(35, Number(m.targetFat || 55));
+
+      const kcalPct = Math.min(100, Math.round((tot.kcal / Math.max(1, kcalTarget)) * 100));
+      const protPct = Math.min(100, Math.round((tot.protein / Math.max(1, protTarget)) * 100));
+      const carbPct = Math.min(100, Math.round((tot.carbs / Math.max(1, carbTarget)) * 100));
+      const fatPct = Math.min(100, Math.round((tot.fat / Math.max(1, fatTarget)) * 100));
+      const kcalRem = kcalTarget - tot.kcal;
+      const kcalRemLabel = kcalRem >= 0 ? `Faltan ${kcalRem} kcal` : `+${Math.abs(kcalRem)} kcal sobre meta`;
+      const carbPrefix = (m.isDiabetes || m.isIR || m.isPCOS) ? "≤" : "";
+
+      const plannedLunch = getPlannedLunchForDate(key);
+      const hasYesterday = getDailyDiaryTotals(shiftDateKey(key, -1)).count > 0;
+
+      const slotsHtml = MEAL_SLOTS_META.map(slot => {
+        const items = day[slot.id] || [];
+        const st = getSlotTotals(items);
+        return `
+          <div class="meal-slot-card">
+            <div class="row-between" style="margin-bottom:${items.length ? "8px" : "0"};">
+              <div>
+                <div style="font-size:13.5px; font-weight:800; color:var(--text-main);">${slot.icon} ${slot.label}</div>
+                <div style="font-size:11px; color:var(--text-soft);">
+                  ${items.length ? `<strong>${st.kcal}</strong> kcal · ${st.protein}g P · ${st.carbs}g C · ${st.fat}g G` : "Sin registrar aún"}
+                </div>
+              </div>
+              <button class="btn-secondary btn-sm" onclick="openAddFoodSheet('${slot.id}')">+ Añadir</button>
+            </div>
+            ${items.length ? `
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                ${items.map(item => `
+                  <div class="meal-entry-row">
+                    <div style="min-width:0; flex:1;">
+                      <div style="font-size:12.5px; font-weight:750; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ${escapeHtml(item.title)}${item.portion && item.portion !== 1 ? ` <span class="badge" style="padding:1px 5px; font-size:9.5px;">×${String(item.portion).replace(".", ",")}</span>` : ""}
+                      </div>
+                      <div style="font-size:11px; color:var(--text-muted);">
+                        <strong>${item.kcal}</strong> kcal · ${item.protein}g P · ${item.carbs}g C · ${item.fat}g G
+                      </div>
+                    </div>
+                    <button class="btn-ghost btn-sm" style="padding:2px 6px; color:var(--text-soft);" onclick="removeFoodEntry('${key}','${slot.id}','${item.id}')" title="Quitar">×</button>
+                  </div>
+                `).join("")}
+              </div>
+            ` : ""}
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <div class="date-nav-bar">
+          <button class="btn-ghost btn-sm" onclick="changeDiaryDate(-1)">◀</button>
+          <button class="btn-ghost btn-sm" style="font-weight:800; color:var(--text-main);" onclick="resetDiaryDateToday()">📅 ${escapeHtml(formatDiaryDateLabel(key))}</button>
+          <button class="btn-ghost btn-sm" onclick="changeDiaryDate(1)">▶</button>
+        </div>
+
+        <div class="card">
+          <div class="row-between" style="margin-bottom:6px;">
+            <div>
+              <div style="font-size:11px; font-weight:750; color:var(--text-soft); text-transform:uppercase;">Balance real del día</div>
+              <div style="font-size:18px; font-weight:850; color:var(--text-main);">
+                ${tot.kcal} <span style="font-size:12.5px; font-weight:650; color:var(--text-soft);">/ ${kcalTarget} kcal</span>
+              </div>
+            </div>
+            <span class="badge ${kcalRem >= 0 ? "badge-mint" : "badge-amber"}">${kcalRemLabel}</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width:${kcalPct}%; background:${kcalRem < -120 ? "var(--amber)" : "linear-gradient(90deg, var(--rose), var(--rose-dark))"};"></div>
+          </div>
+
+          <div class="macro-bars-grid">
+            <div class="macro-bar-card">
+              <div class="macro-bar-lbl">Proteína</div>
+              <div class="macro-bar-val">${tot.protein}/${protTarget}g</div>
+              <div class="macro-mini-track"><div class="macro-mini-fill" style="width:${protPct}%; background:#2E8B63;"></div></div>
+            </div>
+            <div class="macro-bar-card">
+              <div class="macro-bar-lbl">Carbos</div>
+              <div class="macro-bar-val">${tot.carbs}/${carbPrefix}${carbTarget}g</div>
+              <div class="macro-mini-track"><div class="macro-mini-fill" style="width:${carbPct}%; background:${tot.carbs > carbTarget && carbPrefix ? "#C84E77" : "#8F4A65"};"></div></div>
+            </div>
+            <div class="macro-bar-card">
+              <div class="macro-bar-lbl">Grasas</div>
+              <div class="macro-bar-val">${tot.fat}/${fatTarget}g</div>
+              <div class="macro-mini-track"><div class="macro-mini-fill" style="width:${fatPct}%; background:#D6913A;"></div></div>
+            </div>
+          </div>
+
+          <div class="chip-row" style="margin-top:10px;">
+            ${day.almuerzo.length === 0 && plannedLunch ? `<button class="chip active" onclick="logPlannedLunchToDiary('${key}')">✓ Añadir táper (${escapeHtml(plannedLunch.title.slice(0, 20))}…)</button>` : ""}
+            ${hasYesterday && tot.count === 0 ? `<button class="chip" onclick="copyYesterdayDiary('${key}')">📋 Copiar ayer</button>` : ""}
+          </div>
+        </div>
+
+        ${slotsHtml}
+      `;
+    }
+
+    function openAddFoodSheet(slot, dateKey = null) {
+      if (dateKey) diaryDateKey = dateKey;
+      const defaultMode = slot === "almuerzo" ? "recipes" : "presets";
+      activeFoodSheet = { slot: slot || "desayuno", mode: defaultMode, search: "", portion: 1 };
+      renderAddFoodSheetContent();
+    }
+
+    function renderAddFoodSheetContent() {
+      const slotMeta = MEAL_SLOTS_META.find(s => s.id === activeFoodSheet.slot) || MEAL_SLOTS_META[0];
+      const q = (activeFoodSheet.search || "").trim().toLowerCase();
+      const mult = Number(activeFoodSheet.portion || 1);
+
+      let listHtml = "";
+      if (activeFoodSheet.mode === "manual") {
+        listHtml = `
+          <div class="section-gap">
+            <div>
+              <label>Nombre de la comida o alimento</label>
+              <input type="text" id="manualFoodTitle" placeholder="Ej. Yogur griego con avena, Latte, Café..." />
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Calorías (kcal)</label>
+                <input type="number" id="manualFoodKcal" min="0" placeholder="Ej. 320" />
+              </div>
+              <div>
+                <label>Proteína (g)</label>
+                <input type="number" id="manualFoodProt" min="0" placeholder="Ej. 24" />
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Carbohidratos (g)</label>
+                <input type="number" id="manualFoodCarbs" min="0" placeholder="Ej. 28" />
+              </div>
+              <div>
+                <label>Grasas (g)</label>
+                <input type="number" id="manualFoodFat" min="0" placeholder="Ej. 11" />
+              </div>
+            </div>
+            <button class="btn-primary" style="width:100%;" onclick="saveManualFoodEntry()">Añadir a ${slotMeta.label}</button>
+          </div>
+        `;
+      } else if (activeFoodSheet.mode === "recipes") {
+        const m = getAdaptiveNutritionMetrics();
+        const recs = state.recipes
+          .filter(r => !q || r.title.toLowerCase().includes(q) || (r.category || "").toLowerCase().includes(q))
+          .sort((a, b) => getRecipeProfileMeta(b, m).score - getRecipeProfileMeta(a, m).score);
+        listHtml = recs.length ? `
+          <div style="display:flex; flex-direction:column; gap:7px; max-height:46vh; overflow-y:auto;">
+            ${recs.map(r => `
+              <div class="preset-pick-row">
+                <div style="min-width:0; flex:1;">
+                  <div style="font-size:12.5px; font-weight:800; color:var(--text-main);">${escapeHtml(r.title)}</div>
+                  <div style="font-size:11px; color:var(--text-muted);">
+                    <strong>${Math.round(r.kcal * mult)}</strong> kcal · ${Math.round(r.protein * mult)}g P · ${Math.round(r.carbs * mult)}g C · ${Math.round(r.fat * mult)}g G
+                  </div>
+                </div>
+                <button class="btn-primary btn-sm" style="flex-shrink:0;" onclick="pickRecipeForDiary('${r.id}')">+</button>
+              </div>
+            `).join("")}
+          </div>
+        ` : `<div class="empty-note">Sin recetas que coincidan. Prueba en <strong>✏️ Manual</strong>.</div>`;
+      } else {
+        const filteredPresets = DEFAULT_MEAL_PRESETS.filter(p => {
+          if (q) return p.title.toLowerCase().includes(q) || (p.tag || "").toLowerCase().includes(q);
+          return p.slot === activeFoodSheet.slot || (activeFoodSheet.slot === "almuerzo" && p.slot === "cena");
+        });
+        listHtml = filteredPresets.length ? `
+          <div style="display:flex; flex-direction:column; gap:7px; max-height:46vh; overflow-y:auto;">
+            ${filteredPresets.map(p => `
+              <div class="preset-pick-row">
+                <div style="min-width:0; flex:1;">
+                  <div style="font-size:12.5px; font-weight:800; color:var(--text-main);">${escapeHtml(p.title)}</div>
+                  <div style="font-size:11px; color:var(--text-muted);">
+                    <strong>${Math.round(p.kcal * mult)}</strong> kcal · ${Math.round(p.protein * mult)}g P · ${Math.round(p.carbs * mult)}g C · ${Math.round(p.fat * mult)}g G
+                  </div>
+                </div>
+                <button class="btn-primary btn-sm" style="flex-shrink:0;" onclick="pickPresetForDiary('${p.id}')">+</button>
+              </div>
+            `).join("")}
+          </div>
+        ` : `<div class="empty-note">Sin coincidencias. Usa <strong>Recetas</strong> o <strong>✏️ Manual</strong>.</div>`;
+      }
+
+      openSheet(`${slotMeta.icon} Añadir a ${slotMeta.label}`, `
+        <div class="section-gap">
+          <div class="seg-control cols-3">
+            <button class="seg-btn ${activeFoodSheet.mode === "presets" ? "active" : ""}" onclick="setFoodSheetMode('presets')">⚡ Rápidos</button>
+            <button class="seg-btn ${activeFoodSheet.mode === "recipes" ? "active" : ""}" onclick="setFoodSheetMode('recipes')">🍲 Recetas (${state.recipes.length})</button>
+            <button class="seg-btn ${activeFoodSheet.mode === "manual" ? "active" : ""}" onclick="setFoodSheetMode('manual')">✏️ Manual</button>
+          </div>
+
+          ${activeFoodSheet.mode !== "manual" ? `
+            <div class="search-box" style="margin-top:0;">
+              <span class="search-ico">🔍</span>
+              <input type="text" id="foodSheetSearchInput" value="${escapeAttr(activeFoodSheet.search)}" oninput="onFoodSheetSearch(this.value)" placeholder="Buscar: huevos, skyr, salmón, pollo, avena..." />
+            </div>
+            <div class="row-between" style="gap:6px;">
+              <span style="font-size:11px; font-weight:750; color:var(--text-soft);">Porción:</span>
+              <div class="chip-row" style="padding:0;">
+                ${[0.5, 1, 1.5, 2].map(sc => `
+                  <button class="chip ${activeFoodSheet.portion === sc ? "active" : ""}" onclick="setFoodSheetPortion(${sc})">×${String(sc).replace(".", ",")}</button>
+                `).join("")}
+              </div>
+            </div>
+          ` : ""}
+
+          <div id="foodSheetListArea">${listHtml}</div>
+        </div>
+      `);
+    }
+
+    function setFoodSheetMode(mode) {
+      activeFoodSheet.mode = mode;
+      renderAddFoodSheetContent();
+    }
+
+    function setFoodSheetPortion(sc) {
+      activeFoodSheet.portion = sc;
+      renderAddFoodSheetContent();
+    }
+
+    function onFoodSheetSearch(val) {
+      activeFoodSheet.search = val;
+      const area = document.getElementById("foodSheetListArea");
+      if (!area) return;
+      const q = (val || "").trim().toLowerCase();
+      const mult = Number(activeFoodSheet.portion || 1);
+      if (activeFoodSheet.mode === "recipes") {
+        const m = getAdaptiveNutritionMetrics();
+        const recs = state.recipes
+          .filter(r => !q || r.title.toLowerCase().includes(q) || (r.category || "").toLowerCase().includes(q))
+          .sort((a, b) => getRecipeProfileMeta(b, m).score - getRecipeProfileMeta(a, m).score);
+        area.innerHTML = recs.length ? `
+          <div style="display:flex; flex-direction:column; gap:7px; max-height:46vh; overflow-y:auto;">
+            ${recs.map(r => `
+              <div class="preset-pick-row">
+                <div style="min-width:0; flex:1;">
+                  <div style="font-size:12.5px; font-weight:800; color:var(--text-main);">${escapeHtml(r.title)}</div>
+                  <div style="font-size:11px; color:var(--text-muted);">
+                    <strong>${Math.round(r.kcal * mult)}</strong> kcal · ${Math.round(r.protein * mult)}g P · ${Math.round(r.carbs * mult)}g C · ${Math.round(r.fat * mult)}g G
+                  </div>
+                </div>
+                <button class="btn-primary btn-sm" style="flex-shrink:0;" onclick="pickRecipeForDiary('${r.id}')">+</button>
+              </div>
+            `).join("")}
+          </div>
+        ` : `<div class="empty-note">Sin coincidencias. Prueba en <strong>✏️ Manual</strong>.</div>`;
+      } else if (activeFoodSheet.mode === "presets") {
+        const filteredPresets = DEFAULT_MEAL_PRESETS.filter(p => {
+          if (q) return p.title.toLowerCase().includes(q) || (p.tag || "").toLowerCase().includes(q);
+          return p.slot === activeFoodSheet.slot || (activeFoodSheet.slot === "almuerzo" && p.slot === "cena");
+        });
+        area.innerHTML = filteredPresets.length ? `
+          <div style="display:flex; flex-direction:column; gap:7px; max-height:46vh; overflow-y:auto;">
+            ${filteredPresets.map(p => `
+              <div class="preset-pick-row">
+                <div style="min-width:0; flex:1;">
+                  <div style="font-size:12.5px; font-weight:800; color:var(--text-main);">${escapeHtml(p.title)}</div>
+                  <div style="font-size:11px; color:var(--text-muted);">
+                    <strong>${Math.round(p.kcal * mult)}</strong> kcal · ${Math.round(p.protein * mult)}g P · ${Math.round(p.carbs * mult)}g C · ${Math.round(p.fat * mult)}g G
+                  </div>
+                </div>
+                <button class="btn-primary btn-sm" style="flex-shrink:0;" onclick="pickPresetForDiary('${p.id}')">+</button>
+              </div>
+            `).join("")}
+          </div>
+        ` : `<div class="empty-note">Sin coincidencias. Usa <strong>Recetas</strong> o <strong>✏️ Manual</strong>.</div>`;
+      }
+    }
+
+    function pickPresetForDiary(presetId) {
+      const p = DEFAULT_MEAL_PRESETS.find(x => x.id === presetId);
+      if (!p) return;
+      const mult = Number(activeFoodSheet.portion || 1);
+      addFoodEntryToDiary(diaryDateKey || getTodayDateKey(), activeFoodSheet.slot, {
+        title: p.title,
+        kcal: p.kcal * mult,
+        protein: p.protein * mult,
+        carbs: p.carbs * mult,
+        fat: p.fat * mult,
+        portion: mult
+      });
+      closeSheet();
+      showToast(`Añadido a ${activeFoodSheet.slot} ✓`);
+    }
+
+    function pickRecipeForDiary(recipeId) {
+      const r = state.recipes.find(x => x.id === recipeId);
+      if (!r) return;
+      const mult = Number(activeFoodSheet.portion || 1);
+      addFoodEntryToDiary(diaryDateKey || getTodayDateKey(), activeFoodSheet.slot, {
+        title: r.title,
+        kcal: r.kcal * mult,
+        protein: r.protein * mult,
+        carbs: r.carbs * mult,
+        fat: r.fat * mult,
+        portion: mult
+      });
+      closeSheet();
+      showToast(`Añadido a ${activeFoodSheet.slot} ✓`);
+    }
+
+    function saveManualFoodEntry() {
+      const title = String(document.getElementById("manualFoodTitle")?.value || "").trim();
+      const kcal = Number(document.getElementById("manualFoodKcal")?.value || 0);
+      const protein = Number(document.getElementById("manualFoodProt")?.value || 0);
+      const carbs = Number(document.getElementById("manualFoodCarbs")?.value || 0);
+      const fat = Number(document.getElementById("manualFoodFat")?.value || 0);
+      if (!title) {
+        showToast("Escribe el nombre de la comida");
+        return;
+      }
+      addFoodEntryToDiary(diaryDateKey || getTodayDateKey(), activeFoodSheet.slot, {
+        title,
+        kcal: kcal || Math.round(protein * 4 + carbs * 4 + fat * 9),
+        protein,
+        carbs,
+        fat,
+        portion: 1
+      });
+      closeSheet();
+      showToast(`Añadido a ${activeFoodSheet.slot} ✓`);
+    }
+
     function renderComida(container) {
       const totalHomeCount = state.pantryKeys.length + state.customPantry.length;
       const subNavHtml = `
-        <div class="seg-control cols-3">
-          <button class="seg-btn ${comidaSubTab === "recetario" ? "active" : ""}" onclick="setComidaSubTab('recetario')">🍲 Recetario</button>
-          <button class="seg-btn ${comidaSubTab === "tapers" ? "active" : ""}" onclick="setComidaSubTab('tapers')">🥡 Tápers L–V</button>
-          <button class="seg-btn ${comidaSubTab === "despensa" ? "active" : ""}" onclick="setComidaSubTab('despensa')">🏠 En casa (${totalHomeCount})</button>
+        <div class="seg-control cols-4">
+          <button class="seg-btn ${comidaSubTab === "diario" ? "active" : ""}" onclick="setComidaSubTab('diario')">📒 Diario</button>
+          <button class="seg-btn ${comidaSubTab === "recetario" ? "active" : ""}" onclick="setComidaSubTab('recetario')">🍲 Recetas</button>
+          <button class="seg-btn ${comidaSubTab === "tapers" ? "active" : ""}" onclick="setComidaSubTab('tapers')">🥡 Tápers</button>
+          <button class="seg-btn ${comidaSubTab === "despensa" ? "active" : ""}" onclick="setComidaSubTab('despensa')">🏠 Casa (${totalHomeCount})</button>
         </div>
       `;
 
       let bodyHtml = "";
-      if (comidaSubTab === "recetario") bodyHtml = buildRecetarioHtml();
+      if (comidaSubTab === "diario") bodyHtml = buildDiarioComidaHtml();
+      else if (comidaSubTab === "recetario") bodyHtml = buildRecetarioHtml();
       else if (comidaSubTab === "tapers") bodyHtml = buildTapersHtml();
       else bodyHtml = buildDespensaHtml();
 
