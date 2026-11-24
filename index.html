@@ -3,41 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#F9E8EE" />
+  <meta name="theme-color" content="#F2F2F7" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="MealPrep" />
   <title>MealPrep &amp; NutriTrack</title>
   <style>
     :root {
-      --bg-app: #F7F5F6;
+      --bg-app: #F2F2F7;
       --bg-surface: #FFFFFF;
-      --bg-soft: #F9F5F7;
-      --bg-tint: #F4E6EC;
-      --border: rgba(82, 38, 57, 0.08);
-      --border-strong: rgba(169, 59, 98, 0.24);
-      --text-main: #23171D;
-      --text-muted: #6C5862;
-      --text-soft: #96818B;
-      --rose: #CF537D;
-      --rose-dark: #9D3459;
-      --rose-soft: rgba(207, 83, 125, 0.28);
-      --rose-pale: #FCECF2;
-      --rose-badge-bg: #F9EBF0;
-      --rose-badge-text: #9A3358;
-      --mint-bg: #EAF6F0;
-      --mint-text: #1E6B4E;
-      --amber-bg: #FFF5E6;
-      --amber-text: #8F560A;
-      --danger-bg: #FDECEC;
-      --danger-text: #A62626;
-      --shadow-sm: 0 2px 12px rgba(42, 25, 32, 0.035);
-      --shadow-md: 0 10px 30px rgba(42, 25, 32, 0.09);
+      --bg-soft: #F5F5F7;
+      --bg-tint: #EBEBF0;
+      --border: rgba(60, 60, 67, 0.09);
+      --border-strong: rgba(60, 60, 67, 0.16);
+      --text-main: #1C1C1E;
+      --text-muted: #636366;
+      --text-soft: #8E8E93;
+      --rose: #C43E67;
+      --rose-dark: #A12D52;
+      --rose-soft: rgba(196, 62, 103, 0.22);
+      --rose-pale: #FBECEF;
+      --rose-badge-bg: #F7E8ED;
+      --rose-badge-text: #A12D52;
+      --mint-bg: #E8F6EE;
+      --mint-text: #1B7349;
+      --amber-bg: #FEF4E6;
+      --amber-text: #945B0B;
+      --danger-bg: #FDECEB;
+      --danger-text: #C9342C;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.025);
+      --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.12);
       --radius-lg: 20px;
       --radius-md: 14px;
       --radius-sm: 10px;
       --radius-pill: 999px;
-      --nav-height: 68px;
+      --nav-height: 64px;
     }
 
     * {
@@ -49,9 +49,10 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      background: #F4E4EA;
+      background: #E5E5EA;
       color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
+      font-variant-numeric: tabular-nums;
       line-height: 1.42;
       -webkit-font-smoothing: antialiased;
     }
@@ -71,7 +72,7 @@
       flex-direction: column;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 20px 60px rgba(74, 24, 43, 0.14);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14);
     }
 
     @media (min-width: 520px) {
@@ -81,19 +82,20 @@
       }
       .phone-shell {
         height: min(910px, calc(100dvh - 32px));
-        border-radius: 36px;
-        border: 6px solid #3B232C;
+        border-radius: 40px;
+        border: 7px solid #1C1C1E;
       }
     }
 
     .topbar {
-      background: linear-gradient(135deg, #522639 0%, #733450 100%);
-      color: #FFFFFF;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      padding: calc(11px + env(safe-area-inset-top)) 16px 10px;
+      background: rgba(242, 242, 247, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: var(--text-main);
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.12);
+      padding: calc(12px + env(safe-area-inset-top)) 16px 11px;
       z-index: 20;
       flex-shrink: 0;
-      box-shadow: 0 6px 20px rgba(59, 24, 40, 0.16);
     }
 
     .topbar-row {
@@ -105,131 +107,118 @@
 
     .brand {
       display: flex;
-      align-items: center;
-      gap: 9px;
+      flex-direction: column;
+      gap: 1px;
       min-width: 0;
       flex: 1;
     }
 
-    .brand > div {
-      min-width: 0;
-    }
-
-    .brand-icon {
-      width: 30px;
-      height: 30px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.18);
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-
     .brand-title {
-      font-size: 14.5px;
+      font-size: 23px;
       font-weight: 800;
-      letter-spacing: -0.02em;
-      color: #FFFFFF;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+      line-height: 1.12;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .brand-sub {
-      display: none;
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-soft);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
     }
 
     .pill-status {
-      background: rgba(255, 255, 255, 0.16);
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      color: #FFFFFF;
-      font-size: 11px;
+      background: #FFFFFF;
+      border: none;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      color: var(--text-main);
+      font-size: 11.5px;
       font-weight: 700;
-      padding: 4px 9px;
+      padding: 6px 11px;
       border-radius: var(--radius-pill);
       white-space: nowrap;
       flex-shrink: 0;
     }
 
     .pill-status.over-budget {
-      background: #FDECEC;
-      border-color: #F6B8B8;
-      color: #A62626;
+      background: var(--danger-bg);
+      color: var(--danger-text);
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon-btn:active {
+      background: #EFEFF4;
     }
 
     .macro-strip {
-      margin-top: 8px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 11px;
-      padding: 5px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.92);
-    }
-
-    .macro-strip-item {
-      display: flex;
-      align-items: baseline;
-      gap: 3px;
-      white-space: nowrap;
-    }
-
-    .macro-strip-item strong {
-      color: #FFFFFF;
-      font-weight: 800;
-    }
-
-    .macro-strip-sep {
-      opacity: 0.35;
+      display: none;
     }
 
     .scroll-area {
       flex: 1;
       overflow-y: auto;
-      padding: 15px 15px calc(24px + env(safe-area-inset-bottom));
+      padding: 14px 16px calc(28px + env(safe-area-inset-bottom));
       scroll-behavior: smooth;
     }
 
     .section-gap {
       display: flex;
       flex-direction: column;
-      gap: 13px;
+      gap: 14px;
     }
 
     .card {
       background: var(--bg-surface);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-lg);
-      padding: 14px 15px;
+      padding: 16px;
       box-shadow: var(--shadow-sm);
     }
 
     .card-soft {
       background: var(--bg-soft);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border: none;
+      border-radius: var(--radius-md);
       padding: 13px 14px;
     }
 
     .card-title {
-      font-size: 15px;
-      font-weight: 750;
-      margin: 0 0 4px;
-      letter-spacing: -0.01em;
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 3px;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
     }
 
     .card-sub {
       font-size: 12.5px;
-      color: var(--text-muted);
+      color: var(--text-soft);
       margin: 0;
     }
 
@@ -251,54 +240,55 @@
     .btn-primary {
       background: var(--rose);
       color: #fff;
-      font-weight: 700;
-      font-size: 13px;
-      padding: 10px 14px;
-      border-radius: var(--radius-md);
+      font-weight: 650;
+      font-size: 13.5px;
+      padding: 11px 16px;
+      border-radius: 13px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      box-shadow: 0 4px 12px rgba(212, 91, 132, 0.25);
-      transition: transform 0.12s ease, background 0.15s ease;
+      box-shadow: none;
+      transition: transform 0.12s ease, opacity 0.14s ease;
     }
 
     .btn-primary:active {
       transform: scale(0.98);
-      background: var(--rose-dark);
+      opacity: 0.88;
     }
 
     .btn-secondary {
-      background: var(--bg-soft);
-      color: var(--rose-badge-text);
-      border: 1px solid var(--border-strong);
-      font-weight: 700;
-      font-size: 12.5px;
-      padding: 9px 12px;
-      border-radius: var(--radius-md);
+      background: #EFEFF4;
+      color: var(--text-main);
+      border: none;
+      font-weight: 650;
+      font-size: 13px;
+      padding: 10px 13px;
+      border-radius: 13px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
+      transition: background 0.14s ease;
     }
 
     .btn-secondary:active {
-      background: var(--bg-tint);
+      background: #E2E2E9;
     }
 
     .btn-ghost {
       background: transparent;
       color: var(--text-muted);
-      font-weight: 650;
-      font-size: 12px;
+      font-weight: 600;
+      font-size: 12.5px;
       padding: 6px 8px;
-      border-radius: var(--radius-sm);
+      border-radius: 10px;
     }
 
     .btn-sm {
-      padding: 6px 10px;
-      font-size: 11.5px;
-      border-radius: var(--radius-sm);
+      padding: 7px 11px;
+      font-size: 12px;
+      border-radius: 10px;
     }
 
     .chip-row {
@@ -309,19 +299,19 @@
     }
 
     .chip {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
+      background: #EFEFF4;
+      border: none;
+      color: var(--text-main);
       font-size: 12px;
-      font-weight: 650;
-      padding: 6px 11px;
+      font-weight: 600;
+      padding: 7px 12px;
       border-radius: var(--radius-pill);
       white-space: nowrap;
+      transition: background 0.14s ease, color 0.14s ease;
     }
 
     .chip.active {
-      background: var(--rose);
-      border-color: var(--rose);
+      background: var(--text-main);
       color: #fff;
     }
 
@@ -349,13 +339,13 @@
 
     .recipe-card {
       background: var(--bg-surface);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-lg);
-      padding: 13px;
+      padding: 15px;
       box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 9px;
     }
 
     .recipe-top {
@@ -398,18 +388,20 @@
     textarea {
       width: 100%;
       font-family: inherit;
-      font-size: 13.5px;
+      font-size: 14px;
       color: var(--text-main);
-      background: var(--bg-surface);
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-sm);
-      padding: 9px 11px;
+      background: #F2F2F7;
+      border: 1.5px solid transparent;
+      border-radius: 12px;
+      padding: 10px 12px;
       outline: none;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
 
     input:focus, select:focus, textarea:focus {
+      background: #FFFFFF;
       border-color: var(--rose);
-      box-shadow: 0 0 0 3px rgba(212, 91, 132, 0.14);
+      box-shadow: 0 0 0 3px rgba(196, 62, 103, 0.12);
     }
 
     label {
@@ -491,23 +483,23 @@
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #E3789C, var(--rose-dark));
+      background: var(--rose);
       border-radius: var(--radius-pill);
       transition: width 0.25s ease;
     }
 
     .progress-fill-mint {
       height: 100%;
-      background: linear-gradient(90deg, #43B88C, #1E6B4E);
+      background: #2E8B63;
       border-radius: var(--radius-pill);
       transition: width 0.25s ease;
     }
 
     .goal-box {
       background: var(--bg-soft);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-md);
-      padding: 11px;
+      padding: 12px;
     }
 
     .pantry-group-title {
@@ -563,9 +555,10 @@
     .bottom-nav {
       height: var(--nav-height);
       padding-bottom: env(safe-area-inset-bottom);
-      background: var(--bg-surface);
-      border-top: 1px solid var(--border);
-      box-shadow: 0 -4px 18px rgba(42, 25, 32, 0.05);
+      background: rgba(255, 255, 255, 0.90);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border-top: 0.5px solid rgba(60, 60, 67, 0.14);
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       flex-shrink: 0;
@@ -577,29 +570,40 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
-      font-size: 10.5px;
-      font-weight: 650;
-      color: var(--text-soft);
-      padding: 5px 2px;
+      gap: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #8E8E93;
+      padding: 6px 2px 4px;
       min-width: 0;
+      transition: color 0.14s ease;
     }
 
     .nav-btn.active {
-      color: var(--rose-dark);
-      font-weight: 800;
-    }
-
-    .nav-btn.active .nav-icon {
-      background: var(--rose-badge-bg);
-      border-radius: 10px;
-      padding: 2px 10px;
+      color: var(--rose);
+      font-weight: 700;
     }
 
     .nav-icon {
-      font-size: 17px;
-      line-height: 1.15;
-      padding: 2px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+    }
+
+    .nav-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.85;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-btn.active .nav-icon svg {
+      stroke-width: 2.2;
     }
 
     .sheet-backdrop {
@@ -692,11 +696,11 @@
     .seg-control {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-      background: var(--bg-soft);
-      border: 1px solid var(--border);
-      padding: 4px;
-      border-radius: var(--radius-md);
+      gap: 3px;
+      background: #E5E5EA;
+      border: none;
+      padding: 3px;
+      border-radius: 12px;
     }
 
     .seg-control.cols-3 {
@@ -705,29 +709,29 @@
 
     .seg-control.cols-4 {
       grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
+      gap: 3px;
     }
 
     .seg-control.cols-4 .seg-btn {
-      font-size: 11px;
-      padding: 7px 3px;
+      font-size: 12px;
+      padding: 7px 4px;
       white-space: nowrap;
     }
 
     .seg-btn {
-      padding: 7px 6px;
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      font-weight: 700;
+      padding: 7px 8px;
+      border-radius: 9px;
+      font-size: 12.5px;
+      font-weight: 650;
       color: var(--text-muted);
       text-align: center;
       transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
     }
 
     .seg-btn.active {
-      background: var(--bg-surface);
-      color: var(--rose-dark);
-      box-shadow: 0 2px 6px rgba(180, 67, 106, 0.12);
+      background: #FFFFFF;
+      color: var(--text-main);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10);
     }
 
     .macro-targets-grid {
@@ -739,14 +743,14 @@
 
     .macro-target-tile {
       background: var(--bg-soft);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-md);
-      padding: 9px 10px;
+      padding: 10px 11px;
     }
 
     .macro-target-tile.highlight {
-      background: linear-gradient(135deg, #FCEAF1, #FFF7FA);
-      border-color: var(--border-strong);
+      background: var(--rose-pale);
+      border: none;
     }
 
     .macro-target-val {
@@ -878,9 +882,9 @@
 
     .workout-day-card {
       background: var(--bg-surface);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-lg);
-      padding: 13px;
+      padding: 15px;
       box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
@@ -888,8 +892,8 @@
     }
 
     .workout-day-card.done {
-      background: #FCF9FA;
-      border-color: var(--border-strong);
+      background: #F7FAF8;
+      box-shadow: inset 0 0 0 1px #D5EDE1, var(--shadow-sm);
     }
 
     .exercise-list {
@@ -897,9 +901,9 @@
       flex-direction: column;
       gap: 5px;
       background: var(--bg-soft);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-md);
-      padding: 9px 10px;
+      padding: 10px 12px;
     }
 
     .exercise-row {
@@ -909,8 +913,8 @@
       gap: 8px;
       font-size: 12px;
       line-height: 1.38;
-      padding-bottom: 4px;
-      border-bottom: 1px solid rgba(228, 184, 200, 0.45);
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border);
     }
 
     .exercise-row:last-child {
@@ -954,22 +958,8 @@
       flex-shrink: 0;
     }
 
-    .icon-btn {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.16);
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      color: #FFFFFF;
-      flex-shrink: 0;
-    }
-
-    .icon-btn:active {
-      background: rgba(255, 255, 255, 0.28);
+    button:focus:not(:focus-visible) {
+      outline: none;
     }
 
     .fav-btn {
@@ -1081,10 +1071,10 @@
     }
 
     .hero-today-card {
-      background: linear-gradient(135deg, #FFF7FA, #FCEAF1);
-      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      border: none;
       border-radius: var(--radius-lg);
-      padding: 14px;
+      padding: 15px;
       box-shadow: var(--shadow-sm);
     }
 
@@ -1162,9 +1152,9 @@
 
     .cal-day-card {
       background: var(--bg-surface);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-lg);
-      padding: 12px 13px;
+      padding: 14px;
       box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
@@ -1172,13 +1162,11 @@
     }
 
     .cal-day-card.today {
-      border-color: var(--rose);
-      box-shadow: 0 4px 16px rgba(212, 91, 132, 0.12);
+      box-shadow: inset 0 0 0 1.5px var(--rose), var(--shadow-sm);
     }
 
     .cal-day-card.highlight {
-      border-color: var(--rose-dark);
-      background: #FFFAFC;
+      box-shadow: inset 0 0 0 1.5px var(--text-main), var(--shadow-sm);
     }
 
     .cal-slot {
@@ -1222,15 +1210,15 @@
 
     .plan-ready-banner {
       border-radius: var(--radius-lg);
-      padding: 13px 14px;
-      border: 1px solid #B7E4D1;
-      background: linear-gradient(135deg, #ECF9F3, #F7FCFA);
+      padding: 14px 15px;
+      border: none;
+      background: var(--bg-surface);
       box-shadow: var(--shadow-sm);
     }
 
     .plan-ready-banner.pending {
-      border-color: var(--border-strong);
-      background: linear-gradient(135deg, #FFF7FA, #FCEAF1);
+      background: var(--bg-surface);
+      box-shadow: inset 3px 0 0 var(--rose), var(--shadow-sm);
     }
 
     .plan-ready-check {
@@ -1344,7 +1332,7 @@
 
     .clean-details {
       background: var(--bg-surface);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-sm);
       overflow: hidden;
@@ -1353,7 +1341,7 @@
     .clean-details summary {
       list-style: none;
       cursor: pointer;
-      padding: 13px 15px;
+      padding: 15px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1400,8 +1388,8 @@
 
     .lab-tile.homa-highlight {
       grid-column: 1 / -1;
-      background: linear-gradient(135deg, #FFF7FA, #FDF0F5);
-      border-color: var(--rose-soft);
+      background: var(--bg-soft);
+      border-color: var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1476,11 +1464,12 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 9px 12px;
+      padding: 11px 14px;
       border-radius: var(--radius-md);
-      background: linear-gradient(135deg, #FFF7FA, #FDF2F7);
-      border: 1px solid var(--rose-soft);
-      font-size: 11.5px;
+      background: var(--bg-surface);
+      border: none;
+      box-shadow: var(--shadow-sm);
+      font-size: 12px;
       color: var(--text-main);
       line-height: 1.35;
     }
@@ -1594,10 +1583,10 @@
     }
 
     .b12-alert-box {
-      background: linear-gradient(135deg, #FFF9F2, #FFF5EC);
-      border: 1px solid #F2DEC4;
+      background: var(--amber-bg);
+      border: none;
       border-radius: 12px;
-      padding: 9px 11px;
+      padding: 10px 12px;
       font-size: 11.5px;
       line-height: 1.42;
       color: var(--text-main);
@@ -1605,15 +1594,15 @@
 
     .b12-alert-box.ok {
       background: var(--mint-bg);
-      border-color: #CDE8DC;
+      border: none;
       color: var(--mint-text);
     }
 
     .corr-box {
-      background: linear-gradient(135deg, #FFF7FA, #FAF2F6);
-      border: 1px solid var(--rose-soft);
-      border-radius: 11px;
-      padding: 9px 11px;
+      background: var(--bg-soft);
+      border: none;
+      border-radius: 12px;
+      padding: 10px 12px;
       font-size: 11.5px;
       line-height: 1.42;
       color: var(--text-main);
@@ -1623,38 +1612,48 @@
     .quick-log-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
+      gap: 10px;
     }
 
     .quick-log-btn {
       display: flex;
       align-items: center;
-      gap: 9px;
-      padding: 11px 12px;
-      border-radius: var(--radius-md);
+      gap: 11px;
+      padding: 13px 13px;
+      border-radius: var(--radius-lg);
       background: var(--bg-surface);
-      border: 1px solid var(--border);
+      border: none;
       box-shadow: var(--shadow-sm);
       cursor: pointer;
       text-align: left;
-      transition: transform 0.12s ease, border-color 0.14s ease;
+      transition: transform 0.12s ease, background 0.14s ease;
     }
 
     .quick-log-btn:active {
       transform: scale(0.98);
-      border-color: var(--rose);
+      background: #FAFAFC;
     }
 
     .quick-log-icon {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 10px;
-      background: var(--rose-pale);
+      background: #F2F2F7;
+      color: var(--rose);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
       flex-shrink: 0;
+    }
+
+    .quick-log-icon svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .quick-log-title {
@@ -1716,9 +1715,9 @@
 
     .meal-slot-card {
       background: var(--bg-surface);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-lg);
-      padding: 12px 14px;
+      padding: 14px 16px;
       box-shadow: var(--shadow-sm);
     }
 
@@ -1727,10 +1726,10 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 8px 10px;
+      padding: 9px 11px;
       background: var(--bg-soft);
-      border-radius: 10px;
-      border: 1px solid var(--border);
+      border-radius: 11px;
+      border: none;
     }
 
     .preset-pick-row {
@@ -1738,10 +1737,10 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 9px 10px;
-      border-radius: 11px;
+      padding: 10px 12px;
+      border-radius: 12px;
       background: var(--bg-soft);
-      border: 1px solid var(--border);
+      border: none;
     }
 
     .date-nav-bar {
@@ -1750,16 +1749,17 @@
       justify-content: space-between;
       gap: 8px;
       background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 6px 8px;
+      border: none;
+      box-shadow: var(--shadow-sm);
+      border-radius: var(--radius-lg);
+      padding: 6px 10px;
     }
 
     .lab-upload-box {
-      border: 1.5px dashed var(--rose-soft);
-      background: linear-gradient(135deg, #FFF8FB, #FDF1F6);
+      border: 1.5px dashed #D1D1D6;
+      background: var(--bg-soft);
       border-radius: var(--radius-md);
-      padding: 12px;
+      padding: 14px;
       text-align: center;
     }
 
@@ -1861,11 +1861,11 @@
     }
 
     .med-due-banner {
-      background: linear-gradient(135deg, #FFF7FA, #FDEBF3);
-      border: 1.5px solid var(--rose-soft);
+      background: var(--bg-surface);
+      border: none;
+      box-shadow: inset 3.5px 0 0 var(--rose), var(--shadow-sm);
       border-radius: var(--radius-lg);
-      padding: 11px 13px;
-      box-shadow: var(--shadow-sm);
+      padding: 13px 15px;
     }
 
     .med-slot-label {
@@ -1882,29 +1882,27 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 9px 10px;
-      border-radius: 12px;
+      padding: 10px 12px;
+      border-radius: 13px;
       background: var(--bg-soft);
-      border: 1px solid var(--border);
-      transition: background 0.15s ease, border-color 0.15s ease;
+      border: none;
+      transition: background 0.15s ease;
     }
 
     .med-row.taken {
-      background: #F4FBF7;
-      border-color: #CDE8DC;
+      background: #F2FAF6;
     }
 
     .med-row.overdue {
-      background: #FFF7FA;
-      border-color: var(--rose-soft);
+      background: #FDF4F6;
     }
 
     .med-time-tag {
       font-size: 10.5px;
-      font-weight: 800;
-      color: var(--rose-dark);
+      font-weight: 750;
+      color: var(--rose);
       background: var(--rose-pale);
-      padding: 2px 6px;
+      padding: 2px 7px;
       border-radius: 7px;
       flex-shrink: 0;
     }
@@ -1913,14 +1911,14 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .med-day-dot {
       flex: 1;
-      height: 6px;
+      height: 5px;
       border-radius: 99px;
-      background: #ECE2E7;
+      background: #E5E5EA;
     }
 
     .med-day-dot.full { background: #2E8B63; }
@@ -2008,7 +2006,7 @@
       position: absolute;
       inset: 0;
       z-index: 90;
-      background: linear-gradient(180deg, #FFFFFF 0%, #FAF6F8 100%);
+      background: #F2F2F7;
       display: none;
       flex-direction: column;
       padding: calc(18px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom));
@@ -2029,16 +2027,16 @@
 
     .onb-progress-track {
       flex: 1;
-      height: 6px;
+      height: 5px;
       border-radius: 99px;
-      background: #EFE4E9;
+      background: #E5E5EA;
       overflow: hidden;
     }
 
     .onb-progress-fill {
       height: 100%;
       border-radius: 99px;
-      background: linear-gradient(90deg, var(--rose), var(--rose-dark));
+      background: var(--rose);
       transition: width 0.25s ease;
     }
 
@@ -2201,41 +2199,40 @@
     <header class="topbar">
       <div class="topbar-row">
         <div class="brand">
-          <div class="brand-icon">M</div>
-          <div>
-            <div class="brand-title">MealPrep &amp; NutriTrack</div>
-            <div class="brand-sub" id="headerSub">REWE · 5 tápers L–V</div>
-          </div>
+          <div class="brand-title" id="headerTitle">Hoy</div>
+          <div class="brand-sub" id="headerSub">MealPrep &amp; NutriTrack</div>
         </div>
         <div class="topbar-actions">
-          <div class="pill-status" id="headerBudgetPill" onclick="switchTab('super')" style="cursor:pointer;">0,00 € / 45,00 €</div>
-          <button class="icon-btn" onclick="openSettingsSheet()" aria-label="Ajustes de cocina y respaldo" title="Ajustes de cocina y respaldo">⚙️</button>
+          <div class="pill-status" id="headerBudgetPill" onclick="switchTab('comida', 'diario')" style="cursor:pointer;">0 / 1640 kcal</div>
+          <button class="icon-btn" onclick="openSettingsSheet()" aria-label="Ajustes" title="Ajustes">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
         </div>
       </div>
-      <div class="macro-strip" id="headerMacroStrip" onclick="switchTab('comida', 'diario')" style="cursor:pointer;" title="Abrir diario de comidas de hoy"></div>
+      <div class="macro-strip" id="headerMacroStrip"></div>
     </header>
 
     <main class="scroll-area" id="mainContent"></main>
 
     <nav class="bottom-nav" aria-label="Navegación principal">
       <button class="nav-btn active" data-tab="hoy" onclick="switchTab('hoy')">
-        <span class="nav-icon">⚡</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></span>
         <span>Hoy</span>
       </button>
       <button class="nav-btn" data-tab="comida" onclick="switchTab('comida')">
-        <span class="nav-icon">🍲</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3v7"/></svg></span>
         <span>Comida</span>
       </button>
       <button class="nav-btn" data-tab="super" onclick="switchTab('super')">
-        <span class="nav-icon">🛒</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
         <span>Súper</span>
       </button>
       <button class="nav-btn" data-tab="entreno" onclick="switchTab('entreno')">
-        <span class="nav-icon">🏋️</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M6.5 12h11"/><rect x="4" y="7.5" width="2.5" height="9" rx="1"/><rect x="17.5" y="7.5" width="2.5" height="9" rx="1"/><path d="M2 10v4"/><path d="M22 10v4"/></svg></span>
         <span>Entreno</span>
       </button>
       <button class="nav-btn" data-tab="progreso" onclick="switchTab('progreso')">
-        <span class="nav-icon">💗</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
         <span>Salud</span>
       </button>
     </nav>
@@ -4520,20 +4517,49 @@
 
     function updateHeader() {
       const spent = getTotalShoppingCost();
-      const pill = document.getElementById("headerBudgetPill");
-      pill.textContent = `${fmtEur(spent)} / ${fmtEur(state.budget)}`;
-      pill.classList.toggle("over-budget", spent > state.budget);
-
       const todayTot = getDailyDiaryTotals(getTodayDateKey());
-      const carbPrefix = (hasCondition("diabetes") || hasCondition("insulin_resistance") || hasCondition("pcos")) ? "≤" : "";
+      const pill = document.getElementById("headerBudgetPill");
+      const titleEl = document.getElementById("headerTitle");
+      const subEl = document.getElementById("headerSub");
+      const todayNice = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "short" });
+      const niceCap = todayNice.charAt(0).toUpperCase() + todayNice.slice(1);
 
-      document.getElementById("headerMacroStrip").innerHTML = `
-        <span class="macro-strip-item"><strong>${todayTot.kcal}</strong>/${state.targets.kcal} kcal</span>
-        <span class="macro-strip-sep">·</span>
-        <span class="macro-strip-item">Prot <strong>${todayTot.protein}</strong>/${state.targets.protein}g</span>
-        <span class="macro-strip-sep">·</span>
-        <span class="macro-strip-item">Carb <strong>${todayTot.carbs}</strong>/${carbPrefix}${state.targets.carbsMax}g</span>
-      `;
+      const titleMap = {
+        hoy: "Hoy",
+        comida: "Comida",
+        super: "Súper",
+        entreno: "Entreno",
+        progreso: "Salud"
+      };
+      if (titleEl) titleEl.textContent = titleMap[currentTab] || "Hoy";
+
+      if (currentTab === "super") {
+        if (subEl) subEl.textContent = `${state.supermarket} · Presupuesto ${fmtEur(state.budget)}`;
+        pill.textContent = `${fmtEur(spent)} / ${fmtEur(state.budget)}`;
+        pill.classList.toggle("over-budget", spent > state.budget);
+        pill.onclick = () => openPriceEditorSheet();
+      } else if (currentTab === "comida") {
+        if (subEl) subEl.textContent = `Prot ${todayTot.protein}/${state.targets.protein}g · Carb ${todayTot.carbs}g`;
+        pill.textContent = `${todayTot.kcal} / ${state.targets.kcal} kcal`;
+        pill.classList.toggle("over-budget", todayTot.kcal > state.targets.kcal + 150);
+        pill.onclick = () => switchTab("comida", "diario");
+      } else if (currentTab === "entreno") {
+        const tp = state.trainingProfile || DEFAULT_STATE.trainingProfile;
+        if (subEl) subEl.textContent = `${tp.daysPerWeek || 4} días/sem · ${tp.location === "home" ? "Casa" : "Gimnasio"}`;
+        pill.textContent = `${todayTot.protein}/${state.targets.protein}g P`;
+        pill.classList.remove("over-budget");
+        pill.onclick = () => switchTab("comida", "diario");
+      } else if (currentTab === "progreso") {
+        if (subEl) subEl.textContent = niceCap;
+        pill.textContent = `${getCurrentWeightKg().toFixed(1)} kg`;
+        pill.classList.remove("over-budget");
+        pill.onclick = () => openWeightLogSheet();
+      } else {
+        if (subEl) subEl.textContent = niceCap;
+        pill.textContent = `${todayTot.kcal} / ${state.targets.kcal} kcal`;
+        pill.classList.toggle("over-budget", todayTot.kcal > state.targets.kcal + 150);
+        pill.onclick = () => switchTab("comida", "diario");
+      }
     }
 
     function switchTab(tab, subTab = null) {
@@ -4788,8 +4814,8 @@
 
       const topSwitcherHtml = `
         <div class="seg-control">
-          <button class="seg-btn ${hoySubTab === "hoy" ? "active" : ""}" onclick="setHoySubTab('hoy')">⚡ Hoy</button>
-          <button class="seg-btn ${hoySubTab === "semana" ? "active" : ""}" onclick="setHoySubTab('semana')">📅 Semana (L–D)</button>
+          <button class="seg-btn ${hoySubTab === "hoy" ? "active" : ""}" onclick="setHoySubTab('hoy')">Resumen</button>
+          <button class="seg-btn ${hoySubTab === "semana" ? "active" : ""}" onclick="setHoySubTab('semana')">Semana</button>
         </div>
       `;
 
@@ -4857,7 +4883,7 @@
           <div class="ring-tile" ${onClickAttr ? `onclick="${onClickAttr}" style="cursor:pointer;"` : ""}>
             <div class="ring-wrap">
               <svg width="66" height="66" viewBox="0 0 66 66" style="transform:rotate(-90deg);">
-                <circle cx="33" cy="33" r="${r}" fill="none" stroke="#EFE6EA" stroke-width="6" />
+                <circle cx="33" cy="33" r="${r}" fill="none" stroke="#E5E5EA" stroke-width="6" />
                 <circle cx="33" cy="33" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}" />
               </svg>
               <div class="ring-center">
@@ -4870,18 +4896,19 @@
         `;
       };
 
-      const renderHoyMealRow = (slotId, icon, label) => {
+      const renderHoyMealRow = (slotId, dotColor, label) => {
         const items = todayDiaryDay[slotId] || [];
         const st = getSlotTotals(items);
+        const dot = `<span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:${dotColor}; margin-right:6px; vertical-align:middle;"></span>`;
         if (items.length) {
           const firstTitle = items[0].title + (items.length > 1 ? ` +${items.length - 1}` : "");
           return `
             <div class="hairline-row">
               <div style="min-width:0; flex:1;">
-                <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">${icon} ${label} <span style="font-weight:700; color:var(--mint-text); font-size:11.5px;">· ${st.kcal} kcal</span></div>
-                <div style="font-size:11px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(firstTitle)}</div>
+                <div style="font-size:13px; font-weight:700; color:var(--text-main);">${dot}${label} <span style="font-weight:700; color:var(--mint-text); font-size:12px;">· ${st.kcal} kcal</span></div>
+                <div style="font-size:11.5px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-left:13px;">${escapeHtml(firstTitle)}</div>
               </div>
-              <button class="btn-ghost btn-sm" style="color:var(--rose-dark); font-weight:800; flex-shrink:0;" onclick="openAddFoodSheet('${slotId}','${todayStr}')">+</button>
+              <button class="btn-ghost btn-sm" style="color:var(--rose); font-weight:750; flex-shrink:0;" onclick="openAddFoodSheet('${slotId}','${todayStr}')">+</button>
             </div>
           `;
         }
@@ -4889,12 +4916,12 @@
           return `
             <div class="hairline-row">
               <div style="min-width:0; flex:1;">
-                <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">${icon} ${label} <span style="font-weight:650; color:var(--text-soft); font-size:11px;">· Táper ${todayRecipe.kcal} kcal</span></div>
-                <div style="font-size:11px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(todayRecipe.title)}</div>
+                <div style="font-size:13px; font-weight:700; color:var(--text-main);">${dot}${label} <span style="font-weight:600; color:var(--text-soft); font-size:11.5px;">· Táper ${todayRecipe.kcal} kcal</span></div>
+                <div style="font-size:11.5px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-left:13px;">${escapeHtml(todayRecipe.title)}</div>
               </div>
               <div style="display:flex; gap:5px; flex-shrink:0;">
                 <button class="btn-ghost btn-sm" style="padding:4px 7px;" onclick="openRecipeSheet('${todayRecipe.id}')">Ver</button>
-                <button class="btn-primary btn-sm" style="padding:4px 9px;" onclick="logPlannedLunchToDiary('${todayStr}')" title="Marcar almuerzo como comido">✓</button>
+                <button class="btn-primary btn-sm" style="padding:4px 10px;" onclick="logPlannedLunchToDiary('${todayStr}')" title="Marcar almuerzo como comido">✓</button>
               </div>
             </div>
           `;
@@ -4902,10 +4929,10 @@
         return `
           <div class="hairline-row">
             <div style="min-width:0; flex:1;">
-              <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">${icon} ${label}</div>
-              <div style="font-size:11px; color:var(--text-soft);">${slotId === "snacks" ? "Opcional" : "Sin registrar"}</div>
+              <div style="font-size:13px; font-weight:700; color:var(--text-main);">${dot}${label}</div>
+              <div style="font-size:11.5px; color:var(--text-soft); padding-left:13px;">${slotId === "snacks" ? "Opcional" : "Sin registrar"}</div>
             </div>
-            <button class="btn-ghost btn-sm" style="color:var(--rose-dark); font-weight:750; flex-shrink:0;" onclick="openAddFoodSheet('${slotId}','${todayStr}')">+ Añadir</button>
+            <button class="btn-ghost btn-sm" style="color:var(--rose); font-weight:700; flex-shrink:0;" onclick="openAddFoodSheet('${slotId}','${todayStr}')">+ Añadir</button>
           </div>
         `;
       };
@@ -4945,16 +4972,16 @@
               ${thirdRingHtml}
             </div>
 
-            <div class="hairline-list" style="margin-bottom:10px;">
-              ${renderHoyMealRow("desayuno", "🌅", "Desayuno")}
-              ${renderHoyMealRow("almuerzo", "☀️", "Almuerzo")}
-              ${renderHoyMealRow("cena", "🌙", "Cena")}
-              ${renderHoyMealRow("snacks", "🍎", "Snacks")}
+            <div class="hairline-list" style="margin-bottom:12px;">
+              ${renderHoyMealRow("desayuno", "#D6913A", "Desayuno")}
+              ${renderHoyMealRow("almuerzo", "#C43E67", "Almuerzo")}
+              ${renderHoyMealRow("cena", "#5E5CE6", "Cena")}
+              ${renderHoyMealRow("snacks", "#2E8B63", "Snacks")}
             </div>
 
             <div class="grid-2">
-              <button class="btn-secondary btn-sm" onclick="openEatingOutSheet()">🍽️ Como fuera</button>
-              <button class="btn-secondary btn-sm" onclick="switchTab('comida', 'recetario')">🍲 Recetario</button>
+              <button class="btn-secondary btn-sm" onclick="openEatingOutSheet()">Como fuera</button>
+              <button class="btn-secondary btn-sm" onclick="switchTab('comida', 'recetario')">Recetario</button>
             </div>
           </div>
 
@@ -4963,29 +4990,29 @@
               ${cyclePhase ? `
                 <div class="hairline-row" onclick="switchTab('progreso', 'diario')" style="cursor:pointer;">
                   <div style="min-width:0;">
-                    <div style="font-size:12.5px; font-weight:750; color:var(--rose-dark);">${cyclePhase.label}${cyclePhase.isAuto ? ` · Día ${cyclePhase.cycleDay}/${cyclePhase.avgCycleLength}` : ""}</div>
-                    <div style="font-size:11px; color:var(--text-soft);">Energía hoy ${cyclePhase.energy}/5 · comida y entreno adaptados</div>
+                    <div style="font-size:13px; font-weight:700; color:var(--rose-dark);">${cyclePhase.short}${cyclePhase.isAuto ? ` · Día ${cyclePhase.cycleDay}/${cyclePhase.avgCycleLength}` : ""}</div>
+                    <div style="font-size:11.5px; color:var(--text-soft);">Energía hoy ${cyclePhase.energy}/5 · comida y entreno adaptados</div>
                   </div>
-                  <span style="font-size:11.5px; font-weight:750; color:var(--rose-dark); flex-shrink:0;">Ajustar</span>
+                  <span style="font-size:12px; font-weight:700; color:var(--rose); flex-shrink:0;">Ajustar</span>
                 </div>
               ` : ""}
 
               <div class="hairline-row">
                 <div style="min-width:0;">
-                  <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">🏋️ Entreno · ${workoutsDoneCount}/${plan.schedule.length} sem</div>
-                  <div style="font-size:11px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${nextWorkout.title} · ${nextWorkout.mins} min</div>
+                  <div style="font-size:13px; font-weight:700; color:var(--text-main);">Entreno · ${workoutsDoneCount}/${plan.schedule.length} sem</div>
+                  <div style="font-size:11.5px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${nextWorkout.title} · ${nextWorkout.mins} min</div>
                 </div>
-                <button class="btn-ghost btn-sm" style="color:var(--rose-dark); font-weight:750; flex-shrink:0;" onclick="switchTab('entreno')">Ver →</button>
+                <button class="btn-ghost btn-sm" style="color:var(--rose); font-weight:700; flex-shrink:0;" onclick="switchTab('entreno')">Ver ›</button>
               </div>
 
               <div class="hairline-row">
                 <div style="min-width:0;">
-                  <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">💗 ${healthBannerTitle}</div>
-                  <div style="font-size:11px; color:var(--text-soft);">Pasos <strong>${stepsValHoy.toLocaleString("es-ES")}</strong>/${Number(state.stepsGoal).toLocaleString("es-ES")} · Meta ${g.currentKg.toFixed(1)} → ${g.milestoneKg} kg</div>
+                  <div style="font-size:13px; font-weight:700; color:var(--text-main);">${healthBannerTitle}</div>
+                  <div style="font-size:11.5px; color:var(--text-soft);">Pasos <strong>${stepsValHoy.toLocaleString("es-ES")}</strong>/${Number(state.stepsGoal).toLocaleString("es-ES")} · Meta ${g.currentKg.toFixed(1)} → ${g.milestoneKg} kg</div>
                 </div>
                 <div style="display:flex; gap:5px; flex-shrink:0;">
-                  ${takesMetformin() ? `<button class="btn-secondary btn-sm" style="padding:4px 8px;" onclick="openMetforminLogSheet()">💊 GI</button>` : ""}
-                  <button class="btn-ghost btn-sm" style="color:var(--rose-dark); font-weight:750;" onclick="switchTab('progreso', 'diario')">Abrir →</button>
+                  ${takesMetformin() ? `<button class="btn-secondary btn-sm" style="padding:4px 9px;" onclick="openMetforminLogSheet()">GI</button>` : ""}
+                  <button class="btn-ghost btn-sm" style="color:var(--rose); font-weight:700;" onclick="switchTab('progreso', 'diario')">Abrir ›</button>
                 </div>
               </div>
             </div>
@@ -5482,8 +5509,8 @@
           <div class="meal-slot-card">
             <div class="row-between" style="margin-bottom:${items.length ? "8px" : "0"};">
               <div>
-                <div style="font-size:13.5px; font-weight:800; color:var(--text-main);">${slot.icon} ${slot.label}</div>
-                <div style="font-size:11px; color:var(--text-soft);">
+                <div style="font-size:14px; font-weight:750; color:var(--text-main);">${slot.label}</div>
+                <div style="font-size:11.5px; color:var(--text-soft);">
                   ${items.length ? `<strong>${st.kcal}</strong> kcal · ${st.protein}g P · ${st.carbs}g C · ${st.fat}g G` : "Sin registrar aún"}
                 </div>
               </div>
@@ -5512,9 +5539,9 @@
 
       return `
         <div class="date-nav-bar">
-          <button class="btn-ghost btn-sm" onclick="changeDiaryDate(-1)">◀</button>
-          <button class="btn-ghost btn-sm" style="font-weight:800; color:var(--text-main);" onclick="resetDiaryDateToday()">📅 ${escapeHtml(formatDiaryDateLabel(key))}</button>
-          <button class="btn-ghost btn-sm" onclick="changeDiaryDate(1)">▶</button>
+          <button class="btn-ghost btn-sm" onclick="changeDiaryDate(-1)">‹</button>
+          <button class="btn-ghost btn-sm" style="font-weight:750; color:var(--text-main);" onclick="resetDiaryDateToday()">${escapeHtml(formatDiaryDateLabel(key))}</button>
+          <button class="btn-ghost btn-sm" onclick="changeDiaryDate(1)">›</button>
         </div>
 
         <div class="card">
@@ -5528,7 +5555,7 @@
             <span class="badge ${kcalRem >= 0 ? "badge-mint" : "badge-amber"}">${kcalRemLabel}</span>
           </div>
           <div class="progress-track">
-            <div class="progress-fill" style="width:${kcalPct}%; background:${kcalRem < -120 ? "#D6913A" : "linear-gradient(90deg, var(--rose), var(--rose-dark))"};"></div>
+            <div class="progress-fill" style="width:${kcalPct}%; background:${kcalRem < -120 ? "#D6913A" : "var(--rose)"};"></div>
           </div>
 
           <div class="macro-bars-grid">
@@ -5970,22 +5997,22 @@
         listHtml = buildSearchResultsListHtml();
       }
 
-      openSheet(`${slotMeta.icon} Añadir a ${slotMeta.label}`, `
+      openSheet(`Añadir a ${slotMeta.label}`, `
         <div class="section-gap">
           <div class="seg-control cols-4">
-            <button class="seg-btn ${activeFoodSheet.mode === "search" ? "active" : ""}" onclick="setFoodSheetMode('search')">🔍 Buscar</button>
-            <button class="seg-btn ${activeFoodSheet.mode === "recipes" ? "active" : ""}" onclick="setFoodSheetMode('recipes')">🍲 Recetas</button>
-            <button class="seg-btn ${activeFoodSheet.mode === "presets" ? "active" : ""}" onclick="setFoodSheetMode('presets')">⚡ Rápidos</button>
-            <button class="seg-btn ${activeFoodSheet.mode === "manual" ? "active" : ""}" onclick="setFoodSheetMode('manual')">✏️ Manual</button>
+            <button class="seg-btn ${activeFoodSheet.mode === "search" ? "active" : ""}" onclick="setFoodSheetMode('search')">Buscar</button>
+            <button class="seg-btn ${activeFoodSheet.mode === "recipes" ? "active" : ""}" onclick="setFoodSheetMode('recipes')">Recetas</button>
+            <button class="seg-btn ${activeFoodSheet.mode === "presets" ? "active" : ""}" onclick="setFoodSheetMode('presets')">Rápidos</button>
+            <button class="seg-btn ${activeFoodSheet.mode === "manual" ? "active" : ""}" onclick="setFoodSheetMode('manual')">Manual</button>
           </div>
 
           ${activeFoodSheet.mode !== "manual" ? `
             <div style="display:flex; gap:6px; align-items:center;">
               <div class="search-box" style="margin-top:0; flex:1;">
-                <span class="search-ico">🔍</span>
+                <span class="search-ico" style="display:inline-flex;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                 <input type="text" id="foodSheetSearchInput" value="${escapeAttr(activeFoodSheet.search)}" oninput="onFoodSheetSearch(this.value)" onkeydown="if(event.key==='Enter' && activeFoodSheet.mode==='search'){ searchOpenFoodFactsLive(); }" placeholder="${activeFoodSheet.mode === "search" ? "Fage 0,2, Skyr natural, pollo a la brasa, código..." : "Buscar..."}" />
               </div>
-              ${activeFoodSheet.mode === "search" ? `<button type="button" class="btn-primary btn-sm" style="white-space:nowrap; padding:10px 10px;" onclick="searchOpenFoodFactsLive()" title="Buscar marca real en Open Food Facts">🌐 Marca</button>` : ""}
+              ${activeFoodSheet.mode === "search" ? `<button type="button" class="btn-primary btn-sm" style="white-space:nowrap; padding:10px 11px;" onclick="searchOpenFoodFactsLive()" title="Buscar marca real en Open Food Facts">Marca</button>` : ""}
             </div>
             ${activeFoodSheet.mode !== "search" ? `
               <div class="row-between" style="gap:6px;">
@@ -6150,10 +6177,10 @@
       const totalHomeCount = state.pantryKeys.length + state.customPantry.length;
       const subNavHtml = `
         <div class="seg-control cols-4">
-          <button class="seg-btn ${comidaSubTab === "diario" ? "active" : ""}" onclick="setComidaSubTab('diario')">📒 Diario</button>
-          <button class="seg-btn ${comidaSubTab === "recetario" ? "active" : ""}" onclick="setComidaSubTab('recetario')">🍲 Recetas</button>
-          <button class="seg-btn ${comidaSubTab === "tapers" ? "active" : ""}" onclick="setComidaSubTab('tapers')">🥡 Tápers</button>
-          <button class="seg-btn ${comidaSubTab === "despensa" ? "active" : ""}" onclick="setComidaSubTab('despensa')">🏠 Casa (${totalHomeCount})</button>
+          <button class="seg-btn ${comidaSubTab === "diario" ? "active" : ""}" onclick="setComidaSubTab('diario')">Diario</button>
+          <button class="seg-btn ${comidaSubTab === "recetario" ? "active" : ""}" onclick="setComidaSubTab('recetario')">Recetas</button>
+          <button class="seg-btn ${comidaSubTab === "tapers" ? "active" : ""}" onclick="setComidaSubTab('tapers')">Tápers</button>
+          <button class="seg-btn ${comidaSubTab === "despensa" ? "active" : ""}" onclick="setComidaSubTab('despensa')">Casa (${totalHomeCount})</button>
         </div>
       `;
 
@@ -6200,19 +6227,19 @@
       const profileTag = `${m.goalMeta.shortLabel}${activeConds.length ? " · " + activeConds.join("+") : ""}`;
       const cats = ["Todas", "Pollo", "Carne", "Atún / Salmón", "Lentejas", "TikTok Fit"];
       const primaryChips = [
-        { id: "profile", label: "✨ Mi perfil" },
-        ...(cyclePhase ? [{ id: "cycle", label: `🌙 Fase ${cyclePhase.short}` }] : []),
+        { id: "profile", label: "Mi perfil" },
+        ...(cyclePhase ? [{ id: "cycle", label: `Fase ${cyclePhase.short}` }] : []),
         { id: "all", label: "Todo" },
-        { id: "fast15", label: "⚡ ≤15 min" },
-        { id: "fav", label: "⭐ Favoritas" },
-        { id: "pantry", label: "🏠 Mi casa" }
+        { id: "fast15", label: "≤15 min" },
+        { id: "fav", label: "Favoritas" },
+        { id: "pantry", label: "Mi casa" }
       ];
       const advancedChips = [
-        { id: "hypertrophy", label: "💪 Volumen" },
-        { id: "maintenance", label: "⚖️ Mant." },
-        { id: "deficit_ir", label: "💚 Déficit / IR" },
-        { id: "iron", label: "🩸 Hierro" },
-        { id: "diabetes", label: "🩺 Diabetes" }
+        { id: "hypertrophy", label: "Volumen" },
+        { id: "maintenance", label: "Mantenimiento" },
+        { id: "deficit_ir", label: "Déficit / IR" },
+        { id: "iron", label: "Hierro" },
+        { id: "diabetes", label: "Diabetes" }
       ];
       const hasAdvActive = advancedChips.some(c => c.id === recipeQuickFilter) || recipeFilter !== "Todas";
       const filtered = getFilteredRecipes();
@@ -6222,23 +6249,23 @@
 
       return `
         <div class="card">
-          <div class="row-between" style="margin-bottom:8px;">
+          <div class="row-between" style="margin-bottom:10px;">
             <div>
               <div class="card-title" style="margin:0;">Recetario (${state.recipes.length})</div>
               <div class="card-sub" style="font-size:11.5px;">${profileTag}</div>
             </div>
-            <button class="btn-primary btn-sm" style="white-space:nowrap;" onclick="openAddTikTokSheet()">+ TikTok Fit</button>
+            <button class="btn-primary btn-sm" style="white-space:nowrap;" onclick="openAddTikTokSheet()">+ Receta</button>
           </div>
 
-          <div class="seg-control cols-4" style="margin-bottom:8px;">
+          <div class="seg-control cols-4" style="margin-bottom:9px;">
             <button class="seg-btn ${recipeMealTypeFilter === "all" ? "active" : ""}" onclick="setRecipeMealTypeFilter('all')">Todas</button>
-            <button class="seg-btn ${recipeMealTypeFilter === "desayuno" ? "active" : ""}" onclick="setRecipeMealTypeFilter('desayuno')">🌅 Des. (${desCount})</button>
-            <button class="seg-btn ${recipeMealTypeFilter === "almuerzo" ? "active" : ""}" onclick="setRecipeMealTypeFilter('almuerzo')">☀️ Alm. (${almCount})</button>
-            <button class="seg-btn ${recipeMealTypeFilter === "cena" ? "active" : ""}" onclick="setRecipeMealTypeFilter('cena')">🌙 Cena (${cenCount})</button>
+            <button class="seg-btn ${recipeMealTypeFilter === "desayuno" ? "active" : ""}" onclick="setRecipeMealTypeFilter('desayuno')">Des. (${desCount})</button>
+            <button class="seg-btn ${recipeMealTypeFilter === "almuerzo" ? "active" : ""}" onclick="setRecipeMealTypeFilter('almuerzo')">Alm. (${almCount})</button>
+            <button class="seg-btn ${recipeMealTypeFilter === "cena" ? "active" : ""}" onclick="setRecipeMealTypeFilter('cena')">Cena (${cenCount})</button>
           </div>
 
           <div class="search-box" style="margin-top:0;">
-            <span class="search-ico">🔍</span>
+            <span class="search-ico" style="display:inline-flex;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
             <input type="text" id="recipeSearchInput" value="${escapeAttr(recipeSearch)}" oninput="onRecipeSearchInput(this.value)" placeholder="Buscar: huevos, salmón, pollo, lentejas..." />
           </div>
 
@@ -6549,7 +6576,7 @@
         <details class="clean-details" id="antiWasteDetails">
           <summary>
             <div>
-              <div class="card-title" style="margin:0; font-size:14px;">♻️ Anti-desperdicio (${antiWaste.leftovers.length} sobrantes)</div>
+              <div class="card-title" style="margin:0; font-size:14.5px;">Anti-desperdicio (${antiWaste.leftovers.length} sobrantes)</div>
               <div style="font-size:11.5px; color:var(--text-soft);">Aprovecha ~${fmtEur(antiWaste.totalSavedValue)} en envases abiertos</div>
             </div>
           </summary>
@@ -7265,7 +7292,7 @@
           <details class="clean-details">
             <summary>
               <div>
-                <div class="card-title" style="margin:0; font-size:14px;">🔬 Base científica y cardio</div>
+                <div class="card-title" style="margin:0; font-size:14.5px;">Base científica y cardio</div>
                 <div style="font-size:11.5px; color:var(--text-soft);">${sexLabel} · ${condSummary} · ${plan.cardioTarget.split("·")[0].trim()}</div>
               </div>
             </summary>
@@ -7562,9 +7589,9 @@
 
       const saludSwitcherHtml = `
         <div class="seg-control cols-3">
-          <button class="seg-btn ${saludSubTab === "diario" ? "active" : ""}" onclick="setSaludSubTab('diario')">📝 Diario</button>
-          <button class="seg-btn ${saludSubTab === "clinica" ? "active" : ""}" onclick="setSaludSubTab('clinica')">🔬 Clínica</button>
-          <button class="seg-btn ${saludSubTab === "perfil" ? "active" : ""}" onclick="setSaludSubTab('perfil')">⚙️ Perfil</button>
+          <button class="seg-btn ${saludSubTab === "diario" ? "active" : ""}" onclick="setSaludSubTab('diario')">Diario</button>
+          <button class="seg-btn ${saludSubTab === "clinica" ? "active" : ""}" onclick="setSaludSubTab('clinica')">Clínica</button>
+          <button class="seg-btn ${saludSubTab === "perfil" ? "active" : ""}" onclick="setSaludSubTab('perfil')">Perfil</button>
         </div>
       `;
 
@@ -7578,40 +7605,40 @@
 
             <div class="quick-log-grid">
               <button class="quick-log-btn" onclick="openWeightLogSheet()">
-                <span class="quick-log-icon">⚖️</span>
+                <span class="quick-log-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M12 10l2.2-2.2"/><path d="M7.5 11.5a4.5 4.5 0 0 1 9 0"/></svg></span>
                 <div style="min-width:0;">
-                  <div class="quick-log-title">+ Peso</div>
+                  <div class="quick-log-title">Peso</div>
                   <div class="quick-log-sub">${m.weightKg.toFixed(1)} kg actual</div>
                 </div>
               </button>
               <button class="quick-log-btn" onclick="openStepsSheet()">
-                <span class="quick-log-icon">👟</span>
+                <span class="quick-log-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
                 <div style="min-width:0;">
-                  <div class="quick-log-title">+ Pasos</div>
+                  <div class="quick-log-title">Pasos</div>
                   <div class="quick-log-sub">${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")} hoy</div>
                 </div>
               </button>
               ${takesMetformin() ? `
                 <button class="quick-log-btn" onclick="openMetforminLogSheet()">
-                  <span class="quick-log-icon">💊</span>
+                  <span class="quick-log-icon"><svg viewBox="0 0 24 24"><path d="M10.5 20.5L20.5 10.5a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg></span>
                   <div style="min-width:0;">
-                    <div class="quick-log-title">+ Metformina</div>
-                    <div class="quick-log-sub">${metfStatsQuick.count ? `GI ${metfStatsQuick.avgGi.toFixed(1).replace(".", ",")}/3 · ${metfStatsQuick.count}d` : "Escala GI (10 s)"}</div>
+                    <div class="quick-log-title">Metformina</div>
+                    <div class="quick-log-sub">${metfStatsQuick.count ? `GI ${metfStatsQuick.avgGi.toFixed(1).replace(".", ",")}/3 · ${metfStatsQuick.count}d` : "Escala GI"}</div>
                   </div>
                 </button>
               ` : `
                 <button class="quick-log-btn" onclick="openAddWorkoutSheet()">
-                  <span class="quick-log-icon">🏋️</span>
+                  <span class="quick-log-icon"><svg viewBox="0 0 24 24"><path d="M6.5 12h11"/><rect x="4" y="7.5" width="2.5" height="9" rx="1"/><rect x="17.5" y="7.5" width="2.5" height="9" rx="1"/></svg></span>
                   <div style="min-width:0;">
-                    <div class="quick-log-title">+ Entreno</div>
+                    <div class="quick-log-title">Entreno</div>
                     <div class="quick-log-sub">${(state.workouts || []).length} registrado(s)</div>
                   </div>
                 </button>
               `}
               <button class="quick-log-btn" onclick="openAddLabSheet()">
-                <span class="quick-log-icon">🩸</span>
+                <span class="quick-log-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="12" y1="12" x2="12" y2="18"/></svg></span>
                 <div style="min-width:0;">
-                  <div class="quick-log-title">📷 Analítica</div>
+                  <div class="quick-log-title">Analítica</div>
                   <div class="quick-log-sub">${labCountQuick ? `${labCountQuick} guardada(s)` : "Subir PDF / foto"}</div>
                 </div>
               </button>
@@ -7672,7 +7699,7 @@
 
             ${!isMedsTrackingEnabled() ? `
               <div style="text-align:center; padding:4px 8px;">
-                <button class="btn-ghost btn-sm" style="color:var(--text-soft); font-size:11.5px;" onclick="setSaludSubTab('perfil')">💊 ¿Tomas medicación o suplementos? Actívalo en ⚙️ Perfil</button>
+                <button class="btn-ghost btn-sm" style="color:var(--text-soft); font-size:11.5px;" onclick="setSaludSubTab('perfil')">¿Tomas medicación o suplementos? Actívalo en Perfil ›</button>
               </div>
             ` : ""}
           </div>
@@ -7686,16 +7713,16 @@
             ${saludSwitcherHtml}
 
             <div class="card">
-              <div class="row-between" style="gap:8px; margin-bottom:8px;">
+              <div class="row-between" style="gap:8px; margin-bottom:10px;">
                 <div>
                   <div class="card-title" style="margin:0;">Panel Clínico</div>
                   <div class="card-sub">${sexLabel} · ${m.age}a · ${condSummaryText}</div>
                 </div>
-                <button class="btn-ghost btn-sm" onclick="setSaludSubTab('perfil')">Editar perfil →</button>
+                <button class="btn-ghost btn-sm" onclick="setSaludSubTab('perfil')">Editar perfil ›</button>
               </div>
               <div class="grid-2">
-                <button class="btn-primary btn-sm" onclick="openAddLabSheet()">📷 Subir PDF / Foto</button>
-                <button class="btn-secondary btn-sm" onclick="openPrintableMedicalReport()">📄 Resumen PDF</button>
+                <button class="btn-primary btn-sm" onclick="openAddLabSheet()">Subir PDF / Foto</button>
+                <button class="btn-secondary btn-sm" onclick="openPrintableMedicalReport()">Resumen PDF</button>
               </div>
             </div>
 
@@ -7705,7 +7732,7 @@
             <details class="clean-details">
               <summary>
                 <div>
-                  <div class="card-title" style="margin:0; font-size:14px;">💊 Vitaminas y Minerales</div>
+                  <div class="card-title" style="margin:0; font-size:14.5px;">Vitaminas y Minerales</div>
                   <div style="font-size:11.5px; color:var(--text-soft);">${sexLabel} · ${m.age}a · ${condSummaryText} (7 nutrientes)</div>
                 </div>
               </summary>
@@ -7839,7 +7866,7 @@
           <details class="clean-details">
             <summary>
               <div>
-                <div class="card-title" style="margin:0; font-size:14px;">📱 Recordatorios &amp; Sync iPhone (0 €)</div>
+                <div class="card-title" style="margin:0; font-size:14.5px;">Recordatorios y Sync iPhone (0 €)</div>
                 <div style="font-size:11.5px; color:var(--text-soft);">Alertas diarias (.ics) y Apple Salud / Xiaomi</div>
               </div>
             </summary>
@@ -8451,7 +8478,7 @@
         return `
           <div class="row-between" style="gap:8px;">
             <div>
-              <div style="font-size:14px; font-weight:800; color:var(--text-main);">🌙 Ciclo, Anticonceptivos &amp; Menopausia</div>
+              <div style="font-size:14.5px; font-weight:750; color:var(--text-main);">Ciclo, Anticonceptivos y Menopausia</div>
               <div style="font-size:11.5px; color:var(--text-soft);">Ciclo natural, Kelzy 24+4, 21+7, T de Cobre, DIU o Menopausia</div>
             </div>
             <button class="btn-secondary btn-sm" onclick="openHormonalModeSheet()">Configurar</button>
@@ -8490,14 +8517,14 @@
         <div style="${standalone ? "" : "margin-top:11px; padding-top:10px; border-top:1px solid var(--border);"}">
           <div class="row-between" style="margin-bottom:6px; gap:6px;">
             <div style="min-width:0;">
-              <div style="font-size:${standalone ? "14px" : "12px"}; font-weight:800; color:var(--text-main);">${hMeta.icon} ${hMeta.short}</div>
-              <div style="font-size:11px; color:var(--rose-dark); font-weight:750;">
+              <div style="font-size:${standalone ? "14.5px" : "12.5px"}; font-weight:750; color:var(--text-main);">${hMeta.short}</div>
+              <div style="font-size:11.5px; color:var(--rose); font-weight:700;">
                 ${active?.isAuto ? `Día ${active.cycleDay}/${active.avgCycleLength} · ${active.short}` : active?.short || hMeta.short}
               </div>
             </div>
             <div style="display:flex; gap:5px; flex-shrink:0;">
-              <button class="btn-secondary btn-sm" onclick="openCycleTrackerSheet()">${hMeta.hasBlister ? "💊 Blíster" : "📝 Síntomas"}</button>
-              <button class="btn-ghost btn-sm" onclick="openHormonalModeSheet()" title="Cambiar método">⚙️</button>
+              <button class="btn-secondary btn-sm" onclick="openCycleTrackerSheet()">${hMeta.hasBlister ? "Blíster" : "Síntomas"}</button>
+              <button class="btn-ghost btn-sm" onclick="openHormonalModeSheet()" title="Cambiar método">Ajustes</button>
             </div>
           </div>
 
@@ -8531,10 +8558,10 @@
           </div>
 
           ${active ? `
-            <div style="margin-top:8px; font-size:11.5px; color:var(--text-muted); line-height:1.42; background:var(--bg-soft); padding:9px 10px; border-radius:10px; border:1px solid var(--border);">
-              <div><strong>🏋️ Entreno:</strong> ${energy <= 2 || active.hasFatigueSymptom ? "Hoy hay fatiga/baja energía: reduce 1–2 puntos el RPE y prioriza técnica, Pilates o movilidad sin culpa." : active.trainingCue}</div>
-              <div style="margin-top:4px;"><strong>🍲 Comida:</strong> ${active.nutritionCue}</div>
-              <button class="btn-ghost btn-sm" style="margin-top:5px; padding:2px 0; color:var(--rose-dark); font-weight:800;" onclick="openRecipesForCyclePhase()">🍲 Ver recetas ideales para hoy →</button>
+            <div style="margin-top:9px; font-size:11.5px; color:var(--text-muted); line-height:1.45; background:var(--bg-soft); padding:10px 12px; border-radius:12px;">
+              <div><strong style="color:var(--text-main);">Entreno:</strong> ${energy <= 2 || active.hasFatigueSymptom ? "Hoy hay fatiga/baja energía: reduce 1–2 puntos el RPE y prioriza técnica, Pilates o movilidad sin culpa." : active.trainingCue}</div>
+              <div style="margin-top:4px;"><strong style="color:var(--text-main);">Comida:</strong> ${active.nutritionCue}</div>
+              <button class="btn-ghost btn-sm" style="margin-top:6px; padding:2px 0; color:var(--rose); font-weight:750;" onclick="openRecipesForCyclePhase()">Ver recetas recomendadas ›</button>
             </div>
           ` : ""}
         </div>
@@ -8994,7 +9021,7 @@
         <details class="clean-details" id="labsDetailsBox" ${openByDefault ? "open" : ""}>
           <summary>
             <div>
-              <div class="card-title" style="margin:0; font-size:14px;">📊 Analíticas &amp; Diagramas</div>
+              <div class="card-title" style="margin:0; font-size:14.5px;">Analíticas y Diagramas</div>
               <div style="font-size:11.5px; color:var(--text-soft);">${summarySub}</div>
             </div>
           </summary>
@@ -9848,7 +9875,7 @@
         <details class="clean-details" id="metforminDetailsBox" ${openByDefault ? "open" : ""}>
           <summary>
             <div>
-              <div class="card-title" style="margin:0; font-size:14px;">💊 Seguimiento Metformina (Ciencia)</div>
+              <div class="card-title" style="margin:0; font-size:14.5px;">Seguimiento Metformina</div>
               <div style="font-size:11.5px; color:var(--text-soft);">${summarySub}</div>
             </div>
           </summary>
@@ -10568,19 +10595,19 @@
       const cat = MED_CATEGORY_META[first.category] || MED_CATEGORY_META.other;
       return `
         <div class="med-due-banner">
-          <div class="row-between" style="gap:8px; margin-bottom:7px;">
+          <div class="row-between" style="gap:8px; margin-bottom:8px;">
             <div style="min-width:0;">
-              <div style="font-size:11px; font-weight:850; color:var(--rose-dark); text-transform:uppercase;">
-                ${isOverdue ? `⏰ Toma pendiente (${overdue.length})` : `🔔 Próxima toma (${first.time})`}
+              <div style="font-size:10.5px; font-weight:750; color:var(--rose); text-transform:uppercase; letter-spacing:0.03em;">
+                ${isOverdue ? `Toma pendiente (${overdue.length})` : `Próxima toma · ${first.time}`}
               </div>
-              <div style="font-size:13.5px; font-weight:800; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                ${cat.icon} ${escapeHtml(first.name)} <span style="font-size:11.5px; font-weight:650; color:var(--text-muted);">· ${first.time}${first.withFood ? " · con comida" : ""}</span>
+              <div style="font-size:14px; font-weight:750; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px;">
+                ${escapeHtml(first.name)} <span style="font-size:12px; font-weight:500; color:var(--text-soft);">· ${first.time}${first.withFood ? " · con comida" : ""}</span>
               </div>
             </div>
           </div>
-          <div style="display:flex; gap:6px;">
-            <button class="btn-primary btn-sm" style="flex:1;" onclick="toggleMed('${first.id}')">✓ Ya la tomé</button>
-            <button class="btn-secondary btn-sm" onclick="snoozeMed('${first.id}', 15)">⏰ +15 min</button>
+          <div style="display:flex; gap:7px;">
+            <button class="btn-primary btn-sm" style="flex:1;" onclick="toggleMed('${first.id}')">Marcar tomada</button>
+            <button class="btn-secondary btn-sm" onclick="snoozeMed('${first.id}', 15)">+15 min</button>
             ${activeList.length > 1 ? `<button class="btn-ghost btn-sm" onclick="switchTab('progreso', 'diario')">+${activeList.length - 1}</button>` : ""}
           </div>
         </div>
@@ -10590,7 +10617,7 @@
     function buildMedsCardHtml() {
       if (!isMedsTrackingEnabled()) return "";
       const mode = getMedsMode();
-      const cardTitle = mode === "supplements" ? "✨ Suplementos y Vitaminas" : "💊 Medicación y Vitaminas";
+      const cardTitle = mode === "supplements" ? "Suplementos y Vitaminas" : "Medicación y Vitaminas";
       const today = getTodayDateKey();
       const meds = state.meds || [];
       const medsDone = meds.filter(med => isMedTakenToday(med, today)).length;
@@ -10599,9 +10626,9 @@
       const tips = getSmartMedInteractionTips();
 
       const slotOrder = [
-        { id: "manana",   title: "🌅 Mañana" },
-        { id: "mediodia", title: "☀️ Mediodía / Almuerzo" },
-        { id: "noche",    title: "🌙 Noche" }
+        { id: "manana",   title: "Mañana" },
+        { id: "mediodia", title: "Mediodía / Almuerzo" },
+        { id: "noche",    title: "Noche" }
       ];
 
       const groupsHtml = slotOrder.map(sl => {
@@ -10624,15 +10651,15 @@
                   <div class="check-left" style="min-width:0; flex:1;">
                     <div class="check-box" style="${taken ? "background:var(--mint-text); border-color:var(--mint-text); color:#fff;" : ""}">${taken ? "✓" : ""}</div>
                     <div style="min-width:0; flex:1;">
-                      <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                         <span class="med-time-tag">${escapeHtml(med.time || "08:30")}</span>
-                        <span class="check-label" style="${taken ? "text-decoration:line-through; color:var(--text-soft);" : ""}">${cat.icon} ${escapeHtml(med.name)}</span>
+                        <span class="check-label" style="${taken ? "text-decoration:line-through; color:var(--text-soft);" : ""}">${escapeHtml(med.name)}</span>
                       </div>
-                      <div style="font-size:11px; color:var(--text-soft); margin-top:2px;">
-                        ${escapeHtml(med.dose)}${med.withFood ? " · 🍽️ con comida" : ""}
+                      <div style="font-size:11.5px; color:var(--text-soft); margin-top:2px;">
+                        ${escapeHtml(med.dose)}${med.withFood ? " · con comida" : ""}
                         ${taken && log.takenAt ? ` · <strong style="color:var(--mint-text);">✓ ${log.takenAt}</strong>` : ""}
-                        ${snoozed ? ` · <strong style="color:var(--amber-text);">⏰ ${log.snoozeUntil}</strong>` : ""}
-                        ${med.stock !== null && med.stock !== undefined ? ` · <span style="color:${lowStock ? "var(--rose-dark); font-weight:800;" : "var(--text-soft);"}">${lowStock ? "🔄 " : ""}${med.stock} uds</span>` : ""}
+                        ${snoozed ? ` · <strong style="color:var(--amber-text);">Pospuesta ${log.snoozeUntil}</strong>` : ""}
+                        ${med.stock !== null && med.stock !== undefined ? ` · <span style="color:${lowStock ? "var(--rose); font-weight:750;" : "var(--text-soft);"}">${lowStock ? "Quedan " : ""}${med.stock} uds</span>` : ""}
                       </div>
                     </div>
                   </div>
@@ -10655,7 +10682,7 @@
               <div class="card-sub">${medsDone}/${meds.length} hoy · Adherencia 7d: <strong>${adh.pct}%</strong></div>
             </div>
             <div style="display:flex; gap:5px; flex-shrink:0;">
-              <button class="btn-secondary btn-sm" onclick="openMedRemindersSheet()" title="Recordatorios inteligentes iPhone">🔔</button>
+              <button class="btn-secondary btn-sm" onclick="openMedRemindersSheet()" title="Recordatorios inteligentes iPhone">Alertas</button>
               <button class="btn-primary btn-sm" onclick="openAddMedSheet()">+ Añadir</button>
             </div>
           </div>
