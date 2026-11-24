@@ -10,29 +10,31 @@
   <title>MealPrep &amp; NutriTrack</title>
   <style>
     :root {
-      --bg-app: #FAF7F8;
+      --bg-app: #F7F5F6;
       --bg-surface: #FFFFFF;
-      --bg-soft: #FAF1F4;
-      --bg-tint: #F4E1E8;
-      --border: #EFE1E6;
-      --border-strong: #E1C2CE;
-      --text-main: #271920;
-      --text-muted: #6C5560;
-      --text-soft: #967D88;
+      --bg-soft: #F9F5F7;
+      --bg-tint: #F4E6EC;
+      --border: rgba(82, 38, 57, 0.08);
+      --border-strong: rgba(169, 59, 98, 0.24);
+      --text-main: #23171D;
+      --text-muted: #6C5862;
+      --text-soft: #96818B;
       --rose: #CF537D;
-      --rose-dark: #A93B62;
-      --rose-badge-bg: #F9E6ED;
-      --rose-badge-text: #9E3359;
+      --rose-dark: #9D3459;
+      --rose-soft: rgba(207, 83, 125, 0.28);
+      --rose-pale: #FCECF2;
+      --rose-badge-bg: #F9EBF0;
+      --rose-badge-text: #9A3358;
       --mint-bg: #EAF6F0;
       --mint-text: #1E6B4E;
-      --amber-bg: #FFF4E4;
+      --amber-bg: #FFF5E6;
       --amber-text: #8F560A;
       --danger-bg: #FDECEC;
       --danger-text: #A62626;
-      --shadow-sm: 0 2px 10px rgba(42, 25, 32, 0.045);
-      --shadow-md: 0 10px 28px rgba(42, 25, 32, 0.10);
-      --radius-lg: 18px;
-      --radius-md: 13px;
+      --shadow-sm: 0 2px 12px rgba(42, 25, 32, 0.035);
+      --shadow-md: 0 10px 30px rgba(42, 25, 32, 0.09);
+      --radius-lg: 20px;
+      --radius-md: 14px;
       --radius-sm: 10px;
       --radius-pill: 999px;
       --nav-height: 68px;
@@ -1923,6 +1925,210 @@
 
     .med-day-dot.full { background: #2E8B63; }
     .med-day-dot.part { background: #D6913A; }
+
+    /* Ultra-light Lyfta-style ring widget & hairline rows */
+    .rings-widget-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 4px 0 12px;
+    }
+
+    .ring-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 6px 4px;
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 66px;
+      height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.05;
+    }
+
+    .ring-val {
+      font-size: 12.5px;
+      font-weight: 850;
+      color: var(--text-main);
+    }
+
+    .ring-unit {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-soft);
+    }
+
+    .ring-lbl {
+      font-size: 11px;
+      font-weight: 750;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .hairline-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hairline-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 2px;
+      border-top: 1px solid var(--border);
+    }
+
+    .hairline-row:first-child {
+      border-top: none;
+      padding-top: 2px;
+    }
+
+    .hairline-row:last-child {
+      padding-bottom: 2px;
+    }
+
+    /* Interactive Lyfta-style Onboarding Overlay */
+    .onb-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 90;
+      background: linear-gradient(180deg, #FFFFFF 0%, #FAF6F8 100%);
+      display: none;
+      flex-direction: column;
+      padding: calc(18px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom));
+      overflow-y: auto;
+    }
+
+    .onb-overlay.open {
+      display: flex;
+    }
+
+    .onb-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .onb-progress-track {
+      flex: 1;
+      height: 6px;
+      border-radius: 99px;
+      background: #EFE4E9;
+      overflow: hidden;
+    }
+
+    .onb-progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--rose), var(--rose-dark));
+      transition: width 0.25s ease;
+    }
+
+    .onb-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+      padding: 6px 0 18px;
+    }
+
+    .onb-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--rose-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .onb-title {
+      font-size: 23px;
+      font-weight: 850;
+      color: var(--text-main);
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+      margin: 0;
+    }
+
+    .onb-sub {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .onb-choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .onb-choice-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .onb-tile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 15px;
+      border-radius: 16px;
+      background: #FFFFFF;
+      border: 1.5px solid var(--border);
+      box-shadow: 0 2px 8px rgba(42, 25, 32, 0.03);
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .onb-tile.active {
+      background: #FFF6FA;
+      border-color: var(--rose);
+      box-shadow: 0 4px 14px rgba(207, 83, 125, 0.14);
+    }
+
+    .onb-tile-ico {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--bg-soft);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+
+    .onb-tile.active .onb-tile-ico {
+      background: var(--rose-pale);
+    }
+
+    .onb-footer {
+      display: flex;
+      gap: 10px;
+      padding-top: 8px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -1968,6 +2174,7 @@
         <span>Salud</span>
       </button>
     </nav>
+    <div class="onb-overlay" id="onboardingOverlay" role="dialog" aria-modal="true" aria-label="Configuración inicial"></div>
   </div>
 
   <div class="sheet-backdrop" id="sheetBackdrop" onclick="handleBackdropClick(event)">
@@ -3402,12 +3609,14 @@
         startDate: "",
         logs: []
       },
-      foodDiary: {}
+      foodDiary: {},
+      onboardingCompleted: false
     };
 
     let state = loadState();
     let currentTab = "hoy";
     let hoySubTab = "hoy";
+    let onboardingStep = 0;
     let selectedCalendarDay = null;
     let comidaSubTab = "diario";
     let diaryDateKey = new Date().toISOString().slice(0, 10);
@@ -3580,7 +3789,10 @@
             logs: Array.isArray(rawM.logs) ? rawM.logs : []
           };
         })(),
-        foodDiary: (parsed.foodDiary && typeof parsed.foodDiary === "object") ? parsed.foodDiary : {}
+        foodDiary: (parsed.foodDiary && typeof parsed.foodDiary === "object") ? parsed.foodDiary : {},
+        onboardingCompleted: typeof parsed.onboardingCompleted === "boolean"
+          ? parsed.onboardingCompleted
+          : Boolean(parsed.healthPlanStatus?.ready || (parsed.labLogs && parsed.labLogs.length) || (parsed.foodDiary && Object.keys(parsed.foodDiary).length))
       };
     }
 
@@ -4541,11 +4753,32 @@
       const kcalTargetHoy = Number(state.targets.kcal || m.targetKcal || 1640);
       const protTargetHoy = Number(state.targets.protein || m.targetProtein || 130);
       const carbTargetHoy = Number(state.targets.carbsMax || m.targetCarbs || 135);
-      const fatTargetHoy = Math.max(35, Number(m.targetFat || 55));
       const kcalPctHoy = Math.min(100, Math.round((todayDiaryTot.kcal / Math.max(1, kcalTargetHoy)) * 100));
+      const protPctHoy = Math.min(100, Math.round((todayDiaryTot.protein / Math.max(1, protTargetHoy)) * 100));
+      const stepsValHoy = Number(todayStepsObj.steps || 0);
+      const stepsPctHoy = Math.min(100, Math.round((stepsValHoy / Math.max(1000, state.stepsGoal)) * 100));
       const kcalRemHoy = kcalTargetHoy - todayDiaryTot.kcal;
-      const kcalRemTxt = kcalRemHoy >= 0 ? `Faltan ${kcalRemHoy} kcal` : `+${Math.abs(kcalRemHoy)} kcal`;
-      const carbPref = (m.isDiabetes || m.isIR || m.isPCOS) ? "≤" : "";
+
+      const buildRingSvg = (pct, color, valTxt, unitTxt, labelTxt, onClickAttr = "") => {
+        const r = 27;
+        const c = 2 * Math.PI * r;
+        const offset = c * (1 - Math.max(0, Math.min(100, pct)) / 100);
+        return `
+          <div class="ring-tile" ${onClickAttr ? `onclick="${onClickAttr}" style="cursor:pointer;"` : ""}>
+            <div class="ring-wrap">
+              <svg width="66" height="66" viewBox="0 0 66 66" style="transform:rotate(-90deg);">
+                <circle cx="33" cy="33" r="${r}" fill="none" stroke="#EFE6EA" stroke-width="6" />
+                <circle cx="33" cy="33" r="${r}" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}" />
+              </svg>
+              <div class="ring-center">
+                <span class="ring-val">${valTxt}</span>
+                <span class="ring-unit">${unitTxt}</span>
+              </div>
+            </div>
+            <span class="ring-lbl">${labelTxt}</span>
+          </div>
+        `;
+      };
 
       const renderHoyMealRow = (slotId, icon, label) => {
         const items = todayDiaryDay[slotId] || [];
@@ -4553,10 +4786,10 @@
         if (items.length) {
           const firstTitle = items[0].title + (items.length > 1 ? ` +${items.length - 1}` : "");
           return `
-            <div class="hoy-meal-row">
+            <div class="hairline-row">
               <div style="min-width:0; flex:1;">
-                <div style="font-size:12px; font-weight:800; color:var(--text-main);">${icon} ${label} <span style="font-weight:700; color:var(--mint-text);">· ${st.kcal} kcal</span></div>
-                <div style="font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(firstTitle)}</div>
+                <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">${icon} ${label} <span style="font-weight:700; color:var(--mint-text); font-size:11.5px;">· ${st.kcal} kcal</span></div>
+                <div style="font-size:11px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(firstTitle)}</div>
               </div>
               <button class="btn-ghost btn-sm" style="color:var(--rose-dark); font-weight:800; flex-shrink:0;" onclick="openAddFoodSheet('${slotId}','${todayStr}')">+</button>
             </div>
@@ -4564,55 +4797,65 @@
         }
         if (slotId === "almuerzo" && todayRecipe) {
           return `
-            <div class="hoy-meal-row">
+            <div class="hairline-row">
               <div style="min-width:0; flex:1;">
-                <div style="font-size:12px; font-weight:800; color:var(--text-main);">${icon} ${label} <span style="font-weight:650; color:var(--text-soft);">· Táper ${todayRecipe.kcal} kcal</span></div>
-                <div style="font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(todayRecipe.title)}</div>
+                <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">${icon} ${label} <span style="font-weight:650; color:var(--text-soft); font-size:11px;">· Táper ${todayRecipe.kcal} kcal</span></div>
+                <div style="font-size:11px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(todayRecipe.title)}</div>
               </div>
-              <div style="display:flex; gap:4px; flex-shrink:0;">
-                <button class="btn-secondary btn-sm" style="padding:5px 8px;" onclick="openRecipeSheet('${todayRecipe.id}')">Ver</button>
-                <button class="btn-primary btn-sm" style="padding:5px 9px;" onclick="logPlannedLunchToDiary('${todayStr}')" title="Marcar almuerzo como comido">✓</button>
+              <div style="display:flex; gap:5px; flex-shrink:0;">
+                <button class="btn-ghost btn-sm" style="padding:4px 7px;" onclick="openRecipeSheet('${todayRecipe.id}')">Ver</button>
+                <button class="btn-primary btn-sm" style="padding:4px 9px;" onclick="logPlannedLunchToDiary('${todayStr}')" title="Marcar almuerzo como comido">✓</button>
               </div>
             </div>
           `;
         }
         return `
-          <div class="hoy-meal-row">
+          <div class="hairline-row">
             <div style="min-width:0; flex:1;">
-              <div style="font-size:12px; font-weight:800; color:var(--text-main);">${icon} ${label}</div>
-              <div style="font-size:11px; color:var(--text-soft);">${slotId === "snacks" ? "Opcional" : "Pendiente"}</div>
+              <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">${icon} ${label}</div>
+              <div style="font-size:11px; color:var(--text-soft);">${slotId === "snacks" ? "Opcional" : "Sin registrar"}</div>
             </div>
-            <button class="btn-secondary btn-sm" style="flex-shrink:0;" onclick="openAddFoodSheet('${slotId}','${todayStr}')">+ Añadir</button>
+            <button class="btn-ghost btn-sm" style="color:var(--rose-dark); font-weight:750; flex-shrink:0;" onclick="openAddFoodSheet('${slotId}','${todayStr}')">+ Añadir</button>
           </div>
         `;
       };
+
+      const thirdRingHtml = isMedsTrackingEnabled() && state.meds.length
+        ? buildRingSvg(
+            Math.round((medsDone / state.meds.length) * 100),
+            "#7B5EA7",
+            `${medsDone}/${state.meds.length}`,
+            "tomas",
+            "Medicación",
+            "switchTab('progreso', 'diario')"
+          )
+        : buildRingSvg(
+            stepsPctHoy,
+            "#D6913A",
+            stepsValHoy >= 1000 ? `${(stepsValHoy / 1000).toFixed(1).replace(".", ",")}k` : String(stepsValHoy),
+            `/${Math.round(state.stepsGoal / 1000)}k`,
+            "Pasos",
+            "openStepsSheet()"
+          );
 
       container.innerHTML = `
         <div class="section-gap">
           ${topSwitcherHtml}
           ${buildHoyDueMedsBannerHtml()}
 
-          <div class="hero-today-card">
-            <div class="row-between" style="margin-bottom:6px;">
-              <div>
-                <div style="font-size:11px; font-weight:800; color:var(--rose-dark); text-transform:uppercase; letter-spacing:0.03em;">Tu día · ${todayDayName || "Hoy"}</div>
-                <div style="font-size:18px; font-weight:850; color:var(--text-main); line-height:1.2;">
-                  ${todayDiaryTot.kcal} <span style="font-size:12.5px; font-weight:650; color:var(--text-soft);">/ ${kcalTargetHoy} kcal</span>
-                </div>
-              </div>
-              <span class="badge ${kcalRemHoy >= 0 ? "badge-mint" : "badge-amber"}">${kcalRemTxt}</span>
+          <div class="card">
+            <div class="row-between" style="margin-bottom:4px;">
+              <div style="font-size:14px; font-weight:850; color:var(--text-main);">Tu día · ${todayDayName || "Hoy"}</div>
+              <button class="btn-ghost btn-sm" style="color:var(--rose-dark); padding:2px 4px;" onclick="switchTab('comida', 'diario')">Diario →</button>
             </div>
 
-            <div class="progress-track" style="margin-bottom:6px;">
-              <div class="progress-fill" style="width:${kcalPctHoy}%; background:${kcalRemHoy < -120 ? "#D6913A" : "linear-gradient(90deg, var(--rose), var(--rose-dark))"};"></div>
+            <div class="rings-widget-grid">
+              ${buildRingSvg(kcalPctHoy, kcalRemHoy < -120 ? "#D6913A" : "#CF537D", String(todayDiaryTot.kcal), `/${kcalTargetHoy}`, "Calorías", "switchTab('comida', 'diario')")}
+              ${buildRingSvg(protPctHoy, "#2E8B63", `${todayDiaryTot.protein}g`, `/${protTargetHoy}g`, "Proteína", "switchTab('comida', 'diario')")}
+              ${thirdRingHtml}
             </div>
 
-            <div class="row-between" style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">
-              <span>P <strong>${todayDiaryTot.protein}</strong>/${protTargetHoy}g · C <strong>${todayDiaryTot.carbs}</strong>/${carbPref}${carbTargetHoy}g · G <strong>${todayDiaryTot.fat}</strong>/${fatTargetHoy}g</span>
-              <button class="btn-ghost btn-sm" style="padding:2px 4px; color:var(--rose-dark);" onclick="switchTab('comida', 'diario')">Diario →</button>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+            <div class="hairline-list" style="margin-bottom:10px;">
               ${renderHoyMealRow("desayuno", "🌅", "Desayuno")}
               ${renderHoyMealRow("almuerzo", "☀️", "Almuerzo")}
               ${renderHoyMealRow("cena", "🌙", "Cena")}
@@ -4620,42 +4863,42 @@
             </div>
 
             <div class="grid-2">
-              <button class="btn-secondary btn-sm" onclick="openEatingOutSheet()">🍽️ Hoy como fuera</button>
-              <button class="btn-secondary btn-sm" onclick="switchTab('comida', 'recetario')">🍲 Ver recetario</button>
-            </div>
-          </div>
-
-          ${cycleHoyBannerHtml}
-
-          <div class="card">
-            <div class="row-between">
-              <div style="min-width:0;">
-                <div style="font-size:12.5px; font-weight:800; color:var(--text-main);">🏋️ Entreno · ${workoutsDoneCount}/${plan.schedule.length} sem</div>
-                <div class="card-sub" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${nextWorkout.title} · ${nextWorkout.mins} min</div>
-              </div>
-              <button class="btn-secondary btn-sm" style="white-space:nowrap;" onclick="switchTab('entreno')">Ver</button>
+              <button class="btn-secondary btn-sm" onclick="openEatingOutSheet()">🍽️ Como fuera</button>
+              <button class="btn-secondary btn-sm" onclick="switchTab('comida', 'recetario')">🍲 Recetario</button>
             </div>
           </div>
 
           <div class="card">
-            <div class="row-between" style="gap:8px;">
-              <div style="min-width:0;">
-                <div style="font-size:12.5px; font-weight:800;">💗 ${healthBannerTitle}</div>
-                <div class="card-sub">${isMedsTrackingEnabled() && state.meds.length ? `Tomas <strong>${medsDone}/${state.meds.length}</strong> · ` : ""}Pasos <strong>${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")}</strong>/${Number(state.stepsGoal).toLocaleString("es-ES")}</div>
-              </div>
-              <div style="display:flex; gap:5px; flex-shrink:0;">
-                ${takesMetformin() ? `<button class="btn-secondary btn-sm" onclick="openMetforminLogSheet()" title="Registrar tolerancia metformina hoy">💊 GI</button>` : ""}
-                <button class="btn-secondary btn-sm" onclick="switchTab('progreso', 'diario')">Abrir</button>
-              </div>
-            </div>
-          </div>
+            <div class="hairline-list">
+              ${cyclePhase ? `
+                <div class="hairline-row" onclick="switchTab('progreso', 'diario')" style="cursor:pointer;">
+                  <div style="min-width:0;">
+                    <div style="font-size:12.5px; font-weight:750; color:var(--rose-dark);">${cyclePhase.label}${cyclePhase.isAuto ? ` · Día ${cyclePhase.cycleDay}/${cyclePhase.avgCycleLength}` : ""}</div>
+                    <div style="font-size:11px; color:var(--text-soft);">Energía hoy ${cyclePhase.energy}/5 · comida y entreno adaptados</div>
+                  </div>
+                  <span style="font-size:11.5px; font-weight:750; color:var(--rose-dark); flex-shrink:0;">Ajustar</span>
+                </div>
+              ` : ""}
 
-          <div class="card">
-            <div class="row-between" style="margin-bottom:7px;">
-              <div style="font-size:12.5px; font-weight:800; color:var(--rose-dark);">🎯 Meta: ${g.currentKg.toFixed(1)} → ${g.milestoneKg} kg <span style="font-weight:600; color:var(--text-muted);">(${g.weeksTo64 > 0 ? `~${g.weeksTo64} sem` : (state.bodyProfile.goal === "maintenance" ? "Mant." : "Logrado")})</span></div>
-              <span style="font-size:11.5px; font-weight:750; color:var(--text-soft);">${g.annualPct}%</span>
+              <div class="hairline-row">
+                <div style="min-width:0;">
+                  <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">🏋️ Entreno · ${workoutsDoneCount}/${plan.schedule.length} sem</div>
+                  <div style="font-size:11px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${nextWorkout.title} · ${nextWorkout.mins} min</div>
+                </div>
+                <button class="btn-ghost btn-sm" style="color:var(--rose-dark); font-weight:750; flex-shrink:0;" onclick="switchTab('entreno')">Ver →</button>
+              </div>
+
+              <div class="hairline-row">
+                <div style="min-width:0;">
+                  <div style="font-size:12.5px; font-weight:750; color:var(--text-main);">💗 ${healthBannerTitle}</div>
+                  <div style="font-size:11px; color:var(--text-soft);">Pasos <strong>${stepsValHoy.toLocaleString("es-ES")}</strong>/${Number(state.stepsGoal).toLocaleString("es-ES")} · Meta ${g.currentKg.toFixed(1)} → ${g.milestoneKg} kg</div>
+                </div>
+                <div style="display:flex; gap:5px; flex-shrink:0;">
+                  ${takesMetformin() ? `<button class="btn-secondary btn-sm" style="padding:4px 8px;" onclick="openMetforminLogSheet()">💊 GI</button>` : ""}
+                  <button class="btn-ghost btn-sm" style="color:var(--rose-dark); font-weight:750;" onclick="switchTab('progreso', 'diario')">Abrir →</button>
+                </div>
+              </div>
             </div>
-            <div class="progress-track"><div class="progress-fill" style="width:${g.annualPct}%;"></div></div>
           </div>
         </div>
       `;
@@ -9808,6 +10051,15 @@
       openSheet("⚙️ Ajustes de Cocina y Respaldo", `
         <div id="settingsSheetMarker" style="display:none;"></div>
         <div class="card">
+          <div class="row-between">
+            <div>
+              <div class="card-title" style="margin:0;">Guía interactiva de inicio</div>
+              <div class="card-sub" style="font-size:11.5px;">Configura tu perfil paso a paso</div>
+            </div>
+            <button class="btn-primary btn-sm" onclick="closeSheet(); openOnboarding(0);">✨ Abrir guía</button>
+          </div>
+        </div>
+        <div class="card">
           <div class="card-title">Presupuesto &amp; Metas Diarias</div>
           <div class="grid-3" style="margin-top:8px;">
             <div>
@@ -10885,8 +11137,423 @@
       return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
+    // --- INTERACTIVE LYFTA-STYLE 6-STEP ONBOARDING WIZARD ---
+    function openOnboarding(step = 0) {
+      onboardingStep = Math.max(0, Math.min(5, Number(step) || 0));
+      const el = document.getElementById("onboardingOverlay");
+      if (!el) return;
+      el.classList.add("open");
+      renderOnboarding();
+    }
+
+    function closeOnboarding() {
+      const el = document.getElementById("onboardingOverlay");
+      if (el) el.classList.remove("open");
+    }
+
+    function skipOnboarding() {
+      state.onboardingCompleted = true;
+      saveState();
+      closeOnboarding();
+      render();
+    }
+
+    function onbSetSex(sex) {
+      state.bodyProfile.sex = sex === "M" ? "M" : "F";
+      if (sex === "M") state.cycleProfile.phase = "none";
+      saveState();
+      renderOnboarding();
+    }
+
+    function onbSetGoal(goal) {
+      if (!["deficit", "hypertrophy", "maintenance"].includes(goal)) return;
+      state.bodyProfile.goal = goal;
+      saveState();
+      renderOnboarding();
+    }
+
+    function onbUpdateBodyField() {
+      const age = Math.max(15, Math.min(90, Number(document.getElementById("onbAge")?.value || state.bodyProfile.age)));
+      const weight = parseNumInput(document.getElementById("onbWeight")?.value, getCurrentWeightKg());
+      const height = Math.max(120, Math.min(220, Number(document.getElementById("onbHeight")?.value || state.bodyProfile.heightCm)));
+      const goalKg = parseNumInput(document.getElementById("onbGoalKg")?.value, state.bodyGoals.milestoneKg);
+      state.bodyProfile.age = age;
+      state.bodyProfile.heightCm = height;
+      if (weight >= 35 && weight <= 220) {
+        const today = getTodayDateKey();
+        const idx = state.weightLogs.findIndex(w => w.date === today);
+        if (idx >= 0) state.weightLogs[idx].weight = Number(weight.toFixed(1));
+        else state.weightLogs.push({ id: "w_onb_" + Date.now(), date: today, weight: Number(weight.toFixed(1)) });
+        state.bodyGoals.startWeight = Number(weight.toFixed(1));
+      }
+      if (goalKg >= 35 && goalKg <= 220) {
+        state.bodyGoals.milestoneKg = Number(goalKg.toFixed(1));
+        state.bodyGoals.annualKg = Number(goalKg.toFixed(1));
+      }
+      saveState();
+      const previewEl = document.getElementById("onbMacroPreview");
+      if (previewEl) {
+        const m = getAdaptiveNutritionMetrics();
+        previewEl.innerHTML = `Meta estimada: <strong>${m.targetKcal} kcal</strong> · <strong>${m.targetProtein}g proteína</strong>`;
+      }
+    }
+
+    function onbSetActivity(val) {
+      state.bodyProfile.activity = Number(val) || 1.55;
+      saveState();
+      renderOnboarding();
+    }
+
+    function onbToggleCond(cond) {
+      if (cond === "none") {
+        state.clinicalProfile.conditions = [];
+      } else {
+        const list = Array.isArray(state.clinicalProfile.conditions) ? [...state.clinicalProfile.conditions] : [];
+        const idx = list.indexOf(cond);
+        if (idx >= 0) list.splice(idx, 1);
+        else list.push(cond);
+        state.clinicalProfile.conditions = list;
+      }
+      saveState();
+      renderOnboarding();
+    }
+
+    function onbToggleCycleOpt(enable) {
+      state.cycleProfile = {
+        ...(state.cycleProfile || DEFAULT_STATE.cycleProfile),
+        phase: enable ? (state.cycleProfile?.phase && state.cycleProfile.phase !== "none" ? state.cycleProfile.phase : "follicular") : "none",
+        mode: enable ? (state.cycleProfile?.lastPeriodStart ? "auto" : "manual") : "manual"
+      };
+      saveState();
+      renderOnboarding();
+    }
+
+    function onbSetMedsMode(mode) {
+      state.clinicalProfile.medsMode = mode;
+      saveState();
+      renderOnboarding();
+    }
+
+    function onbTogglePresetMed(key) {
+      toggleQuickPresetMed(key);
+      renderOnboarding();
+    }
+
+    function onbSetTraining(field, val) {
+      state.trainingProfile[field] = val;
+      saveState();
+      renderOnboarding();
+    }
+
+    function onbGo(delta) {
+      const next = onboardingStep + delta;
+      if (next < 0) return;
+      if (next > 5) {
+        finishOnboarding();
+        return;
+      }
+      onboardingStep = next;
+      renderOnboarding();
+    }
+
+    function finishOnboarding() {
+      const m = getAdaptiveNutritionMetrics();
+      state.targets.kcal = m.targetKcal;
+      state.targets.protein = m.targetProtein;
+      state.targets.carbsMax = m.targetCarbs;
+      state.healthPlanStatus = {
+        ready: true,
+        signature: getHealthProfileSignature(m),
+        updatedAt: new Date().toLocaleDateString("es-ES", { day: "numeric", month: "short" })
+      };
+      state.onboardingCompleted = true;
+      // Pick profile-matched weekday tapers automatically
+      if (typeof autoFillTapers === "function") {
+        try {
+          const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+          const ranked = state.recipes
+            .filter(r => getRecipeMealType(r) === "almuerzo")
+            .sort((a, b) => getRecipeProfileMeta(b, m).score - getRecipeProfileMeta(a, m).score);
+          if (ranked.length >= 5) {
+            days.forEach((d, idx) => { state.tapers[d] = ranked[idx].id; });
+          }
+        } catch (e) {}
+      }
+      saveState();
+      closeOnboarding();
+      currentTab = "hoy";
+      document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === "hoy"));
+      render();
+      showToast("✨ ¡Tu plan personalizado está listo!");
+    }
+
+    function renderOnboarding() {
+      const el = document.getElementById("onboardingOverlay");
+      if (!el) return;
+      const m = getAdaptiveNutritionMetrics();
+      const plan = getAdaptiveTrainingPlan(m);
+      const pct = Math.round(((onboardingStep + 1) / 6) * 100);
+      const activeConds = state.clinicalProfile.conditions || [];
+      const medsMode = getMedsMode();
+      const cycleOn = m.sex === "F" && Boolean(getActiveCyclePhase(m));
+
+      let stepBody = "";
+      if (onboardingStep === 0) {
+        stepBody = `
+          <div class="onb-kicker">Paso 1 de 6 · Bienvenida</div>
+          <h1 class="onb-title">Adaptemos tu plan a tu cuerpo y tu meta</h1>
+          <p class="onb-sub">Solo tomará 30 segundos. Verás únicamente lo que necesitas, sin pantallas saturadas.</p>
+
+          <div>
+            <label style="margin-bottom:6px;">Sexo biológico</label>
+            <div class="onb-choice-grid">
+              <button type="button" class="onb-tile ${m.sex === "F" ? "active" : ""}" onclick="onbSetSex('F')">
+                <span class="onb-tile-ico">♀️</span>
+                <div><strong style="font-size:14px;">Mujer</strong></div>
+              </button>
+              <button type="button" class="onb-tile ${m.sex === "M" ? "active" : ""}" onclick="onbSetSex('M')">
+                <span class="onb-tile-ico">♂️</span>
+                <div><strong style="font-size:14px;">Hombre</strong></div>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label style="margin-bottom:6px;">¿Cuál es tu objetivo principal?</label>
+            <div class="onb-choice-stack">
+              <button type="button" class="onb-tile ${m.goal === "deficit" ? "active" : ""}" onclick="onbSetGoal('deficit')">
+                <span class="onb-tile-ico">🔥</span>
+                <div>
+                  <div style="font-size:14px; font-weight:800;">Perder grasa</div>
+                  <div style="font-size:11.5px; color:var(--text-soft);">Déficit saludable cuidando músculo y energía</div>
+                </div>
+              </button>
+              <button type="button" class="onb-tile ${m.goal === "hypertrophy" ? "active" : ""}" onclick="onbSetGoal('hypertrophy')">
+                <span class="onb-tile-ico">💪</span>
+                <div>
+                  <div style="font-size:14px; font-weight:800;">Ganar músculo / Volumen</div>
+                  <div style="font-size:11.5px; color:var(--text-soft);">Platos contundentes y sobrecarga progresiva</div>
+                </div>
+              </button>
+              <button type="button" class="onb-tile ${m.goal === "maintenance" ? "active" : ""}" onclick="onbSetGoal('maintenance')">
+                <span class="onb-tile-ico">⚖️</span>
+                <div>
+                  <div style="font-size:14px; font-weight:800;">Mantenerme y sentirme mejor</div>
+                  <div style="font-size:11.5px; color:var(--text-soft);">Equilibrio energético, hábito y vitalidad</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (onboardingStep === 1) {
+        stepBody = `
+          <div class="onb-kicker">Paso 2 de 6 · Tus medidas</div>
+          <h1 class="onb-title">Calculemos tus calorías y proteína reales</h1>
+          <p class="onb-sub">Usamos la fórmula clínica Mifflin-St Jeor adaptada a tu meta.</p>
+
+          <div class="grid-2">
+            <div>
+              <label>Edad (años)</label>
+              <input type="number" id="onbAge" min="15" max="90" value="${m.age}" oninput="onbUpdateBodyField()" />
+            </div>
+            <div>
+              <label>Estatura (cm)</label>
+              <input type="number" id="onbHeight" min="120" max="220" value="${m.heightCm}" oninput="onbUpdateBodyField()" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Peso actual (kg)</label>
+              <input type="text" inputmode="decimal" id="onbWeight" value="${m.weightKg.toFixed(1)}" oninput="onbUpdateBodyField()" />
+            </div>
+            <div>
+              <label>Peso meta (kg)</label>
+              <input type="text" inputmode="decimal" id="onbGoalKg" value="${Number(state.bodyGoals.milestoneKg || m.weightKg).toFixed(1)}" oninput="onbUpdateBodyField()" />
+            </div>
+          </div>
+
+          <div>
+            <label style="margin-bottom:6px;">Nivel de actividad semanal</label>
+            <div class="seg-control cols-3">
+              <button type="button" class="seg-btn ${m.activity <= 1.375 ? "active" : ""}" onclick="onbSetActivity(1.375)">Ligera (1–2d)</button>
+              <button type="button" class="seg-btn ${m.activity == 1.55 ? "active" : ""}" onclick="onbSetActivity(1.55)">Moderada (3–5d)</button>
+              <button type="button" class="seg-btn ${m.activity >= 1.725 ? "active" : ""}" onclick="onbSetActivity(1.725)">Alta (6–7d)</button>
+            </div>
+          </div>
+
+          <div id="onbMacroPreview" style="padding:11px 14px; border-radius:14px; background:var(--rose-pale); color:var(--rose-dark); font-size:13px; text-align:center;">
+            Meta estimada: <strong>${m.targetKcal} kcal</strong> · <strong>${m.targetProtein}g proteína</strong>
+          </div>
+        `;
+      } else if (onboardingStep === 2) {
+        stepBody = `
+          <div class="onb-kicker">Paso 3 de 6 · Salud</div>
+          <h1 class="onb-title">¿Alguna condición que debamos cuidar?</h1>
+          <p class="onb-sub">Esto adapta tus recetas, carbohidratos, micronutrientes y entrenos.</p>
+
+          <div class="chip-row">
+            <button type="button" class="chip ${activeConds.length === 0 ? "active" : ""}" style="padding:8px 13px; font-size:12.5px;" onclick="onbToggleCond('none')">✨ Ninguna (General)</button>
+            ${Object.values(CLINICAL_CONDITION_META).map(c => {
+              const on = activeConds.includes(c.id);
+              return `<button type="button" class="chip ${on ? "active" : ""}" style="padding:8px 13px; font-size:12.5px;" onclick="onbToggleCond('${c.id}')">${on ? "✓ " : ""}${c.label}</button>`;
+            }).join("")}
+          </div>
+
+          ${m.sex === "F" ? `
+            <div class="card-soft" style="margin-top:6px;">
+              <div style="font-size:13px; font-weight:800; color:var(--text-main); margin-bottom:4px;">🌙 Ciclo menstrual (Clue)</div>
+              <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">¿Quieres adaptar tus recetas y tu esfuerzo en entreno a tu fase del ciclo?</div>
+              <div class="seg-control">
+                <button type="button" class="seg-btn ${cycleOn ? "active" : ""}" onclick="onbToggleCycleOpt(true)">Sí, activar</button>
+                <button type="button" class="seg-btn ${!cycleOn ? "active" : ""}" onclick="onbToggleCycleOpt(false)">Ahora no</button>
+              </div>
+            </div>
+          ` : ""}
+        `;
+      } else if (onboardingStep === 3) {
+        const medKeys = [];
+        if (m.isIR || m.isPCOS || m.isDiabetes || medsMode === "meds") medKeys.push("metformin");
+        if (hasCondition("adhd") || medsMode === "meds") medKeys.push("tdah");
+        if (hasCondition("mood") || medsMode === "meds") medKeys.push("antidep");
+        if (m.sex === "F") medKeys.push("contraceptive");
+        const suppKeys = ["vitd", "omega3", "magnesium", "b12", "iron", "inositol", "creatine"];
+
+        stepBody = `
+          <div class="onb-kicker">Paso 4 de 6 · Tomas diarias</div>
+          <h1 class="onb-title">¿Tomas medicación o suplementos?</h1>
+          <p class="onb-sub">Si eliges «No tomo», ocultaremos todas las tarjetas de medicación para mantener la app limpia.</p>
+
+          <div class="onb-choice-stack">
+            <button type="button" class="onb-tile ${medsMode === "none" ? "active" : ""}" onclick="onbSetMedsMode('none')">
+              <span class="onb-tile-ico">🌿</span>
+              <div>
+                <div style="font-size:14px; font-weight:800;">No tomo nada</div>
+                <div style="font-size:11.5px; color:var(--text-soft);">Solo comidas, macros y entreno</div>
+              </div>
+            </button>
+            <button type="button" class="onb-tile ${medsMode === "supplements" ? "active" : ""}" onclick="onbSetMedsMode('supplements')">
+              <span class="onb-tile-ico">✨</span>
+              <div>
+                <div style="font-size:14px; font-weight:800;">Solo vitaminas / suplementos</div>
+                <div style="font-size:11.5px; color:var(--text-soft);">Vit D, Omega-3, Magnesio, Hierro, Creatina...</div>
+              </div>
+            </button>
+            <button type="button" class="onb-tile ${medsMode === "meds" ? "active" : ""}" onclick="onbSetMedsMode('meds')">
+              <span class="onb-tile-ico">💊</span>
+              <div>
+                <div style="font-size:14px; font-weight:800;">Medicación + suplementos</div>
+                <div style="font-size:11.5px; color:var(--text-soft);">Con horarios, recordatorio doble y stock</div>
+              </div>
+            </button>
+          </div>
+
+          ${medsMode !== "none" ? `
+            <div class="card-soft">
+              <div style="font-size:11px; font-weight:800; color:var(--rose-dark); margin-bottom:6px;">SELECCIONA LO QUE TOMAS (OPCIONAL)</div>
+              <div class="chip-row">
+                ${(medsMode === "meds" ? [...new Set(medKeys)] : []).map(k => {
+                  const p = QUICK_MED_PRESETS[k];
+                  const on = isPresetMedActive(k);
+                  return `<button type="button" class="chip ${on ? "active" : ""}" onclick="onbTogglePresetMed('${k}')">${on ? "✓ " : "+ "}${p.icon} ${p.name}</button>`;
+                }).join("")}
+                ${suppKeys.map(k => {
+                  const p = QUICK_MED_PRESETS[k];
+                  const on = isPresetMedActive(k);
+                  return `<button type="button" class="chip ${on ? "active" : ""}" onclick="onbTogglePresetMed('${k}')">${on ? "✓ " : "+ "}${p.icon} ${p.name}</button>`;
+                }).join("")}
+              </div>
+            </div>
+          ` : ""}
+        `;
+      } else if (onboardingStep === 4) {
+        const tp = state.trainingProfile || DEFAULT_STATE.trainingProfile;
+        stepBody = `
+          <div class="onb-kicker">Paso 5 de 6 · Entrenamiento</div>
+          <h1 class="onb-title">¿Cómo prefieres entrenar?</h1>
+          <p class="onb-sub">Armaremos tu semana automáticamente respetando tu fisiología y energía.</p>
+
+          <div>
+            <label style="margin-bottom:6px;">Lugar</label>
+            <div class="onb-choice-grid">
+              <button type="button" class="onb-tile ${tp.location === "gym" ? "active" : ""}" onclick="onbSetTraining('location','gym')">
+                <span class="onb-tile-ico">🏋️</span>
+                <strong>Gym</strong>
+              </button>
+              <button type="button" class="onb-tile ${tp.location === "home" ? "active" : ""}" onclick="onbSetTraining('location','home')">
+                <span class="onb-tile-ico">🏠</span>
+                <strong>Casa</strong>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label style="margin-bottom:6px;">Días por semana</label>
+            <div class="seg-control cols-3">
+              ${[3, 4, 5].map(n => `
+                <button type="button" class="seg-btn ${Number(tp.daysPerWeek) === n ? "active" : ""}" onclick="onbSetTraining('daysPerWeek', ${n})">${n} días</button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <label style="margin-bottom:6px;">Estilo</label>
+            <div class="chip-row">
+              ${Object.values(TRAINING_STYLE_META).map(st => `
+                <button type="button" class="chip ${tp.style === st.id ? "active" : ""}" style="padding:8px 12px;" onclick="onbSetTraining('style','${st.id}')">${st.id === "auto" ? "✨ " : ""}${st.label}</button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      } else {
+        const modules = ["📒 Diario + 41 recetas", `🏋️ ${plan.planTitle} (${plan.days}d)`];
+        if (cycleOn) modules.push("🌙 Ciclo (Clue) & Energía");
+        if (medsMode === "meds") modules.push(`💊 Medicación (${state.meds.length})`);
+        else if (medsMode === "supplements") modules.push(`✨ Suplementos (${state.meds.length})`);
+        if (takesMetformin()) modules.push("🔬 Tracker Metformina + B12");
+
+        stepBody = `
+          <div class="onb-kicker">Paso 6 de 6 · Todo listo</div>
+          <h1 class="onb-title">✨ ¡Tu plan está listo!</h1>
+          <p class="onb-sub">Preparamos tus metas, tus recetas recomendadas y tu rutina semanal sin ruido visual.</p>
+
+          <div class="card" style="background:#FFF8FB; border-color:var(--rose-soft);">
+            <div class="grid-2" style="margin-bottom:10px;">
+              <div>
+                <div style="font-size:11px; color:var(--text-soft); font-weight:700;">CALORÍAS DIARIAS</div>
+                <div style="font-size:20px; font-weight:850; color:var(--rose-dark);">${m.targetKcal} kcal</div>
+              </div>
+              <div>
+                <div style="font-size:11px; color:var(--text-soft); font-weight:700;">PROTEÍNA</div>
+                <div style="font-size:20px; font-weight:850; color:var(--mint-text);">${m.targetProtein} g/día</div>
+              </div>
+            </div>
+            <div style="font-size:11.5px; color:var(--text-muted); border-top:1px solid var(--border); padding-top:9px; display:flex; flex-direction:column; gap:4px;">
+              ${modules.map(mod => `<div>✓ ${escapeHtml(mod)}</div>`).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      el.innerHTML = `
+        <div class="onb-top">
+          ${onboardingStep > 0 ? `<button type="button" class="btn-ghost btn-sm" onclick="onbGo(-1)">← Atrás</button>` : `<span style="font-size:12px; font-weight:800; color:var(--rose-dark);">MealPrep</span>`}
+          <div class="onb-progress-track"><div class="onb-progress-fill" style="width:${pct}%;"></div></div>
+          <button type="button" class="btn-ghost btn-sm" style="color:var(--text-soft);" onclick="skipOnboarding()">Omitir</button>
+        </div>
+        <div class="onb-body">${stepBody}</div>
+        <div class="onb-footer">
+          <button type="button" class="btn-primary" style="width:100%; padding:13px; font-size:14.5px;" onclick="onbGo(1)">
+            ${onboardingStep === 5 ? "✨ Empezar mi plan" : "Continuar →"}
+          </button>
+        </div>
+      `;
+    }
+
     processAutoSyncFromUrl();
     render();
+    if (!state.onboardingCompleted) {
+      openOnboarding(0);
+    }
   </script>
 </body>
 </html>
