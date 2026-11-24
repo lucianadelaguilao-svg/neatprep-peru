@@ -1606,6 +1606,59 @@
       color: var(--text-main);
       margin-bottom: 10px;
     }
+
+    .quick-log-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .quick-log-btn {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 11px 12px;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.12s ease, border-color 0.14s ease;
+    }
+
+    .quick-log-btn:active {
+      transform: scale(0.98);
+      border-color: var(--rose);
+    }
+
+    .quick-log-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--rose-pale);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .quick-log-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .quick-log-sub {
+      font-size: 10.5px;
+      color: var(--text-soft);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 </head>
 <body>
@@ -2759,6 +2812,7 @@
     let hoySubTab = "hoy";
     let selectedCalendarDay = null;
     let comidaSubTab = "recetario";
+    let saludSubTab = "diario";
     let recipeFilter = "Todas";
     let recipeQuickFilter = "profile";
     let recipeSearch = "";
@@ -3542,6 +3596,8 @@
         comidaSubTab = subTab;
       } else if (tab === "hoy" && subTab) {
         hoySubTab = subTab;
+      } else if (tab === "progreso" && subTab) {
+        saludSubTab = subTab;
       }
       currentTab = tab;
       document.querySelectorAll(".nav-btn").forEach(btn => {
@@ -3554,6 +3610,12 @@
     function setHoySubTab(sub) {
       hoySubTab = sub;
       render();
+    }
+
+    function setSaludSubTab(sub) {
+      saludSubTab = sub;
+      render();
+      document.getElementById("mainContent").scrollTop = 0;
     }
 
     function selectCalendarDay(dayName) {
@@ -3812,7 +3874,7 @@
 
       const cyclePhase = getActiveCyclePhase(m);
       const cycleHoyBannerHtml = cyclePhase ? `
-        <div class="cycle-banner" onclick="switchTab('progreso')" style="cursor:pointer;">
+        <div class="cycle-banner" onclick="switchTab('progreso', 'diario')" style="cursor:pointer;">
           <span>${cyclePhase.hoyShort}</span>
           <span style="color:var(--rose-dark); font-weight:800; flex-shrink:0;">Ajustar</span>
         </div>
@@ -3867,7 +3929,7 @@
               </div>
               <div style="display:flex; gap:5px; flex-shrink:0;">
                 ${(m.takesMetformin || (state.metforminTracker?.logs?.length > 0)) ? `<button class="btn-secondary btn-sm" onclick="openMetforminLogSheet()" title="Registrar tolerancia metformina hoy">💊 GI</button>` : ""}
-                <button class="btn-secondary btn-sm" onclick="switchTab('progreso')">Abrir</button>
+                <button class="btn-secondary btn-sm" onclick="switchTab('progreso', 'diario')">Abrir</button>
               </div>
             </div>
           </div>
@@ -5114,7 +5176,7 @@
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
               <div class="card-title" style="margin:0;">Entrenamiento</div>
-              <button class="btn-ghost btn-sm" style="white-space:nowrap; flex-shrink:0;" onclick="switchTab('progreso')">Perfil →</button>
+              <button class="btn-ghost btn-sm" style="white-space:nowrap; flex-shrink:0;" onclick="switchTab('progreso', 'perfil')">Perfil →</button>
             </div>
 
             <div class="chip-row" style="margin-bottom:10px;">
@@ -5498,13 +5560,185 @@
           </div>
         `;
 
+      const saludSwitcherHtml = `
+        <div class="seg-control cols-3">
+          <button class="seg-btn ${saludSubTab === "diario" ? "active" : ""}" onclick="setSaludSubTab('diario')">📝 Diario</button>
+          <button class="seg-btn ${saludSubTab === "clinica" ? "active" : ""}" onclick="setSaludSubTab('clinica')">🔬 Clínica</button>
+          <button class="seg-btn ${saludSubTab === "perfil" ? "active" : ""}" onclick="setSaludSubTab('perfil')">⚙️ Perfil</button>
+        </div>
+      `;
+
+      const metfStatsQuick = getMetforminStats();
+      const labCountQuick = (state.labLogs || []).length;
+
+      if (saludSubTab === "diario") {
+        container.innerHTML = `
+          <div class="section-gap">
+            ${saludSwitcherHtml}
+
+            <div class="quick-log-grid">
+              <button class="quick-log-btn" onclick="openWeightLogSheet()">
+                <span class="quick-log-icon">⚖️</span>
+                <div style="min-width:0;">
+                  <div class="quick-log-title">+ Peso</div>
+                  <div class="quick-log-sub">${m.weightKg.toFixed(1)} kg actual</div>
+                </div>
+              </button>
+              <button class="quick-log-btn" onclick="openStepsSheet()">
+                <span class="quick-log-icon">👟</span>
+                <div style="min-width:0;">
+                  <div class="quick-log-title">+ Pasos</div>
+                  <div class="quick-log-sub">${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")} hoy</div>
+                </div>
+              </button>
+              <button class="quick-log-btn" onclick="openMetforminLogSheet()">
+                <span class="quick-log-icon">💊</span>
+                <div style="min-width:0;">
+                  <div class="quick-log-title">+ Metformina</div>
+                  <div class="quick-log-sub">${metfStatsQuick.count ? `GI ${metfStatsQuick.avgGi.toFixed(1).replace(".", ",")}/3 · ${metfStatsQuick.count}d` : "Escala GI (10 s)"}</div>
+                </div>
+              </button>
+              <button class="quick-log-btn" onclick="openAddLabSheet()">
+                <span class="quick-log-icon">🩸</span>
+                <div style="min-width:0;">
+                  <div class="quick-log-title">+ Analítica</div>
+                  <div class="quick-log-sub">${labCountQuick ? `${labCountQuick} guardada(s)` : "HOMA-IR, B12, Fe"}</div>
+                </div>
+              </button>
+            </div>
+
+            <div class="card">
+              <div class="row-between" style="margin-bottom:8px;">
+                <div>
+                  <div class="card-title" style="margin:0;">Protocolo de hoy</div>
+                  <div class="card-sub">${medsDone}/${state.meds.length} completadas</div>
+                </div>
+                <button class="btn-secondary btn-sm" onclick="openAddMedSheet()">+ Toma</button>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:9px;">
+                ${state.meds.map(med => `
+                  <div class="check-item ${med.checked ? "done" : ""}" onclick="toggleMed('${med.id}')">
+                    <div class="check-left">
+                      <div class="check-box">${med.checked ? "✓" : ""}</div>
+                      <div>
+                        <div class="check-label">${med.name}</div>
+                        <div style="font-size:11px; color:var(--text-soft);">${med.dose}</div>
+                      </div>
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+              <input type="text" value="${escapeAttr(state.glucoseNote || "")}" onchange="updateGlucoseNote(this.value)" placeholder="Nota rápida de energía o glucemia..." />
+            </div>
+
+            ${m.sex === "F" ? `<div class="card">${buildCycleSelectorHtml(m, true)}</div>` : ""}
+
+            <div class="card">
+              <div class="row-between" style="margin-bottom:8px;">
+                <div>
+                  <div class="card-title" style="margin:0;">Peso y Metas</div>
+                  <div class="card-sub">${m.weightKg.toFixed(1)} kg (${Number(diffW) <= 0 ? diffW : "+" + diffW} kg) · Meta ${g.milestoneKg.toFixed(1)} kg</div>
+                </div>
+                <div style="display:flex; gap:5px;">
+                  <button class="btn-ghost btn-sm" onclick="openBodyGoalsSheet()">Metas</button>
+                  <button class="btn-primary btn-sm" onclick="openWeightLogSheet()">+ Peso</button>
+                </div>
+              </div>
+
+              <div class="goal-box" style="margin-bottom:8px;">
+                <div class="row-between" style="margin-bottom:4px;">
+                  <span style="font-size:12px; font-weight:800; color:var(--mint-text);">Fase 1: ${g.milestoneKg.toFixed(1)} kg · Meta ${state.bodyGoals.annualYear}: ${g.annualKg.toFixed(1)} kg</span>
+                  <span class="badge badge-mint">${g.milestonePct}%</span>
+                </div>
+                <div class="progress-track" style="margin-bottom:4px;">
+                  <div class="progress-fill-mint" style="width:${g.milestonePct}%;"></div>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted);">
+                  Faltan <strong>${g.remMilestone.toFixed(1)} kg</strong> · ${g.weeklyLossKg > 0 ? `~${g.weeksTo64} sem (${g.etaStr})` : "Mantenimiento"}
+                </div>
+              </div>
+
+              ${renderWeightChartSvg(state.weightLogs)}
+
+              <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
+                ${state.weightLogs.slice().reverse().slice(0, 3).map(w => `
+                  <div class="row-between" style="padding:6px 10px; background:var(--bg-soft); border-radius:var(--radius-sm); font-size:12px;">
+                    <span>${w.date}</span>
+                    <strong>${Number(w.weight).toFixed(1)} kg</strong>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="row-between" style="margin-bottom:6px;">
+                <div>
+                  <div class="card-title" style="margin:0;">Pasos hoy</div>
+                  <div class="card-sub">${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")} / ${Number(state.stepsGoal).toLocaleString("es-ES")} (${stepsPct}%)</div>
+                </div>
+                <button class="btn-secondary btn-sm" onclick="openStepsSheet()">+ Pasos</button>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:${stepsPct}%;"></div></div>
+              ${state.syncConfig?.lastSyncAt ? `<div style="font-size:10.5px; color:var(--text-soft); margin-top:5px;">✓ Sync: ${escapeHtml(state.syncConfig.lastSyncAt)}</div>` : ""}
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      if (saludSubTab === "clinica") {
+        container.innerHTML = `
+          <div class="section-gap">
+            ${saludSwitcherHtml}
+
+            <div class="card">
+              <div class="row-between" style="gap:8px; margin-bottom:8px;">
+                <div>
+                  <div class="card-title" style="margin:0;">Panel Clínico</div>
+                  <div class="card-sub">${sexLabel} · ${m.age}a · ${condSummaryText}</div>
+                </div>
+                <button class="btn-ghost btn-sm" onclick="setSaludSubTab('perfil')">Editar perfil →</button>
+              </div>
+              <div class="grid-2">
+                <button class="btn-primary btn-sm" onclick="openPrintableMedicalReport()">📄 Resumen PDF</button>
+                <button class="btn-secondary btn-sm" onclick="openAddLabSheet()">+ Analítica</button>
+              </div>
+            </div>
+
+            ${buildMetforminDetailsHtml(m, true)}
+            ${buildLabsDetailsHtml(m, true)}
+
+            <details class="clean-details">
+              <summary>
+                <div>
+                  <div class="card-title" style="margin:0; font-size:14px;">💊 Vitaminas y Minerales</div>
+                  <div style="font-size:11.5px; color:var(--text-soft);">${sexLabel} · ${m.age}a · ${condSummaryText} (7 nutrientes)</div>
+                </div>
+              </summary>
+              <div class="clean-details-body">
+                <div class="micro-list" style="margin-top:0;">
+                  ${microItemsHtml}
+                </div>
+              </div>
+            </details>
+
+            <div class="disclaimer-box" role="note">
+              Datos y guías orientativos con fines educativos; no sustituyen una evaluación médica o nutricional individualizada.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // saludSubTab === "perfil"
       container.innerHTML = `
         <div class="section-gap">
+          ${saludSwitcherHtml}
           ${planBannerHtml}
 
           <div class="card">
             <div class="row-between" style="margin-bottom:6px;">
-              <div class="card-title" style="margin:0;">Perfil Clínico</div>
+              <div class="card-title" style="margin:0;">Perfil Corporal</div>
               <span class="badge" style="color:${m.bmiColor};">BMI ${m.bmi.toFixed(1)} · ${m.bmiCategory}</span>
             </div>
 
@@ -5603,112 +5837,6 @@
 
             ${diabetesRationsHtml}
             ${clinicalBlocksHtml}
-            ${m.sex === "F" ? buildCycleSelectorHtml(m) : ""}
-          </div>
-
-          <details class="clean-details">
-            <summary>
-              <div>
-                <div class="card-title" style="margin:0; font-size:14px;">💊 Vitaminas y Minerales</div>
-                <div style="font-size:11.5px; color:var(--text-soft);">${sexLabel} · ${m.age}a · ${condSummaryText} (7 nutrientes)</div>
-              </div>
-            </summary>
-            <div class="clean-details-body">
-              <div class="micro-list" style="margin-top:0;">
-                ${microItemsHtml}
-              </div>
-            </div>
-          </details>
-
-          ${buildLabsDetailsHtml(m)}
-          ${buildMetforminDetailsHtml(m)}
-
-          <div class="card">
-            <div class="row-between" style="margin-bottom:8px;">
-              <div class="card-title" style="margin:0;">Body Goals</div>
-              <button class="btn-secondary btn-sm" onclick="openBodyGoalsSheet()">Editar</button>
-            </div>
-
-            <div class="goal-box" style="margin-bottom:8px;">
-              <div class="row-between" style="margin-bottom:4px;">
-                <span style="font-size:12.5px; font-weight:800; color:var(--mint-text);">Fase 1: ${g.milestoneKg.toFixed(1)} kg</span>
-                <span class="badge badge-mint">${g.milestonePct}%</span>
-              </div>
-              <div class="progress-track" style="margin-bottom:5px;">
-                <div class="progress-fill-mint" style="width:${g.milestonePct}%;"></div>
-              </div>
-              <div style="font-size:11px; color:var(--text-muted);">
-                Faltan <strong>${g.remMilestone.toFixed(1)} kg</strong> · ${g.weeklyLossKg > 0 ? `~${g.weeksTo64} sem (${g.etaStr})` : "Mantenimiento"}
-              </div>
-            </div>
-
-            <div class="goal-box">
-              <div class="row-between" style="margin-bottom:4px;">
-                <span style="font-size:12.5px; font-weight:800; color:var(--rose-dark);">Meta ${state.bodyGoals.annualYear}: ${g.annualKg.toFixed(1)} kg</span>
-                <span class="badge">${g.annualPct}%</span>
-              </div>
-              <div class="progress-track" style="margin-bottom:5px;">
-                <div class="progress-fill" style="width:${g.annualPct}%;"></div>
-              </div>
-              <div style="font-size:11px; color:var(--text-muted);">
-                Faltan <strong>${g.remAnnual.toFixed(1)} kg</strong> · BMI meta: <strong>${bmiAtAnnual.toFixed(1)}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="row-between" style="margin-bottom:8px;">
-              <div>
-                <div class="card-title" style="margin:0;">Peso</div>
-                <div class="card-sub">${m.weightKg.toFixed(1)} kg (${Number(diffW) <= 0 ? diffW : "+" + diffW} kg)</div>
-              </div>
-              <button class="btn-primary btn-sm" onclick="openWeightLogSheet()">+ Peso</button>
-            </div>
-            ${renderWeightChartSvg(state.weightLogs)}
-            <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
-              ${state.weightLogs.slice().reverse().slice(0, 4).map(w => `
-                <div class="row-between" style="padding:6px 10px; background:var(--bg-soft); border-radius:var(--radius-sm); font-size:12px;">
-                  <span>${w.date}</span>
-                  <strong>${Number(w.weight).toFixed(1)} kg</strong>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="row-between" style="margin-bottom:6px;">
-              <div>
-                <div class="card-title" style="margin:0;">Pasos</div>
-                <div class="card-sub">${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")} / ${Number(state.stepsGoal).toLocaleString("es-ES")} (${stepsPct}%)</div>
-              </div>
-              <button class="btn-secondary btn-sm" onclick="openStepsSheet()">+ Pasos</button>
-            </div>
-            <div class="progress-track"><div class="progress-fill" style="width:${stepsPct}%;"></div></div>
-            ${state.syncConfig?.lastSyncAt ? `<div style="font-size:10.5px; color:var(--text-soft); margin-top:5px;">✓ Sync: ${escapeHtml(state.syncConfig.lastSyncAt)}</div>` : ""}
-          </div>
-
-          <div class="card">
-            <div class="row-between" style="margin-bottom:8px;">
-              <div>
-                <div class="card-title" style="margin:0;">Protocolo diario</div>
-                <div class="card-sub">${medsDone}/${state.meds.length} completadas</div>
-              </div>
-              <button class="btn-secondary btn-sm" onclick="openAddMedSheet()">+ Toma</button>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:9px;">
-              ${state.meds.map(med => `
-                <div class="check-item ${med.checked ? "done" : ""}" onclick="toggleMed('${med.id}')">
-                  <div class="check-left">
-                    <div class="check-box">${med.checked ? "✓" : ""}</div>
-                    <div>
-                      <div class="check-label">${med.name}</div>
-                      <div style="font-size:11px; color:var(--text-soft);">${med.dose}</div>
-                    </div>
-                  </div>
-                </div>
-              `).join("")}
-            </div>
-            <input type="text" value="${escapeAttr(state.glucoseNote || "")}" onchange="updateGlucoseNote(this.value)" placeholder="Nota de glucemia o energía..." />
           </div>
 
           <details class="clean-details">
@@ -5833,13 +5961,13 @@
       showToast(phase === "none" ? "Fase del ciclo ocultada" : `Fase activa: ${CYCLE_PHASE_META[phase].short}`);
     }
 
-    function buildCycleSelectorHtml(m) {
+    function buildCycleSelectorHtml(m, standalone = false) {
       const current = state.cycleProfile?.phase || "none";
       const active = getActiveCyclePhase(m);
       return `
-        <div style="margin-top:11px; padding-top:10px; border-top:1px solid var(--border);">
+        <div style="${standalone ? "" : "margin-top:11px; padding-top:10px; border-top:1px solid var(--border);"}">
           <div class="row-between" style="margin-bottom:6px;">
-            <span style="font-size:12px; font-weight:800; color:var(--text-main);">🌙 Fase del ciclo <span style="font-weight:600; color:var(--text-soft);">(opcional)</span></span>
+            <span style="font-size:${standalone ? "14px" : "12px"}; font-weight:800; color:var(--text-main);">🌙 Fase del ciclo <span style="font-weight:600; font-size:11px; color:var(--text-soft);">(opcional)</span></span>
             ${active ? `<span class="badge">${active.short}</span>` : ""}
           </div>
           <div class="chip-row">
@@ -5941,7 +6069,7 @@
       `;
     }
 
-    function buildLabsDetailsHtml(m) {
+    function buildLabsDetailsHtml(m, openByDefault = false) {
       const logs = Array.isArray(state.labLogs) ? state.labLogs : [];
       const sorted = logs.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
       const latest = sorted[0] || null;
@@ -6011,7 +6139,7 @@
       }
 
       return `
-        <details class="clean-details" id="labsDetailsBox">
+        <details class="clean-details" id="labsDetailsBox" ${openByDefault ? "open" : ""}>
           <summary>
             <div>
               <div class="card-title" style="margin:0; font-size:14px;">📊 Analíticas &amp; Resumen Médico</div>
@@ -6493,7 +6621,7 @@
       `;
     }
 
-    function buildMetforminDetailsHtml(m) {
+    function buildMetforminDetailsHtml(m, openByDefault = false) {
       const stats = getMetforminStats();
       const mt = stats.mt;
       const b12Mon = getMetforminB12Monitor();
@@ -6502,7 +6630,7 @@
         : `${mt.formulation} ${mt.doseMg} mg · Escala GI 0–3, curvas y B12`;
 
       return `
-        <details class="clean-details" id="metforminDetailsBox">
+        <details class="clean-details" id="metforminDetailsBox" ${openByDefault ? "open" : ""}>
           <summary>
             <div>
               <div class="card-title" style="margin:0; font-size:14px;">💊 Seguimiento Metformina (Ciencia)</div>
