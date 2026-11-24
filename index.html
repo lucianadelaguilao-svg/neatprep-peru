@@ -3593,19 +3593,19 @@
         Viernes: "Desayuno: Huevos revueltos + palta · Cena: Ligera"
       },
       checkedShopping: {},
-      favoriteRecipes: ["pollo_criollo_ensalada", "tiktok_tacos_lechuga_pollo"],
+      favoriteRecipes: [],
       targets: {
-        kcal: 1640,
-        protein: 130,
-        carbsMax: 135
+        kcal: 2000,
+        protein: 120,
+        carbsMax: 200
       },
       bodyProfile: {
-        heightCm: 158,
-        age: 21,
+        heightCm: 165,
+        age: 25,
         sex: "F",
         activity: 1.55,
-        goal: "deficit",
-        deficit: 550,
+        goal: "maintenance",
+        deficit: 500,
         surplus: 250
       },
       clinicalProfile: {
@@ -3640,26 +3640,19 @@
         lastSyncSummary: ""
       },
       bodyGoals: {
-        startWeight: 69.0,
-        milestoneKg: 64.0,
-        milestoneLabel: "Meta rápida y saludable (-5 kg)",
-        annualKg: 60.0,
+        startWeight: 65.0,
+        milestoneKg: 65.0,
+        milestoneLabel: "Meta principal",
+        annualKg: 65.0,
         annualYear: "2027"
       },
-      weightLogs: [
-        { id: "w1", date: "2026-11-23", weight: 69.0 }
-      ],
-      stepsGoal: 9000,
-      stepsLogs: [
-        { date: "2026-11-23", steps: 8450 }
-      ],
+      weightLogs: [],
+      stepsGoal: 8000,
+      stepsLogs: [],
       meds: [],
       medLogs: {},
-      glucoseNote: "Glucosa ayunas estable · buena saciedad post-comida",
-      workouts: [
-        { id: "wo1", date: "2026-11-22", type: "Fuerza (Gym)", minutes: 55, intensity: "Alta" },
-        { id: "wo2", date: "2026-11-21", type: "Natación", minutes: 45, intensity: "Moderada" }
-      ],
+      glucoseNote: "",
+      workouts: [],
       labLogs: [],
       cycleProfile: {
         hormonalMode: "none", // "none"|"natural"|"pill_24_4"|"pill_21_7"|"pill_continuous"|"copper_iud"|"ring_patch"|"perimenopause"
@@ -4118,19 +4111,19 @@
     }
 
     function getCurrentWeightKg() {
-      const latestW = state.weightLogs[state.weightLogs.length - 1] || { weight: 69.0 };
-      return Math.max(30, Math.min(250, Number(latestW.weight) || 69.0));
+      const latestW = state.weightLogs[state.weightLogs.length - 1] || { weight: Number(state.bodyGoals?.startWeight) || 65.0 };
+      return Math.max(30, Math.min(250, Number(latestW.weight) || 65.0));
     }
 
     function getAdaptiveNutritionMetrics() {
       const sex = state.bodyProfile.sex === "M" ? "M" : "F";
-      const age = Math.max(15, Math.min(90, Number(state.bodyProfile.age) || 21));
-      const heightCm = Math.max(120, Math.min(220, Number(state.bodyProfile.heightCm) || 158));
+      const age = Math.max(15, Math.min(90, Number(state.bodyProfile.age) || 25));
+      const heightCm = Math.max(120, Math.min(220, Number(state.bodyProfile.heightCm) || 165));
       const heightM = heightCm / 100;
       const weightKg = getCurrentWeightKg();
       const activity = Number(state.bodyProfile.activity) || 1.55;
-      const goal = ["deficit", "hypertrophy", "maintenance"].includes(state.bodyProfile.goal) ? state.bodyProfile.goal : "deficit";
-      const deficitVal = Math.max(250, Math.min(800, Number(state.bodyProfile.deficit) || 550));
+      const goal = ["deficit", "hypertrophy", "maintenance"].includes(state.bodyProfile.goal) ? state.bodyProfile.goal : "maintenance";
+      const deficitVal = Math.max(250, Math.min(800, Number(state.bodyProfile.deficit) || 500));
       const surplusVal = Math.max(150, Math.min(500, Number(state.bodyProfile.surplus) || 250));
 
       const bmi = weightKg / (heightM * heightM);
@@ -4480,8 +4473,8 @@
     function getBodyGoalMetrics() {
       const currentKg = getCurrentWeightKg();
       const rawStart = Number(state.bodyGoals.startWeight) || currentKg;
-      const milestoneKg = Number(state.bodyGoals.milestoneKg) || 64.0;
-      const annualKg = Number(state.bodyGoals.annualKg) || 60.0;
+      const milestoneKg = Number(state.bodyGoals.milestoneKg) || currentKg;
+      const annualKg = Number(state.bodyGoals.annualKg) || milestoneKg;
       const isGainGoal = milestoneKg > rawStart;
 
       const startKg = isGainGoal ? Math.min(currentKg, rawStart) : Math.max(currentKg, rawStart);
@@ -7419,7 +7412,7 @@
     function renderProgreso(container) {
       const g = getBodyGoalMetrics();
       const m = getAdaptiveNutritionMetrics();
-      const latestW = state.weightLogs[state.weightLogs.length - 1] || { weight: 69.0, date: "Hoy" };
+      const latestW = state.weightLogs[state.weightLogs.length - 1] || { weight: g.currentKg, date: "Hoy" };
       const firstW = state.weightLogs[0] || latestW;
       const diffW = (Number(latestW.weight) - Number(firstW.weight)).toFixed(1);
 
@@ -7912,7 +7905,7 @@
 
     function renderWeightChartSvg(logs) {
       if (!logs || logs.length < 2) {
-        return `<div style="font-size:12px; color:var(--text-soft); padding:8px; background:var(--bg-soft); border-radius:10px;">Registra tu siguiente pesaje para ver la curva hacia 64 kg y 60 kg.</div>`;
+        return `<div style="font-size:12px; color:var(--text-soft); padding:10px; background:var(--bg-soft); border-radius:10px;">Registra 2 o más pesajes para ver tu gráfica de evolución.</div>`;
       }
       const recent = logs.slice(-8);
       const weights = recent.map(x => Number(x.weight));
@@ -10167,7 +10160,7 @@
       const defEl = document.getElementById("bpDeficit");
       const surEl = document.getElementById("bpSurplus");
 
-      if (hEl) state.bodyProfile.heightCm = Math.max(120, Math.min(220, parseNumInput(hEl.value, 158)));
+      if (hEl) state.bodyProfile.heightCm = Math.max(120, Math.min(220, parseNumInput(hEl.value, 165)));
       if (aEl) state.bodyProfile.age = Math.max(15, Math.min(90, parseNumInput(aEl.value, 21)));
       if (actEl) state.bodyProfile.activity = parseNumInput(actEl.value, 1.55);
       if (defEl) state.bodyProfile.deficit = parseNumInput(defEl.value, 550);
@@ -11137,9 +11130,9 @@
     }
 
     function saveBodyGoals() {
-      state.bodyGoals.startWeight = parseNumInput(document.getElementById("bgStart").value, 69.0);
-      state.bodyGoals.milestoneKg = parseNumInput(document.getElementById("bgMilestone").value, 64.0);
-      state.bodyGoals.annualKg = parseNumInput(document.getElementById("bgAnnual").value, 60.0);
+      state.bodyGoals.startWeight = parseNumInput(document.getElementById("bgStart").value, getCurrentWeightKg());
+      state.bodyGoals.milestoneKg = parseNumInput(document.getElementById("bgMilestone").value, getCurrentWeightKg());
+      state.bodyGoals.annualKg = parseNumInput(document.getElementById("bgAnnual").value, getCurrentWeightKg());
       state.bodyGoals.annualYear = document.getElementById("bgYear").value.trim() || "2027";
       saveState();
       closeSheet();
@@ -11433,7 +11426,7 @@
 
     function openWeightLogSheet() {
       const today = new Date().toISOString().slice(0, 10);
-      const last = state.weightLogs[state.weightLogs.length - 1] || { weight: 69.0 };
+      const last = state.weightLogs[state.weightLogs.length - 1] || { weight: getCurrentWeightKg() };
       openSheet("Registrar peso (kg)", `
         <div>
           <label>Fecha</label>
@@ -11880,7 +11873,7 @@
         <div class="card">
           <div style="font-size:12.5px; font-weight:800; color:var(--text-main); margin-bottom:4px;">Importar historial CSV / JSON (Salud o Mi Fitness)</div>
           <p class="card-sub" style="margin-bottom:7px;">Pega líneas CSV (<code>fecha,pasos,peso</code> ej. <code>2026-11-23,9450,68.6</code>) o JSON exportado de Health Auto Export.</p>
-          <textarea id="healthImportArea" rows="3" placeholder="2026-11-23,9450,68.6"></textarea>
+          <textarea id="healthImportArea" rows="3" placeholder="2026-11-24,8000,65.0"></textarea>
           <button class="btn-secondary" style="width:100%; margin-top:7px;" onclick="importHealthHistoryData()">Importar pasos y peso</button>
         </div>
       `);
