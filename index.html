@@ -2143,36 +2143,73 @@
     .blister-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-      margin: 8px 0;
+      gap: 6px;
+      margin: 10px 0 8px;
     }
 
     .blister-pill {
-      aspect-ratio: 1;
-      border-radius: 50%;
+      border-radius: 12px;
       border: 1.5px solid var(--border);
       background: #FFFFFF;
-      font-size: 10.5px;
-      font-weight: 800;
+      padding: 5px 2px;
+      min-height: 46px;
       color: var(--text-main);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 1px;
       cursor: pointer;
       position: relative;
-      transition: transform 0.12s ease;
+      transition: transform 0.12s ease, background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .blister-pill:active {
+      transform: scale(0.95);
+    }
+
+    .blister-pill-wd {
+      font-size: 8.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      opacity: 0.72;
+      line-height: 1;
+    }
+
+    .blister-pill-num {
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.1;
+    }
+
+    .blister-pill-date {
+      font-size: 8.5px;
+      font-weight: 650;
+      opacity: 0.75;
+      line-height: 1;
     }
 
     .blister-pill.placebo {
       background: #EAF6F0;
       border-color: #A5D8C1;
-      color: #1E6B4E;
+      color: #1B7349;
+    }
+
+    .blister-pill.missed {
+      background: #FEF6E8;
+      border-color: #E09B3D;
+      color: #945B0B;
     }
 
     .blister-pill.taken {
-      background: var(--rose-pale);
+      background: var(--rose);
       border-color: var(--rose);
-      color: var(--rose-dark);
+      color: #FFFFFF;
+    }
+
+    .blister-pill.taken .blister-pill-wd,
+    .blister-pill.taken .blister-pill-date {
+      opacity: 0.9;
     }
 
     .blister-pill.placebo.taken {
@@ -2182,7 +2219,7 @@
     }
 
     .blister-pill.today {
-      box-shadow: 0 0 0 2.5px rgba(207, 83, 125, 0.32);
+      box-shadow: 0 0 0 2.5px rgba(216, 78, 125, 0.36);
       border-color: var(--rose-dark);
     }
 
@@ -2190,16 +2227,17 @@
       display: grid;
       grid-template-columns: repeat(28, 1fr);
       gap: 2px;
-      margin: 7px 0 4px;
+      margin: 7px 0 6px;
     }
 
     .blister-mini-dot {
-      height: 6px;
+      height: 7px;
       border-radius: 99px;
-      background: #ECE2E7;
+      background: #EFE4EA;
     }
 
     .blister-mini-dot.active-done { background: var(--rose); }
+    .blister-mini-dot.missed-slot { background: #E09B3D; }
     .blister-mini-dot.placebo-slot { background: #CBE8DA; }
     .blister-mini-dot.placebo-done { background: #2E8B63; }
     .blister-mini-dot.today-dot { outline: 1.5px solid var(--rose-dark); }
@@ -3824,7 +3862,8 @@
     let onboardingStep = 0;
     let selectedCalendarDay = null;
     let comidaSubTab = "diario";
-    let diaryDateKey = new Date().toISOString().slice(0, 10);
+    let diaryDateKey = getTodayDateKey();
+    let lastActiveDateKey = diaryDateKey;
     let activeFoodSheet = { slot: "desayuno", mode: "presets", search: "", portion: 1 };
     let saludSubTab = "diario";
     let selectedLabChartMarker = "homa";
@@ -4303,7 +4342,7 @@
       const protPerKg = goal === "hypertrophy" ? 2.1 : (goal === "deficit" ? 1.9 : 1.6);
       const targetProtein = Math.round(weightKg * protPerKg);
 
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = getTodayDateKey();
       const trainedToday = state.workouts.some(w => w.date === todayStr);
       const isDiabetes = hasCondition("diabetes");
       const isIR = hasCondition("insulin_resistance");
@@ -4979,7 +5018,7 @@
       }).sort((a, b) => getRecipeProfileMeta(b, m).score - getRecipeProfileMeta(a, m).score);
 
       const medsDone = state.meds.filter(med => isMedTakenToday(med)).length;
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = getTodayDateKey();
       const todayStepsObj = state.stepsLogs.find(s => s.date === todayStr) || state.stepsLogs[state.stepsLogs.length - 1] || { steps: 0 };
       const g = getBodyGoalMetrics();
       const completedMap = state.trainingProfile?.completedPlanDays || {};
@@ -5508,14 +5547,22 @@
       { id: "pre_s8", slot: "snacks", title: "Chocolate negro 85% (20g)", kcal: 115, protein: 2, carbs: 5, fat: 10, tag: "Antojo" }
     ];
 
+    function formatLocalDateKey(d) {
+      const dt = d instanceof Date ? d : new Date();
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, "0");
+      const day = String(dt.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
     function getTodayDateKey() {
-      return new Date().toISOString().slice(0, 10);
+      return formatLocalDateKey(new Date());
     }
 
     function shiftDateKey(dateStr, deltaDays) {
       const d = new Date(dateStr + "T12:00:00");
       d.setDate(d.getDate() + deltaDays);
-      return d.toISOString().slice(0, 10);
+      return formatLocalDateKey(d);
     }
 
     function formatDiaryDateLabel(dateStr) {
@@ -8491,7 +8538,7 @@
       const plan = getAdaptiveTrainingPlan(m);
       const day = plan.schedule.find(d => d.id === dayId);
       if (!day) return;
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayDateKey();
       if (!state.trainingProfile.completedPlanDays) state.trainingProfile.completedPlanDays = {};
       state.trainingProfile.completedPlanDays[dayId] = true;
       state.workouts.push({
@@ -8524,7 +8571,7 @@
       const bmiAtMilestone = g.milestoneKg / (heightM * heightM);
       const bmiAtAnnual = g.annualKg / (heightM * heightM);
 
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = getTodayDateKey();
       const todayStepsObj = state.stepsLogs.find(s => s.date === todayStr) || state.stepsLogs[state.stepsLogs.length - 1] || { date: todayStr, steps: 0 };
       const stepsPct = Math.min(100, Math.round((Number(todayStepsObj.steps || 0) / Math.max(1000, state.stepsGoal)) * 100));
 
@@ -9369,10 +9416,57 @@
       showToast("🩸 Inicio de regla registrado hoy (Día 1) ✓");
     }
 
+    function getBlisterEffectiveStartDate(cp) {
+      return (cp && cp.packStartDate) ? cp.packStartDate : getTodayDateKey();
+    }
+
+    function formatShortEsDate(dateStr) {
+      if (!dateStr) return "";
+      const d = new Date(dateStr + "T12:00:00");
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
+    }
+
+    function getBlisterPillInfo(startStr, dayNum) {
+      const dateStr = shiftDateKey(startStr, dayNum - 1);
+      const d = new Date(dateStr + "T12:00:00");
+      const wdShort = isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-ES", { weekday: "short" }).replace(".", "").slice(0, 3);
+      const dayOfMonth = isNaN(d.getTime()) ? "" : d.getDate();
+      const monthShort = isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-ES", { month: "short" }).replace(".", "");
+      return { dateStr, wdShort, dayOfMonth, monthShort, niceDate: `${wdShort} ${dayOfMonth} ${monthShort}` };
+    }
+
+    function getBlisterStats(cp, hMeta, active) {
+      const startStr = getBlisterEffectiveStartDate(cp);
+      const totalD = hMeta.totalDays || 28;
+      const activeD = hMeta.activeDays || 24;
+      const takenMap = (cp && cp.pillTakenDays) || {};
+      const packPrefix = cp.packStartDate || "pack";
+      let takenCount = 0;
+      let missedPastCount = 0;
+      const recentTaken = [];
+      for (let d = 1; d <= totalD; d++) {
+        const val = takenMap[`${packPrefix}_d${d}`];
+        const info = getBlisterPillInfo(startStr, d);
+        if (val) {
+          takenCount++;
+          recentTaken.push({ dayNum: d, time: val, niceDate: info.niceDate, isPlacebo: d > activeD });
+        } else if (active && d < active.packDay) {
+          missedPastCount++;
+        }
+      }
+      const endStr = shiftDateKey(startStr, totalD - 1);
+      const placeboStartStr = shiftDateKey(startStr, activeD);
+      const nextPackStr = shiftDateKey(startStr, totalD);
+      return { startStr, endStr, placeboStartStr, nextPackStr, totalD, activeD, takenCount, missedPastCount, recentTaken: recentTaken.reverse() };
+    }
+
     function toggleBlisterPillDay(dayNum, fromSheet = false) {
       const cp = state.cycleProfile || DEFAULT_STATE.cycleProfile;
+      if (!cp.packStartDate) cp.packStartDate = getTodayDateKey();
       if (!cp.pillTakenDays || typeof cp.pillTakenDays !== "object") cp.pillTakenDays = {};
-      const key = `${cp.packStartDate || "pack"}_d${dayNum}`;
+      const key = `${cp.packStartDate}_d${dayNum}`;
+      const info = getBlisterPillInfo(cp.packStartDate, dayNum);
       if (cp.pillTakenDays[key]) {
         delete cp.pillTakenDays[key];
       } else {
@@ -9381,16 +9475,68 @@
       saveState();
       render();
       if (fromSheet) openCycleTrackerSheet();
-      showToast(cp.pillTakenDays[key] ? `✓ Pastilla ${dayNum} marcada (${cp.pillTakenDays[key]})` : `Pastilla ${dayNum} desmarcada`);
+      showToast(cp.pillTakenDays[key] ? `Pastilla #${dayNum} (${info.niceDate}) marcada · ${cp.pillTakenDays[key]} ✓` : `Pastilla #${dayNum} desmarcada`);
     }
 
     function updatePackStartDate(val) {
       if (!val) return;
-      state.cycleProfile.packStartDate = val;
+      const cp = state.cycleProfile || DEFAULT_STATE.cycleProfile;
+      const oldPrefix = cp.packStartDate || "pack";
+      const newPrefix = val;
+      if (oldPrefix !== newPrefix && cp.pillTakenDays && typeof cp.pillTakenDays === "object") {
+        // Migrate existing checked days from previous prefix if new prefix has none yet
+        const hasNew = Object.keys(cp.pillTakenDays).some(k => k.startsWith(`${newPrefix}_d`));
+        if (!hasNew) {
+          Object.keys(cp.pillTakenDays).forEach(k => {
+            if (k.startsWith(`${oldPrefix}_d`)) {
+              const suffix = k.slice(oldPrefix.length);
+              cp.pillTakenDays[`${newPrefix}${suffix}`] = cp.pillTakenDays[k];
+            }
+          });
+        }
+      }
+      cp.packStartDate = newPrefix;
       saveState();
       render();
       openCycleTrackerSheet();
-      showToast("Fecha de inicio del blíster guardada ✓");
+      showToast(`Blíster iniciado el ${formatShortEsDate(newPrefix)} ✓`);
+    }
+
+    function setBlisterCurrentDay(dayNum) {
+      const hMode = getHormonalMode();
+      const hMeta = HORMONAL_MODE_META[hMode] || HORMONAL_MODE_META.pill_24_4;
+      const totalD = hMeta.totalDays || 28;
+      const d = Math.max(1, Math.min(totalD, Number(dayNum) || 1));
+      const newStart = shiftDateKey(getTodayDateKey(), -(d - 1));
+      updatePackStartDate(newStart);
+    }
+
+    function markBlisterPastDays(upToDay) {
+      const cp = state.cycleProfile || DEFAULT_STATE.cycleProfile;
+      if (!cp.packStartDate) cp.packStartDate = getTodayDateKey();
+      if (!cp.pillTakenDays || typeof cp.pillTakenDays !== "object") cp.pillTakenDays = {};
+      const prefix = cp.packStartDate;
+      let added = 0;
+      for (let d = 1; d <= upToDay; d++) {
+        const k = `${prefix}_d${d}`;
+        if (!cp.pillTakenDays[k]) {
+          cp.pillTakenDays[k] = "Tomada";
+          added++;
+        }
+      }
+      saveState();
+      render();
+      openCycleTrackerSheet();
+      showToast(added > 0 ? `${added} pastilla(s) anteriores marcadas ✓` : "Todas las pastillas hasta hoy ya estaban marcadas");
+    }
+
+    function startNewBlisterToday() {
+      const today = getTodayDateKey();
+      state.cycleProfile.packStartDate = today;
+      saveState();
+      render();
+      openCycleTrackerSheet();
+      showToast(`Nuevo blíster iniciado hoy (${formatShortEsDate(today)}) · Día 1 ✓`);
     }
 
     function setTodayCycleFlow(flowId) {
@@ -9460,35 +9606,90 @@
 
       let topVisualHtml = "";
       if (hMeta.hasBlister && active) {
+        const st = getBlisterStats(cp, hMeta, active);
+        const effPrefix = cp.packStartDate || "pack";
         const pills = [];
         for (let d = 1; d <= hMeta.totalDays; d++) {
           const isPlacebo = d > hMeta.activeDays;
-          const isTaken = Boolean(cp.pillTakenDays && cp.pillTakenDays[`${packPrefix}_d${d}`]);
+          const takenVal = cp.pillTakenDays && cp.pillTakenDays[`${effPrefix}_d${d}`];
+          const isTaken = Boolean(takenVal);
           const isToday = d === active.packDay;
+          const isMissed = !isTaken && d < active.packDay;
+          const info = getBlisterPillInfo(st.startStr, d);
           pills.push(`
-            <button type="button" class="blister-pill ${isPlacebo ? "placebo" : ""} ${isTaken ? "taken" : ""} ${isToday ? "today" : ""}" onclick="toggleBlisterPillDay(${d}, true)" title="Día ${d}${isPlacebo ? " (Placebo/Pausa)" : " (Activa)"}">
-              ${isTaken ? "✓" : d}
+            <button type="button" class="blister-pill ${isPlacebo ? "placebo" : ""} ${isMissed ? "missed" : ""} ${isTaken ? "taken" : ""} ${isToday ? "today" : ""}" onclick="toggleBlisterPillDay(${d}, true)" title="Pastilla #${d} · ${info.niceDate}${isTaken ? ` · ${takenVal}` : ""}">
+              <span class="blister-pill-wd">${info.wdShort}</span>
+              <span class="blister-pill-num">${isTaken ? "✓" : d}</span>
+              <span class="blister-pill-date">${info.dayOfMonth}</span>
             </button>
           `);
         }
         topVisualHtml = `
           <div class="card-soft">
-            <div class="row-between" style="margin-bottom:6px;">
+            <div class="row-between" style="margin-bottom:8px;">
               <div>
-                <div style="font-size:13px; font-weight:800; color:var(--rose-dark);">${hMeta.icon} Blíster ${hMeta.short}</div>
-                <div style="font-size:11px; color:var(--text-muted);">Hoy: <strong>Día ${active.packDay}/${hMeta.totalDays}</strong> · ${active.isWithdrawal ? "Placebo / Sangrado" : "Pastilla activa"}</div>
+                <div style="font-size:14px; font-weight:800; color:var(--rose-dark);">Blíster ${hMeta.short}</div>
+                <div style="font-size:11.5px; color:var(--text-muted);">
+                  Hoy: <strong>Pastilla #${active.packDay}/${hMeta.totalDays}</strong> · ${active.isWithdrawal ? "Placebo / Pausa" : "Activa"}
+                </div>
               </div>
               <button type="button" class="btn-ghost btn-sm" onclick="openHormonalModeSheet()">Cambiar</button>
             </div>
-            <div style="margin-bottom:8px;">
-              <label style="font-size:10.5px;">Fecha Pastilla 1 de este paquete</label>
-              <input type="date" value="${escapeAttr(cp.packStartDate || getTodayDateKey())}" onchange="updatePackStartDate(this.value)" />
+
+            <div class="grid-2" style="margin-bottom:8px;">
+              <div>
+                <label style="font-size:10.5px;">Empecé Pastilla #1 el</label>
+                <input type="date" value="${escapeAttr(st.startStr)}" onchange="updatePackStartDate(this.value)" />
+              </div>
+              <div>
+                <label style="font-size:10.5px;">¿En qué pastilla vas hoy?</label>
+                <select onchange="setBlisterCurrentDay(this.value)">
+                  ${Array.from({ length: hMeta.totalDays }, (_, i) => i + 1).map(n => `
+                    <option value="${n}" ${n === active.packDay ? "selected" : ""}>Pastilla #${n}${n > hMeta.activeDays ? " (Placebo)" : ""}</option>
+                  `).join("")}
+                </select>
+              </div>
             </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:6px; font-size:11px; color:var(--text-muted); background:#FFFFFF; padding:8px 10px; border-radius:10px; margin-bottom:6px;">
+              <span>Inicio: <strong>${escapeHtml(formatShortEsDate(st.startStr))}</strong></span>
+              <span>·</span>
+              <span>Placebo: <strong>${escapeHtml(formatShortEsDate(st.placeboStartStr))}</strong></span>
+              <span>·</span>
+              <span>Fin: <strong>${escapeHtml(formatShortEsDate(st.endStr))}</strong></span>
+            </div>
+
+            <div class="row-between" style="font-size:11px; margin-bottom:2px;">
+              <span style="color:var(--text-muted);">Tomadas: <strong style="color:var(--rose-dark);">${st.takenCount}/${hMeta.totalDays}</strong></span>
+              ${st.missedPastCount > 0 ? `<span class="badge badge-amber">${st.missedPastCount} día(s) pasado(s) sin marcar</span>` : `<span class="badge badge-mint">Al día ✓</span>`}
+            </div>
+
             <div class="blister-grid">${pills.join("")}</div>
-            <div style="display:flex; gap:10px; font-size:10px; color:var(--text-soft); margin-top:4px;">
-              <span>● 1–${hMeta.activeDays}: Activas</span>
-              <span style="color:#1E6B4E;">● ${hMeta.activeDays + 1}–${hMeta.totalDays}: Placebo / Pausa</span>
+
+            <div style="display:flex; flex-wrap:wrap; gap:8px; font-size:10px; color:var(--text-soft); margin:4px 0 9px;">
+              <span style="color:var(--rose-dark); font-weight:700;">● Tomada (✓)</span>
+              <span style="color:#945B0B; font-weight:700;">● Pasada sin marcar</span>
+              <span style="color:#1B7349; font-weight:700;">● Placebo (${hMeta.activeDays + 1}–${hMeta.totalDays})</span>
             </div>
+
+            <div class="grid-2">
+              ${active.packDay > 1 && st.missedPastCount > 0 ? `<button type="button" class="btn-secondary btn-sm" onclick="markBlisterPastDays(${active.packDay - 1})">Marcar 1–${active.packDay - 1} tomadas</button>` : `<button type="button" class="btn-secondary btn-sm" onclick="toggleBlisterPillDay(${active.packDay}, true)">Marcar hoy (#${active.packDay})</button>`}
+              <button type="button" class="btn-ghost btn-sm" onclick="startNewBlisterToday()">Nuevo blíster hoy (#1)</button>
+            </div>
+
+            ${st.recentTaken.length ? `
+              <div style="margin-top:9px; padding-top:8px; border-top:1px solid var(--border);">
+                <div style="font-size:10px; font-weight:750; color:var(--text-soft); text-transform:uppercase; margin-bottom:4px;">Últimas pastillas marcadas</div>
+                <div style="display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--text-muted);">
+                  ${st.recentTaken.slice(0, 4).map(rt => `
+                    <div class="row-between">
+                      <span><strong>#${rt.dayNum}</strong> · ${escapeHtml(rt.niceDate)}${rt.isPlacebo ? " (Placebo)" : ""}</span>
+                      <span style="color:var(--mint-text); font-weight:700;">✓ ${escapeHtml(rt.time)}</span>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            ` : ""}
           </div>
         `;
       } else if (hMeta.hasNaturalPhases) {
@@ -9594,20 +9795,27 @@
 
       const packPrefix = cp.packStartDate || "pack";
       const miniBlisterHtml = (hMeta.hasBlister && active) ? (() => {
+        const st = getBlisterStats(cp, hMeta, active);
         const dots = [];
         for (let d = 1; d <= hMeta.totalDays; d++) {
           const isPl = d > hMeta.activeDays;
           const done = Boolean(cp.pillTakenDays && cp.pillTakenDays[`${packPrefix}_d${d}`]);
-          const cls = done ? (isPl ? "placebo-done" : "active-done") : (isPl ? "placebo-slot" : "");
+          const missed = !done && d < active.packDay;
+          const cls = done ? (isPl ? "placebo-done" : "active-done") : (missed ? "missed-slot" : (isPl ? "placebo-slot" : ""));
           dots.push(`<span class="blister-mini-dot ${cls} ${d === active.packDay ? "today-dot" : ""}"></span>`);
         }
-        const todayTaken = Boolean(cp.pillTakenDays && cp.pillTakenDays[`${packPrefix}_d${active.packDay}`]);
+        const todayVal = cp.pillTakenDays && cp.pillTakenDays[`${packPrefix}_d${active.packDay}`];
+        const todayTaken = Boolean(todayVal);
+        const todayInfo = getBlisterPillInfo(st.startStr, active.packDay);
         return `
-          <div class="blister-mini-bar">${dots.join("")}</div>
-          <div class="row-between" style="font-size:11px; color:var(--text-muted); margin-bottom:7px;">
-            <span>Día <strong>${active.packDay}/${hMeta.totalDays}</strong> · ${active.isWithdrawal ? "Placebo / Sangrado" : "Pastilla activa"}</span>
-            <button class="btn-ghost btn-sm" style="padding:2px 6px; color:${todayTaken ? "var(--mint-text)" : "var(--rose-dark)"}; font-weight:800;" onclick="toggleBlisterPillDay(${active.packDay}, false)">
-              ${todayTaken ? "✓ Pastilla tomada" : "○ Marcar pastilla"}
+          <div style="font-size:11px; color:var(--text-soft); margin-bottom:2px;">
+            Inicio blíster: <strong style="color:var(--text-main);">${escapeHtml(formatShortEsDate(st.startStr))}</strong> · ${st.takenCount}/${hMeta.totalDays} tomadas${st.missedPastCount > 0 ? ` · <span style="color:#945B0B; font-weight:700;">${st.missedPastCount} sin marcar</span>` : ""}
+          </div>
+          <div class="blister-mini-bar" onclick="openCycleTrackerSheet()" style="cursor:pointer;" title="Abrir blíster completo">${dots.join("")}</div>
+          <div class="row-between" style="font-size:11.5px; color:var(--text-muted); margin-bottom:7px; gap:6px;">
+            <span>Hoy <strong>#${active.packDay}</strong> (${escapeHtml(todayInfo.niceDate)})</span>
+            <button class="btn-secondary btn-sm" style="padding:4px 9px; font-size:11px; ${todayTaken ? "background:var(--mint-bg); color:var(--mint-text);" : ""}" onclick="toggleBlisterPillDay(${active.packDay}, false)">
+              ${todayTaken ? `✓ Tomada (${escapeHtml(todayVal)})` : `Marcar #${active.packDay}`}
             </button>
           </div>
         `;
@@ -10420,7 +10628,7 @@
     }
 
     function openAddLabSheet() {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayDateKey();
       pendingExtraLabMarkers = [];
       openSheet("📷 Subir o registrar analítica", `
         <div class="section-gap">
@@ -10549,7 +10757,7 @@
     }
 
     function saveLabEntry() {
-      const date = document.getElementById("labDate")?.value || new Date().toISOString().slice(0, 10);
+      const date = document.getElementById("labDate")?.value || getTodayDateKey();
       const entry = {
         id: "lab_" + Date.now(),
         date,
@@ -10772,7 +10980,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `resumen-medico-${new Date().toISOString().slice(0, 10)}.html`;
+        a.download = `resumen-medico-${getTodayDateKey()}.html`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -11074,7 +11282,7 @@
     }
 
     function openMetforminLogSheet() {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayDateKey();
       const mt = state.metforminTracker || DEFAULT_STATE.metforminTracker;
       metfDraft = { timing: "mid_meal", mealQuality: "protein_fiber", giScore: 0, bristol: "normal", postMealEnergy: 4, cravings: 2 };
       openSheet("💊 Diario Metformina (10 s)", `
@@ -11175,7 +11383,7 @@
     }
 
     function saveMetforminLog() {
-      const date = document.getElementById("metfLogDate")?.value || new Date().toISOString().slice(0, 10);
+      const date = document.getElementById("metfLogDate")?.value || getTodayDateKey();
       const doseMg = Number(document.getElementById("metfLogDose")?.value || state.metforminTracker.doseMg || 500);
       const note = String(document.getElementById("metfLogNote")?.value || "").trim();
       if (!Array.isArray(state.metforminTracker.logs)) state.metforminTracker.logs = [];
@@ -11275,7 +11483,7 @@
         const parsedW = parseNumInput(wEl.value, NaN);
         const currentW = getCurrentWeightKg();
         if (Number.isFinite(parsedW) && parsedW >= 30 && parsedW <= 250 && Math.abs(parsedW - currentW) >= 0.05) {
-          const today = new Date().toISOString().slice(0, 10);
+          const today = getTodayDateKey();
           const todayIdx = state.weightLogs.findIndex(x => x.date === today);
           if (todayIdx >= 0) {
             state.weightLogs[todayIdx].weight = Number(parsedW.toFixed(1));
@@ -12338,7 +12546,7 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
       const a = document.createElement("a");
       a.setAttribute("href", dataStr);
-      a.setAttribute("download", `lutrack-respaldo-${new Date().toISOString().slice(0, 10)}.json`);
+      a.setAttribute("download", `lutrack-respaldo-${getTodayDateKey()}.json`);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -12968,7 +13176,7 @@
     }
 
     function openWeightLogSheet() {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayDateKey();
       const last = state.weightLogs[state.weightLogs.length - 1] || { weight: getCurrentWeightKg() };
       openSheet("Registrar peso (kg)", `
         <div>
@@ -12984,7 +13192,7 @@
     }
 
     function saveWeightLog() {
-      const date = document.getElementById("wlDate").value || new Date().toISOString().slice(0, 10);
+      const date = document.getElementById("wlDate").value || getTodayDateKey();
       const weight = parseNumInput(document.getElementById("wlWeight").value, NaN);
       if (!Number.isFinite(weight) || weight <= 20) return;
       state.weightLogs.push({ id: "w_" + Date.now(), date, weight });
@@ -12995,7 +13203,7 @@
     }
 
     function openStepsSheet() {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayDateKey();
       const existing = state.stepsLogs.find(s => s.date === today) || { steps: "" };
       openSheet("Registrar pasos del día", `
         <p class="card-sub">Pega o escribe el total de pasos de hoy desde Salud / Atajos:</p>
@@ -13008,7 +13216,7 @@
     }
 
     function saveStepsLog() {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayDateKey();
       const steps = Math.max(0, parseNumInput(document.getElementById("stCount").value, 0));
       const idx = state.stepsLogs.findIndex(s => s.date === today);
       if (idx >= 0) state.stepsLogs[idx].steps = steps;
@@ -13149,7 +13357,7 @@
     }
 
     function openAddWorkoutSheet() {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayDateKey();
       openSheet("Registrar sesión deportiva", `
         <div>
           <label>Tipo de entrenamiento</label>
@@ -13188,7 +13396,7 @@
       const type = document.getElementById("woType").value;
       const minutes = parseNumInput(document.getElementById("woMin").value, 30);
       const intensity = document.getElementById("woInt").value;
-      const date = document.getElementById("woDate").value || new Date().toISOString().slice(0, 10);
+      const date = document.getElementById("woDate").value || getTodayDateKey();
       state.workouts.push({ id: "wo_" + Date.now(), type, minutes, intensity, date });
       saveState();
       closeSheet();
@@ -13423,7 +13631,7 @@
     }
 
     function applySyncedHealthPayload({ steps, weight, workoutMin, workoutType, periodStart, cycleLength, periodDays, cyclePhase, energy, sourceLabel = "Apple Salud / Xiaomi" }) {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayDateKey();
       const parts = [];
 
       if (Number.isFinite(steps) && steps > 0) {
@@ -13535,7 +13743,7 @@
           const parsed = JSON.parse(raw);
           const rows = Array.isArray(parsed) ? parsed : (parsed.data || parsed.metrics || [parsed]);
           rows.forEach(item => {
-            const date = String(item.date || item.fecha || new Date().toISOString().slice(0, 10)).slice(0, 10);
+            const date = String(item.date || item.fecha || getTodayDateKey()).slice(0, 10);
             const steps = parseNumInput(item.steps ?? item.pasos, NaN);
             const weight = parseNumInput(item.weight ?? item.peso, NaN);
             if (Number.isFinite(steps) && steps > 0) {
@@ -13555,7 +13763,7 @@
           raw.split(/\r?\n/).forEach(line => {
             const cols = line.split(/[;,]/).map(s => s.trim());
             if (cols.length < 2) return;
-            const date = /^\d{4}-\d{2}-\d{2}$/.test(cols[0]) ? cols[0] : new Date().toISOString().slice(0, 10);
+            const date = /^\d{4}-\d{2}-\d{2}$/.test(cols[0]) ? cols[0] : getTodayDateKey();
             const steps = parseNumInput(cols[1], NaN);
             const weight = cols[2] !== undefined ? parseNumInput(cols[2], NaN) : NaN;
             if (Number.isFinite(steps) && steps > 0) {
@@ -14038,6 +14246,20 @@
         </div>
       `;
     }
+
+    function checkDailyRollover() {
+      const nowKey = getTodayDateKey();
+      if (nowKey !== lastActiveDateKey) {
+        if (diaryDateKey === lastActiveDateKey) diaryDateKey = nowKey;
+        lastActiveDateKey = nowKey;
+        render();
+      }
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") checkDailyRollover();
+    });
+    window.addEventListener("focus", checkDailyRollover);
+    setInterval(checkDailyRollover, 60000);
 
     processAutoSyncFromUrl();
     render();
