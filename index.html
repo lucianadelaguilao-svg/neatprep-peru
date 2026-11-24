@@ -6700,7 +6700,140 @@
     let onlineRecipeLoading = false;
     let onlineRecipeMsg = "";
 
+    const SPANISH_WEB_RECIPES_BANK = [
+      {
+        id: "es_pollo_horno_papas",
+        title: "Pollo al horno clásico con papas doradas y romero",
+        area: "Receta en español · Horno",
+        kcal: 515, protein: 42, carbs: 42, fat: 18, timeMin: 40,
+        ingredients: [
+          { key: "pechuga_pollo", qty: 0.22, label: "220 g muslo o pechuga de pollo sin piel" },
+          { key: "papa", qty: 0.20, label: "200 g papas en gajos con piel" },
+          { key: "cebolla_ajo", qty: 0.04, label: "2 dientes de ajo, romero y orégano" },
+          { key: "limon", qty: 0.5, label: "Jugo de 1/2 limón" },
+          { key: "aceite_oliva", qty: 0.01, label: "1 cda aceite de oliva, sal y pimienta" }
+        ],
+        steps: [
+          "Precalienta el horno a 200 °C.",
+          "Mezcla el pollo y las papas con ajo picado, limón, aceite de oliva, romero, sal y pimienta.",
+          "Coloca todo en una bandeja y hornea 35–40 min (dando vuelta a mitad de tiempo) hasta dorar."
+        ]
+      },
+      {
+        id: "es_pollo_horno_limon",
+        title: "Pollo al horno al limón, ajo y mostaza (jugoso)",
+        area: "Receta en español · Horno",
+        kcal: 365, protein: 45, carbs: 8, fat: 16, timeMin: 35,
+        ingredients: [
+          { key: "pechuga_pollo", qty: 0.22, label: "220 g pechuga o encuentro de pollo" },
+          { key: "limon", qty: 1, label: "Jugo y ralladura de 1 limón" },
+          { key: "cebolla_ajo", qty: 0.03, label: "2 dientes de ajo y 1 cdta mostaza" },
+          { key: "aceite_oliva", qty: 0.01, label: "1 cda aceite de oliva, pimentón y orégano" }
+        ],
+        steps: [
+          "Mezcla limón, ajo, mostaza, aceite de oliva, pimentón y sal en un bol.",
+          "Unta bien el pollo y déjalo reposar 10 min si tienes tiempo.",
+          "Hornea a 195 °C por 30–35 min tapado los primeros 15 min para que quede súper jugoso."
+        ]
+      },
+      {
+        id: "es_pollo_horno_verduras",
+        title: "Pollo al horno con verduras asadas (brócoli, zanahoria y camote)",
+        area: "Receta en español · Horno · 1 bandeja",
+        kcal: 470, protein: 41, carbs: 38, fat: 15, timeMin: 35,
+        ingredients: [
+          { key: "pechuga_pollo", qty: 0.20, label: "200 g pollo en trozos o presas" },
+          { key: "brocoli", qty: 0.15, label: "150 g brócoli y zanahoria en bastones" },
+          { key: "papa", qty: 0.15, label: "150 g camote o papa en cubos" },
+          { key: "aceite_oliva", qty: 0.01, label: "1 cda aceite de oliva, ajo en polvo y paprika" }
+        ],
+        steps: [
+          "Hornea primero el pollo y el camote/papa a 200 °C por 20 min.",
+          "Agrega el brócoli y zanahoria con un chorrito de aceite de oliva y hornea 12–15 min más."
+        ]
+      },
+      {
+        id: "es_pescado_horno",
+        title: "Pescado al horno mediterráneo con tomate y limón",
+        area: "Receta en español · Horno",
+        kcal: 345, protein: 38, carbs: 14, fat: 14, timeMin: 22,
+        ingredients: [
+          { key: "salmon", qty: 0.18, label: "180 g filete de merluza, bacalao o salmón" },
+          { key: "tomate", qty: 0.14, label: "140 g tomates cherry o en rodajas" },
+          { key: "limon", qty: 0.5, label: "Rodajas de limón y perejil fresco" },
+          { key: "aceite_oliva", qty: 0.01, label: "1 cda aceite de oliva y ajo" }
+        ],
+        steps: [
+          "Coloca el filete en una fuente con los tomates, ajo, limón y aceite de oliva.",
+          "Hornea a 190 °C durante 15–18 min hasta que se desmenuce fácil con tenedor."
+        ]
+      },
+      {
+        id: "es_arroz_con_pollo",
+        title: "Arroz con pollo casero ligero (con culantro y verduras)",
+        area: "Receta en español · Clásico casero",
+        kcal: 540, protein: 38, carbs: 58, fat: 16, timeMin: 35,
+        ingredients: [
+          { key: "pechuga_pollo", qty: 0.18, label: "180 g pollo en presas o cubos" },
+          { key: "arroz", qty: 0.07, label: "70 g arroz (peso seco)" },
+          { key: "espinaca", qty: 0.08, label: "Culantro y espinaca licuados" },
+          { key: "cebolla_ajo", qty: 0.06, label: "Cebolla, ajo, arvejas y zanahoria" }
+        ],
+        steps: [
+          "Dora el pollo y retira; haz aderezo de cebolla, ajo y licuado de culantro con espinaca.",
+          "Agrega arroz, verduras, agua/caldo y el pollo; cocina tapado 18 min a fuego bajo."
+        ]
+      },
+      {
+        id: "es_sopa_pollo",
+        title: "Caldo / Sopa casera de pollo con verduras y papa",
+        area: "Receta en español · Reconfortante",
+        kcal: 310, protein: 30, carbs: 28, fat: 8, timeMin: 30,
+        ingredients: [
+          { key: "pechuga_pollo", qty: 0.16, label: "160 g pechuga o presa de pollo" },
+          { key: "papa", qty: 0.14, label: "140 g papa amarilla o blanca" },
+          { key: "cebolla_ajo", qty: 0.08, label: "Zanahoria, apio, cebolla y kion/jengibre" }
+        ],
+        steps: [
+          "Hierve el pollo con apio, cebolla, zanahoria y una pizca de jengibre 18 min.",
+          "Añade la papa en cubos y cocina 12 min más hasta que esté suave. Sirve con limón."
+        ]
+      },
+      {
+        id: "es_lomo_saltado_fit",
+        title: "Lomo saltado casero ligero (papas al horno / airfryer)",
+        area: "Receta en español · Peruano fit",
+        kcal: 545, protein: 40, carbs: 52, fat: 18, timeMin: 22,
+        ingredients: [
+          { key: "carne_magra", qty: 0.18, label: "180 g carne magra de res en tiras" },
+          { key: "papa", qty: 0.16, label: "160 g papa en bastones al horno/airfryer" },
+          { key: "tomate", qty: 0.12, label: "Tomate y cebolla morada en gajos" },
+          { key: "arroz", qty: 0.045, label: "45 g arroz cocido de acompañamiento" }
+        ],
+        steps: [
+          "Hornea o haz en airfryer las papas 16 min a 200 °C.",
+          "Saltea la carne a fuego alto 3 min, suma cebolla, tomate, sillao/soja y un chorrito de vinagre; sirve con las papas."
+        ]
+      },
+      {
+        id: "es_tortilla_horno",
+        title: "Tortilla al horno de espinaca, papa y queso fresco",
+        area: "Receta en español · Horno · Cena rápida",
+        kcal: 360, protein: 24, carbs: 26, fat: 17, timeMin: 25,
+        ingredients: [
+          { key: "huevos", qty: 3, label: "3 huevos enteros" },
+          { key: "papa", qty: 0.12, label: "120 g papa en láminas finas cocidas" },
+          { key: "espinaca", qty: 0.08, label: "80 g espinaca fresca y cebolla" }
+        ],
+        steps: [
+          "Bate los huevos con sal, pimienta, espinaca y las láminas de papa cocida.",
+          "Vierte en molde pequeño y hornea 18–20 min a 190 °C hasta cuajar."
+        ]
+      }
+    ];
+
     const RECIPE_ES_EN_MAP = [
+      ["pollo al horno", "roast chicken"], ["pollo asado", "roast chicken"],
       ["pollo", "chicken"], ["pechuga", "chicken"], ["pavo", "turkey"],
       ["salmon", "salmon"], ["atun", "tuna"], ["pescado", "fish"], ["camaron", "shrimp"], ["langostin", "shrimp"],
       ["carne", "beef"], ["res", "beef"], ["lomo", "beef"], ["cerdo", "pork"],
@@ -6712,70 +6845,133 @@
       ["espinaca", "spinach"], ["brocoli", "broccoli"], ["tomate", "tomato"], ["palta", "avocado"]
     ];
 
-    function translateRecipeQueryToEn(rawQuery) {
+    function translateRecipeQueryToEnList(rawQuery) {
       const qNorm = normFoodStr(rawQuery).trim();
+      const terms = [];
       for (const [es, en] of RECIPE_ES_EN_MAP) {
-        if (qNorm.includes(es)) return en;
+        if (qNorm.includes(es) && !terms.includes(en)) terms.push(en);
       }
-      const tokens = tokenizeFoodQuery(qNorm);
-      return tokens[0] || qNorm;
+      if (!terms.length) {
+        const tokens = tokenizeFoodQuery(qNorm);
+        if (tokens[0]) terms.push(tokens[0]);
+      }
+      return terms.slice(0, 2);
     }
 
     async function searchOnlineRecipesLive() {
+      const inputEl = document.getElementById("recipeSearchInput");
+      if (inputEl && inputEl.value !== undefined) recipeSearch = inputEl.value;
       const q = String(recipeSearch || "").trim();
       if (q.length < 2) {
         showToast("Escribe qué receta quieres buscar (ej. pollo al horno, salmón)");
+        if (inputEl) inputEl.focus();
         return;
       }
       onlineRecipeLoading = true;
       onlineRecipeMsg = "";
       onlineRecipeResults = [];
       updateRecipeResultsDom();
+      const box = document.getElementById("recipeResultsContainer");
+      if (box) box.scrollIntoView({ behavior: "smooth", block: "start" });
 
+      // 1. Instant curated Spanish matches (e.g. Pollo al horno in Spanish!)
+      const qNorm = normFoodStr(q);
+      const tokens = tokenizeFoodQuery(qNorm);
+      const esMatches = [];
+      SPANISH_WEB_RECIPES_BANK.forEach(item => {
+        const hay = normFoodStr(`${item.title} ${item.area} ${(item.ingredients || []).map(i => i.label).join(" ")}`);
+        const sc = scoreFoodCandidate(qNorm, tokens, hay, normFoodStr(item.title));
+        if (sc > 0) esMatches.push({ item: { ...item, thumb: "", sourceUrl: "" }, sc });
+      });
+      esMatches.sort((a, b) => b.sc - a.sc);
+      const curatedHits = esMatches.slice(0, 4).map(x => x.item);
+
+      // 2. Live TheMealDB internet search with timeout & fallback
+      let webHits = [];
       try {
-        const enTerm = translateRecipeQueryToEn(q);
-        const resp = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(enTerm)}`);
-        let meals = [];
-        if (resp.ok) {
-          const data = await resp.json();
-          meals = Array.isArray(data?.meals) ? data.meals : [];
-        }
-        onlineRecipeResults = meals.slice(0, 8).map(meal => {
-          const ings = [];
-          for (let i = 1; i <= 20; i++) {
-            const ing = String(meal[`strIngredient${i}`] || "").trim();
-            const meas = String(meal[`strMeasure${i}`] || "").trim();
-            if (ing) ings.push({ key: "custom", qty: 1, label: meas ? `${meas} ${ing}` : ing });
+        const enTerms = translateRecipeQueryToEnList(q);
+        const seenIds = new Set();
+        for (const enTerm of enTerms) {
+          if (webHits.length >= 6) break;
+          const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+          const tid = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
+          try {
+            const resp = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(enTerm)}`, ctrl ? { signal: ctrl.signal } : undefined);
+            if (tid) clearTimeout(tid);
+            if (resp.ok) {
+              const data = await resp.json();
+              const meals = Array.isArray(data?.meals) ? data.meals : [];
+              meals.forEach(meal => {
+                if (!meal || seenIds.has(meal.idMeal) || webHits.length >= 6) return;
+                seenIds.add(meal.idMeal);
+                const ings = [];
+                for (let i = 1; i <= 20; i++) {
+                  const ing = String(meal[`strIngredient${i}`] || "").trim();
+                  const meas = String(meal[`strMeasure${i}`] || "").trim();
+                  if (ing) ings.push({ key: matchIngredientKeyFromLabel(ing), qty: 0.15, label: meas ? `${meas} ${ing}` : ing });
+                }
+                const steps = String(meal.strInstructions || "")
+                  .split(/\r?\n+/)
+                  .map(s => s.trim())
+                  .filter(s => s.length > 6)
+                  .slice(0, 6);
+                const est = estimateDishSmart(`${q} ${meal.strMeal || ""} ${meal.strCategory || ""}`);
+                webHits.push({
+                  id: "web_" + meal.idMeal,
+                  title: meal.strMeal || q,
+                  area: [meal.strArea, meal.strCategory, "Web"].filter(Boolean).join(" · "),
+                  thumb: meal.strMealThumb || "",
+                  sourceUrl: meal.strSource || meal.strYoutube || "",
+                  kcal: est.kcal,
+                  protein: est.protein,
+                  carbs: est.carbs,
+                  fat: est.fat,
+                  timeMin: 30,
+                  ingredients: ings,
+                  steps: steps.length ? steps : ["Prepara los ingredientes y cocina según tu preferencia."]
+                });
+              });
+            }
+          } catch (innerErr) {
+            if (tid) clearTimeout(tid);
           }
-          const steps = String(meal.strInstructions || "")
-            .split(/\r?\n+/)
-            .map(s => s.trim())
-            .filter(s => s.length > 6)
-            .slice(0, 6);
-          const est = estimateDishSmart(`${q} ${meal.strMeal || ""} ${meal.strCategory || ""}`);
-          return {
-            id: "web_" + meal.idMeal,
-            title: meal.strMeal || q,
-            area: [meal.strArea, meal.strCategory].filter(Boolean).join(" · "),
-            thumb: meal.strMealThumb || "",
-            sourceUrl: meal.strSource || meal.strYoutube || "",
-            kcal: est.kcal,
-            protein: est.protein,
-            carbs: est.carbs,
-            fat: est.fat,
-            timeMin: 25,
-            ingredients: ings,
-            steps: steps.length ? steps : ["Prepara los ingredientes y cocina según tu preferencia."]
-          };
-        });
-        onlineRecipeMsg = onlineRecipeResults.length
-          ? `${onlineRecipeResults.length} ideas encontradas en internet (puedes importarlas y editarlas)`
-          : `Sin resultados directos online para "${q}". Puedes crearla al instante abajo con macros estimados.`;
-      } catch (e) {
-        onlineRecipeMsg = "Sin conexión al buscador online ahora. Puedes crear la receta al instante abajo.";
-      }
+        }
+      } catch (e) {}
+
+      onlineRecipeResults = [...curatedHits, ...webHits].slice(0, 8);
+      onlineRecipeMsg = onlineRecipeResults.length
+        ? `${onlineRecipeResults.length} recetas encontradas para "${q}" — toca Ver o Guardar`
+        : `Sin resultados directos en internet para "${q}". Puedes crearla en 1 toque abajo con macros estimados.`;
       onlineRecipeLoading = false;
       updateRecipeResultsDom();
+    }
+
+    function previewOnlineRecipe(webId) {
+      const item = onlineRecipeResults.find(x => x.id === webId);
+      if (!item) return;
+      openSheet(item.title, `
+        <div class="section-gap">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <span class="badge">${escapeHtml(item.area || "Online")}</span>
+            <span class="badge badge-mint">${item.timeMin || 25} min</span>
+            <span class="badge">~${item.kcal} kcal · ${item.protein}g P · ${item.carbs}g C</span>
+          </div>
+          ${item.thumb ? `<img src="${escapeAttr(item.thumb)}" alt="" style="width:100%; max-height:180px; object-fit:cover; border-radius:14px;" />` : ""}
+          <div>
+            <strong style="font-size:13px;">Ingredientes</strong>
+            <div style="display:flex; flex-direction:column; gap:4px; margin-top:6px; font-size:12.5px; color:var(--text-muted);">
+              ${(item.ingredients || []).map(i => `<div>• ${escapeHtml(i.label)}</div>`).join("")}
+            </div>
+          </div>
+          <div>
+            <strong style="font-size:13px;">Preparación</strong>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:6px; font-size:12.5px; color:var(--text-main); line-height:1.45;">
+              ${(item.steps || []).map((s, idx) => `<div><strong style="color:var(--rose);">${idx + 1}.</strong> ${escapeHtml(s)}</div>`).join("")}
+            </div>
+          </div>
+          <button type="button" class="btn-primary" style="width:100%;" onclick="closeSheet(); importOnlineRecipe('${escapeAttr(item.id)}')">Guardar en mi recetario y editar</button>
+        </div>
+      `);
     }
 
     function importOnlineRecipe(webId) {
@@ -6791,8 +6987,8 @@
         timeMin: item.timeMin || 25,
         quickToday: false,
         taperFriendly: true,
-        taperTip: "Importada desde internet — puedes editar ingredientes y macros cuando quieras.",
-        appliances: ["sarten", "olla"],
+        taperTip: "Importada del buscador — puedes editar ingredientes y macros cuando quieras.",
+        appliances: ["horno", "sarten", "olla"],
         kcal: item.kcal,
         protein: item.protein,
         carbs: item.carbs,
@@ -6822,8 +7018,8 @@
 
     function buildOnlineRecipesSectionHtml(q) {
       const statusHtml = onlineRecipeLoading
-        ? `<div class="card-soft" style="font-size:12px; color:var(--rose-dark); font-weight:700;">Buscando recetas en internet para "${escapeHtml(q)}"...</div>`
-        : (onlineRecipeMsg ? `<div style="font-size:11.5px; color:var(--mint-text); background:var(--mint-bg); padding:8px 11px; border-radius:11px; font-weight:650;">${escapeHtml(onlineRecipeMsg)}</div>` : "");
+        ? `<div class="card" style="background:var(--rose-pale); box-shadow:none; font-size:12.5px; color:var(--rose-dark); font-weight:750;">Buscando recetas en internet para "${escapeHtml(q)}"...</div>`
+        : (onlineRecipeMsg ? `<div style="font-size:12px; color:var(--mint-text); background:var(--mint-bg); padding:9px 12px; border-radius:12px; font-weight:700;">${escapeHtml(onlineRecipeMsg)}</div>` : "");
 
       const cardsHtml = onlineRecipeResults.length ? onlineRecipeResults.map(r => `
         <div class="recipe-card">
@@ -6834,7 +7030,10 @@
               <div class="recipe-title" style="font-size:13.5px;">${escapeHtml(r.title)}</div>
               <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">~${r.kcal} kcal · ${r.protein}g P · ${r.carbs}g C · ${r.ingredients.length} ingr.</div>
             </div>
-            <button class="btn-primary btn-sm" style="flex-shrink:0;" onclick="importOnlineRecipe('${escapeAttr(r.id)}')">Guardar</button>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-secondary btn-sm" style="flex:1;" onclick="previewOnlineRecipe('${escapeAttr(r.id)}')">Ver receta</button>
+            <button class="btn-primary btn-sm" style="flex:1;" onclick="importOnlineRecipe('${escapeAttr(r.id)}')">+ Guardar</button>
           </div>
         </div>
       `).join("") : "";
@@ -6843,7 +7042,7 @@
         <div class="card" style="background:var(--rose-pale); box-shadow:none;">
           <div class="row-between" style="gap:8px;">
             <div style="min-width:0;">
-              <div style="font-size:13px; font-weight:750; color:var(--rose-dark);">¿No está exacta? Crea "${escapeHtml(q)}"</div>
+              <div style="font-size:13px; font-weight:750; color:var(--rose-dark);">Crear tu propia "${escapeHtml(q)}"</div>
               <div style="font-size:11.5px; color:var(--text-muted);">Te prellenamos calorías y macros estimados para editarla a tu gusto.</div>
             </div>
             <button class="btn-primary btn-sm" style="flex-shrink:0;" onclick="openEditRecipeSheet(null, '${escapeAttr(q)}')">+ Crear</button>
@@ -6851,7 +7050,8 @@
         </div>
       ` : "";
 
-      return statusHtml + cardsHtml + quickCreateHtml;
+      const hasOnlineBlock = Boolean(statusHtml || cardsHtml);
+      return statusHtml + cardsHtml + (hasOnlineBlock ? quickCreateHtml : "") + (!hasOnlineBlock ? quickCreateHtml : "");
     }
 
     function updateRecipeResultsDom() {
@@ -6859,10 +7059,14 @@
       if (!box) return;
       const filtered = getFilteredRecipes();
       const q = recipeSearch.trim();
+      const onlineHtml = buildOnlineRecipesSectionHtml(q);
+      const localHeader = (onlineRecipeResults.length || onlineRecipeLoading || onlineRecipeMsg) && filtered.length
+        ? `<div class="recipe-group-head" style="margin-top:4px;"><span>En tu recetario</span><span style="font-size:11px; font-weight:700; color:var(--text-soft);">${filtered.length}</span></div>`
+        : "";
       const localHtml = filtered.length
-        ? renderGroupedRecipesHtml(filtered)
-        : (q ? `<div class="empty-note">No tienes aún una receta exacta de "${escapeHtml(q)}" en tu recetario. Pulsa <strong>Online</strong> arriba o créala en 1 toque abajo.</div>` : `<div class="empty-note">No hay recetas con este filtro.</div>`);
-      box.innerHTML = localHtml + buildOnlineRecipesSectionHtml(q);
+        ? localHeader + renderGroupedRecipesHtml(filtered)
+        : (q && !onlineRecipeResults.length && !onlineRecipeLoading ? `<div class="empty-note">No tienes aún una receta exacta de "${escapeHtml(q)}". Pulsa <strong>Online</strong> arriba para buscar en internet o <strong>+ Crear</strong>.</div>` : (!q ? `<div class="empty-note">No hay recetas con este filtro.</div>` : ""));
+      box.innerHTML = onlineHtml + localHtml;
     }
 
     function buildRecetarioHtml() {
@@ -6934,8 +7138,8 @@
         </div>
 
         <div id="recipeResultsContainer" class="section-gap">
-          ${filtered.length ? renderGroupedRecipesHtml(filtered) : (q ? `<div class="empty-note">No tienes aún una receta exacta de "${escapeHtml(q)}". Pulsa <strong>Online</strong> arriba o créala en 1 toque abajo.</div>` : `<div class="empty-note">No hay recetas con este filtro.</div>`)}
           ${buildOnlineRecipesSectionHtml(q)}
+          ${filtered.length ? renderGroupedRecipesHtml(filtered) : (q && !onlineRecipeResults.length && !onlineRecipeLoading ? `<div class="empty-note">No tienes aún una receta exacta de "${escapeHtml(q)}". Pulsa <strong>Online</strong> arriba o <strong>+ Crear</strong>.</div>` : (!q ? `<div class="empty-note">No hay recetas con este filtro.</div>` : ""))}
         </div>
       `;
     }
