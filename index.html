@@ -2129,6 +2129,71 @@
       padding-top: 8px;
       flex-shrink: 0;
     }
+
+    /* Clue-style Visual 28-Pill Blister & Symptom Chips */
+    .blister-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin: 8px 0;
+    }
+
+    .blister-pill {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: #FFFFFF;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.12s ease;
+    }
+
+    .blister-pill.placebo {
+      background: #EAF6F0;
+      border-color: #A5D8C1;
+      color: #1E6B4E;
+    }
+
+    .blister-pill.taken {
+      background: var(--rose-pale);
+      border-color: var(--rose);
+      color: var(--rose-dark);
+    }
+
+    .blister-pill.placebo.taken {
+      background: #2E8B63;
+      border-color: #2E8B63;
+      color: #FFFFFF;
+    }
+
+    .blister-pill.today {
+      box-shadow: 0 0 0 2.5px rgba(207, 83, 125, 0.32);
+      border-color: var(--rose-dark);
+    }
+
+    .blister-mini-bar {
+      display: grid;
+      grid-template-columns: repeat(28, 1fr);
+      gap: 2px;
+      margin: 7px 0 4px;
+    }
+
+    .blister-mini-dot {
+      height: 6px;
+      border-radius: 99px;
+      background: #ECE2E7;
+    }
+
+    .blister-mini-dot.active-done { background: var(--rose); }
+    .blister-mini-dot.placebo-slot { background: #CBE8DA; }
+    .blister-mini-dot.placebo-done { background: #2E8B63; }
+    .blister-mini-dot.today-dot { outline: 1.5px solid var(--rose-dark); }
   </style>
 </head>
 <body>
@@ -3592,13 +3657,17 @@
       ],
       labLogs: [],
       cycleProfile: {
+        hormonalMode: "none", // "none"|"natural"|"pill_24_4"|"pill_21_7"|"pill_continuous"|"copper_iud"|"ring_patch"|"perimenopause"
         phase: "none",
         mode: "manual",
         lastPeriodStart: "",
+        packStartDate: "",
         avgCycleLength: 28,
         periodDays: 5,
         dailyEnergy: 3,
         dailyEnergyDate: "",
+        pillTakenDays: {},
+        symptomLogs: {},
         clueSyncedAt: "",
         clueSource: ""
       },
@@ -3767,14 +3836,22 @@
         labLogs: Array.isArray(parsed.labLogs) ? parsed.labLogs : [],
         cycleProfile: (() => {
           const rawC = (parsed.cycleProfile && typeof parsed.cycleProfile === "object") ? parsed.cycleProfile : {};
+          const validHModes = ["none", "natural", "pill_24_4", "pill_21_7", "pill_continuous", "copper_iud", "ring_patch", "perimenopause"];
+          const inferredHMode = validHModes.includes(rawC.hormonalMode)
+            ? rawC.hormonalMode
+            : ((rawC.phase && rawC.phase !== "none") || rawC.lastPeriodStart ? "natural" : "none");
           return {
+            hormonalMode: inferredHMode,
             phase: ["none", "menstrual", "follicular", "ovulatory", "luteal"].includes(rawC.phase) ? rawC.phase : "none",
             mode: ["auto", "manual"].includes(rawC.mode) ? rawC.mode : "manual",
             lastPeriodStart: typeof rawC.lastPeriodStart === "string" ? rawC.lastPeriodStart : "",
+            packStartDate: typeof rawC.packStartDate === "string" ? rawC.packStartDate : "",
             avgCycleLength: Number(rawC.avgCycleLength) >= 20 && Number(rawC.avgCycleLength) <= 50 ? Number(rawC.avgCycleLength) : 28,
             periodDays: Number(rawC.periodDays) >= 2 && Number(rawC.periodDays) <= 10 ? Number(rawC.periodDays) : 5,
             dailyEnergy: [1, 2, 3, 4, 5].includes(Number(rawC.dailyEnergy)) ? Number(rawC.dailyEnergy) : 3,
             dailyEnergyDate: typeof rawC.dailyEnergyDate === "string" ? rawC.dailyEnergyDate : "",
+            pillTakenDays: (rawC.pillTakenDays && typeof rawC.pillTakenDays === "object") ? rawC.pillTakenDays : {},
+            symptomLogs: (rawC.symptomLogs && typeof rawC.symptomLogs === "object") ? rawC.symptomLogs : {},
             clueSyncedAt: typeof rawC.clueSyncedAt === "string" ? rawC.clueSyncedAt : "",
             clueSource: typeof rawC.clueSource === "string" ? rawC.clueSource : ""
           };
@@ -4268,33 +4345,44 @@
       const cyclePhase = getActiveCyclePhase(m);
       const isMenstrual = cyclePhase?.id === "menstrual";
       const isLuteal = cyclePhase?.id === "luteal";
+      const isHormonalOc = Boolean(cyclePhase?.isHormonal);
+      const isCopperIud = Boolean(cyclePhase?.isCopperIud);
+      const isMenopause = Boolean(cyclePhase?.isMenopause);
 
       // Hierro
-      const ironBase = isFemale ? (age <= 50 ? "18 mg/día" : "8 mg/día") : "8 mg/día";
-      const ironTag = m.isIronDef ? "Prioritario" : (isMenstrual ? "Prioridad fase menstrual" : (isFemale && age <= 50 ? "Clave edad fértil" : ""));
-      const ironCare = (m.isIronDef || isMenstrual)
+      const ironBase = isFemale ? (age <= 50 && !isMenopause ? "18 mg/día" : "8 mg/día") : "8 mg/día";
+      const ironTag = m.isIronDef ? "Prioritario" : (isCopperIud ? "Clave T de Cobre" : (isMenstrual ? "Prioridad sangrado" : (isFemale && age <= 50 && !isMenopause ? "Clave edad fértil" : "")));
+      const ironCare = (m.isIronDef || isMenstrual || isCopperIud)
         ? "Une lentejas/espinaca o carne magra con limón o tomate (vitamina C) y separa café, té o calcio al menos 1–2 h."
         : "Combina hierro vegetal (lentejas, espinaca) con vitamina C y evita café o té justo al terminar de comer.";
 
       // Vitamina B12
       const b12Target = age > 50 ? "2,4 µg/día (vigilar absorción)" : "2,4 µg/día";
-      const b12Priority = m.takesMetformin || m.isIR || m.isDiabetes || m.isPCOS;
-      const b12Tag = m.takesMetformin ? "Vigilar (Metformina)" : (m.isIR || m.isDiabetes || m.isPCOS ? "Control si metformina" : "");
-      const b12Care = m.takesMetformin
-        ? "Presente en carne, pescado, huevos y lácteos. Al tomar metformina, conviene controlar B12 en analítica."
-        : "Asegura huevos, pescado, carnes magras o lácteos; si tomas metformina o reduces alimentos animales, revísala en analítica.";
+      const b12Priority = m.takesMetformin || isHormonalOc || m.isIR || m.isDiabetes || m.isPCOS;
+      const b12Tag = (m.takesMetformin && isHormonalOc)
+        ? "Doble control (Metformina + Píldora)"
+        : (m.takesMetformin ? "Vigilar (Metformina)" : (isHormonalOc ? "Control anticonceptivos" : (m.isIR || m.isDiabetes || m.isPCOS ? "Control si metformina" : "")));
+      const b12Care = (m.takesMetformin && isHormonalOc)
+        ? "Tanto la metformina como los anticonceptivos orales se asocian con niveles más bajos de B12: asegura huevo/pescado/carne y controla B12 en analítica."
+        : (m.takesMetformin
+          ? "Presente en carne, pescado, huevos y lácteos. Al tomar metformina, conviene controlar B12 en analítica."
+          : "Asegura huevos, pescado, carnes magras o lácteos; si tomas anticonceptivos orales o metformina, revísala en analítica.");
 
       // Vitamina D
-      const vitDTarget = age > 70 ? "20 µg (800 UI)/día" : "15 µg (600 UI)/día";
-      const vitDTag = m.isPCOS ? "Clave SOP / hormonal" : (m.isIR || m.isDiabetes ? "Apoyo metabólico" : (isHypertrophy ? "Fuerza y hueso" : ""));
-      const vitDCare = m.isPCOS
-        ? "El déficit de vitamina D es frecuente en SOP. Incluye salmón y huevo, y mide 25-OH-D en sangre para valorar suplementación."
-        : "Incluye salmón, pescados azules y yema de huevo; con poca exposición solar conviene medir 25-OH-D antes de suplementar.";
+      const vitDTarget = (age > 70 || isMenopause) ? "20 µg (800 UI)/día" : "15 µg (600 UI)/día";
+      const vitDTag = isMenopause ? "Clave hueso / menopausia" : (m.isPCOS ? "Clave SOP / hormonal" : (m.isIR || m.isDiabetes ? "Apoyo metabólico" : (isHypertrophy ? "Fuerza y hueso" : "")));
+      const vitDCare = isMenopause
+        ? "Esencial junto al calcio y la fuerza para proteger densidad ósea en perimenopausia/menopausia. Mide 25-OH-D en sangre."
+        : (m.isPCOS
+          ? "El déficit de vitamina D es frecuente en SOP. Incluye salmón y huevo, y mide 25-OH-D en sangre para valorar suplementación."
+          : "Incluye salmón, pescados azules y yema de huevo; con poca exposición solar conviene medir 25-OH-D antes de suplementar.");
 
       // Folato
       const folateTarget = "400 µg DFE/día";
-      const folateTag = m.isPCOS ? "Apoyo SOP / fértil" : (isFemale && age <= 50 ? "Esencial" : "");
-      const folateCare = "Prioriza espinaca fresca, hojas verdes, lentejas y palta; evita sobrecocer verduras para conservar el folato.";
+      const folateTag = isHormonalOc ? "Clave anticonceptivos" : (m.isPCOS ? "Apoyo SOP / fértil" : (isFemale && age <= 50 ? "Esencial" : ""));
+      const folateCare = isHormonalOc
+        ? "Los anticonceptivos orales pueden reducir reservas de folato y B6. Prioriza espinaca fresca, hojas verdes, lentejas y palta a diario."
+        : "Prioriza espinaca fresca, hojas verdes, lentejas y palta; evita sobrecocer verduras para conservar el folato.";
 
       // Magnesio
       let mgVal = 310;
@@ -4304,10 +4392,10 @@
         mgVal = age <= 18 ? 410 : (age <= 30 ? 400 : 420);
       }
       const mgTarget = `${mgVal} mg/día`;
-      const mgPriority = isHypertrophy || m.isIR || m.isDiabetes || m.isPCOS || isMenstrual || isLuteal;
-      const mgTag = isMenstrual
-        ? "Apoyo menstrual"
-        : (isLuteal ? "Apoyo fase lútea" : (m.isPCOS ? "Apoyo SOP / descanso" : (isHypertrophy ? "Recuperación muscular" : (m.isIR || m.isDiabetes ? "Apoyo glucémico" : ""))));
+      const mgPriority = isHypertrophy || m.isIR || m.isDiabetes || m.isPCOS || isMenstrual || isLuteal || isHormonalOc || isMenopause;
+      const mgTag = isMenopause
+        ? "Sueño y hueso"
+        : (isHormonalOc ? "Apoyo píldora / fatiga" : (isMenstrual ? "Apoyo sangrado" : (isLuteal ? "Apoyo fase lútea" : (m.isPCOS ? "Apoyo SOP / descanso" : (isHypertrophy ? "Recuperación muscular" : (m.isIR || m.isDiabetes ? "Apoyo glucémico" : ""))))));
       const mgCare = "Suma semillas, frutos secos, espinaca y legumbres; en déficit calórico o entrenamiento exigente suele quedarse corto.";
 
       // Zinc
@@ -6430,8 +6518,12 @@
           : (level === "beginner" ? "RPE 6,5–7,5/10" : "RPE 7–8/10 (RIR 2)"));
 
       if (cyclePhase && !m.isIronDef) {
-        if (cyclePhase.energy <= 2) {
-          rpeLabel = "RPE 5–6/10 (energía baja hoy)";
+        if (cyclePhase.energy <= 2 || cyclePhase.hasFatigueSymptom) {
+          rpeLabel = "RPE 5–6/10 (fatiga / baja energía)";
+        } else if (cyclePhase.isWithdrawal) {
+          rpeLabel = cyclePhase.energy >= 4 ? "RPE 6,5–7,5/10 (pausa · buena energía)" : "RPE 5,5–6,5/10 (placebo / pausa)";
+        } else if (cyclePhase.isMenopause) {
+          rpeLabel = cyclePhase.energy >= 4 ? "RPE 7–8/10 (fuerza ósea)" : "RPE 6,5–7,5/10 (controlado)";
         } else if (cyclePhase.id === "menstrual") {
           rpeLabel = cyclePhase.energy >= 4 ? "RPE 6,5–7,5/10 (menstrual · buena energía)" : "RPE 5,5–6,5/10 (menstrual)";
         } else if (cyclePhase.id === "luteal") {
@@ -7495,6 +7587,75 @@
       }
     };
 
+    const HORMONAL_MODE_META = {
+      none: {
+        id: "none", icon: "○", label: "Ocultar", short: "Ocultar", isHormonal: false, hasBlister: false, hasNaturalPhases: false,
+        desc: "No mostrar seguimiento de ciclo ni hormonas."
+      },
+      natural: {
+        id: "natural", icon: "🌙", label: "Ciclo natural", short: "Ciclo natural", isHormonal: false, hasBlister: false, hasNaturalPhases: true,
+        desc: "Sin anticonceptivos hormonales · 4 fases naturales (Menstrual, Folicular, Ovulatoria, Lútea).",
+        science: "Tus hormonas endógenas fluctúan en 4 fases. Aprovecha energía más alta en folicular/ovulatoria y cuida hierro + Vit C en regla y proteína + magnesio en fase lútea."
+      },
+      pill_24_4: {
+        id: "pill_24_4", icon: "🌸", label: "Píldora 24+4 (Kelzy / Yaz)", short: "Píldora 24+4", isHormonal: true, hasBlister: true, activeDays: 24, totalDays: 28, hasNaturalPhases: false,
+        desc: "24 pastillas activas + 4 placebos verdes (ej. Kelzy, Yaz, Slinda).",
+        science: "Las 24 pastillas activas mantienen hormonas estables (sin ovulación natural). En los 4 días de placebo la caída hormonal causa el sangrado por deprivación y suele explicar la fatiga fuerte: baja 1–2 RPE sin culpa y prioriza B6, B9, B12, magnesio y zinc."
+      },
+      pill_21_7: {
+        id: "pill_21_7", icon: "💊", label: "Píldora 21+7", short: "Píldora 21+7", isHormonal: true, hasBlister: true, activeDays: 21, totalDays: 28, hasNaturalPhases: false,
+        desc: "21 pastillas activas + 7 días de pausa / sangrado por deprivación.",
+        science: "Durante los 21 días activos tu rendimiento suele ser estable (guíate por tu energía diaria). En los 7 días de pausa la caída hormonal puede bajar energía o dar dolor de cabeza; cuida folato, B12, B6, magnesio y zinc."
+      },
+      pill_continuous: {
+        id: "pill_continuous", icon: "🔄", label: "Minipíldora / DIU Hormonal / Implante", short: "Hormonal continuo", isHormonal: true, hasBlister: false, hasNaturalPhases: false,
+        desc: "Solo progestina continua (Mirena, Kyleena, Implanon, Cerazette) · sin pausa.",
+        science: "Aporta un nivel hormonal continuo sin picos bruscos ni semana de pausa. Tu entrenamiento y comida se guían por tu energía diaria (1–5), sueño y síntomas reales, vigilando magnesio y vitaminas B."
+      },
+      copper_iud: {
+        id: "copper_iud", icon: "🧡", label: "T de Cobre (sin hormonas)", short: "T de Cobre", isHormonal: false, hasBlister: false, hasNaturalPhases: true, heavyIronWatch: true,
+        desc: "Mantiene tu ovulación y ciclo natural de 4 fases · suele dar reglas más abundantes.",
+        science: "No altera tus hormonas naturales (sigues teniendo las 4 fases reales), pero suele aumentar el sangrado menstrual: prioriza hierro + vitamina C en regla, controla tu ferritina en analíticas y protege el RPE en días de flujo alto."
+      },
+      ring_patch: {
+        id: "ring_patch", icon: "⭕", label: "Anillo / Parche (21+7)", short: "Anillo / Parche", isHormonal: true, hasBlister: true, activeDays: 21, totalDays: 28, hasNaturalPhases: false,
+        desc: "3 semanas activas + 1 semana de pausa / sangrado por deprivación.",
+        science: "Libera hormonas de forma constante durante 21 días y cae en la semana de pausa. Prioriza fuerza constante en semanas activas, recuperación suave si hay fatiga en la pausa y micronutrientes B/Mg."
+      },
+      perimenopause: {
+        id: "perimenopause", icon: "✨", label: "Perimenopausia / Menopausia", short: "Menopausia", isHormonal: false, hasBlister: false, hasNaturalPhases: false, isMenopause: true,
+        desc: "Sin calendario rígido · seguimiento de sofocos, sueño, energía, fuerza ósea y proteína.",
+        science: "Al descender el estrógeno, la fuerza progresiva y una proteína firme (≥1,4–1,6 g/kg) son clave para proteger masa muscular y densidad ósea, junto a vitamina D, calcio, magnesio y omega-3."
+      }
+    };
+
+    const CYCLE_FLOW_OPTIONS = [
+      { id: "none", label: "Sin flujo" },
+      { id: "spotting", label: "Manchado" },
+      { id: "light", label: "Leve" },
+      { id: "medium", label: "Moderado" },
+      { id: "heavy", label: "Abundante" }
+    ];
+
+    const CYCLE_SYMPTOM_CHIPS = [
+      { id: "fatigue", label: "😴 Fatiga" },
+      { id: "cramps", label: "😣 Cólicos" },
+      { id: "headache", label: "🤕 Cabeza" },
+      { id: "bloating", label: "🎈 Hinchazón" },
+      { id: "hotflash", label: "🔥 Sofocos" },
+      { id: "cravings", label: "🍫 Antojos" },
+      { id: "poor_sleep", label: "🛌 Mal sueño" },
+      { id: "joints", label: "🦴 Articulaciones" }
+    ];
+
+    const CYCLE_MOOD_CHIPS = [
+      { id: "stable", label: "😊 Estable" },
+      { id: "motivated", label: "⚡ Motivada" },
+      { id: "sensitive", label: "☁️ Sensible" },
+      { id: "irritable", label: "😤 Irritable" },
+      { id: "anxious", label: "🌀 Ansiosa" }
+    ];
+
     const CYCLE_ENERGY_LABELS = [
       { val: 1, short: "1", label: "Agotada" },
       { val: 2, short: "2", label: "Baja" },
@@ -7503,12 +7664,111 @@
       { val: 5, short: "5", label: "A tope" }
     ];
 
+    function getHormonalMode() {
+      const hm = state.cycleProfile?.hormonalMode;
+      return HORMONAL_MODE_META[hm] ? hm : "none";
+    }
+
+    function getTodayCycleSymptomLog(dateKey = null) {
+      const key = dateKey || getTodayDateKey();
+      const raw = state.cycleProfile?.symptomLogs?.[key];
+      return {
+        flow: raw?.flow || "none",
+        symptoms: Array.isArray(raw?.symptoms) ? raw.symptoms : [],
+        mood: raw?.mood || ""
+      };
+    }
+
     function getActiveCyclePhase(m) {
       const sex = m ? m.sex : state.bodyProfile?.sex;
       if (sex !== "F") return null;
       const cp = state.cycleProfile || DEFAULT_STATE.cycleProfile;
+      const hMode = getHormonalMode();
+      if (hMode === "none") return null;
+      const hMeta = HORMONAL_MODE_META[hMode];
       const energy = [1, 2, 3, 4, 5].includes(Number(cp.dailyEnergy)) ? Number(cp.dailyEnergy) : 3;
+      const todayLog = getTodayCycleSymptomLog();
+      const hasHeavyFlow = todayLog.flow === "heavy";
+      const hasFatigueSymptom = todayLog.symptoms.includes("fatigue") || todayLog.symptoms.includes("cramps");
 
+      // 1. Pill / Ring / Patch 28-day blister modes (24+4 Kelzy, 21+7, Ring/Patch)
+      if (hMeta.hasBlister) {
+        const startStr = cp.packStartDate || cp.lastPeriodStart || getTodayDateKey();
+        const startMs = new Date(startStr + "T12:00:00").getTime();
+        const todayMs = new Date(getTodayDateKey() + "T12:00:00").getTime();
+        const diffDays = Number.isFinite(startMs) ? Math.floor((todayMs - startMs) / 86400000) : 0;
+        const totalD = hMeta.totalDays || 28;
+        const activeD = hMeta.activeDays || 24;
+        const packDay = (((diffDays % totalD) + totalD) % totalD) + 1;
+        const isWithdrawal = packDay > activeD;
+        const mappedPhaseId = isWithdrawal ? "menstrual" : "follicular";
+        const shortLabel = isWithdrawal ? `Pausa / Placebo (${packDay - activeD}/${totalD - activeD})` : `Activa (${packDay}/${activeD})`;
+        return {
+          id: mappedPhaseId,
+          hormonalMode: hMode,
+          modeShort: hMeta.short,
+          isHormonal: true,
+          isWithdrawal,
+          packDay,
+          activeDays: activeD,
+          totalDays: totalD,
+          cycleDay: packDay,
+          avgCycleLength: totalD,
+          isAuto: true,
+          energy,
+          label: isWithdrawal ? "🩸 Placebo / Sangrado" : `${hMeta.icon} ${hMeta.short}`,
+          short: isWithdrawal ? "Placebo / Regla" : "Pastillas activas",
+          trainingCue: isWithdrawal
+            ? "Semana de placebo/deprivación: la caída hormonal suele dar fatiga real. Baja 1–2 RPE si te sientes agotada y prioriza Pilates, técnica o movilidad sin culpa."
+            : "Fase de pastillas activas (hormona estable): excelente constancia para fuerza progresiva; ajusta intensidad según tu energía de hoy.",
+          nutritionCue: isWithdrawal
+            ? "Prioriza proteína fácil de digerir, hierro + vitamina C, magnesio e hidratación; evita forzar déficits extremos si estás muy cansada."
+            : "En anticonceptivos orales cuida especialmente Folato (B9), Vitamina B12 (clave junto a Metformina), B6, Magnesio y Zinc con comida real.",
+          hoyShort: `${hMeta.icon} ${hMeta.short} · Día ${packDay}/${totalD} (${isWithdrawal ? "Placebo" : "Activa"}) · ⚡ ${energy}/5`,
+          hasFatigueSymptom,
+          clueSource: cp.clueSource || "",
+          clueSyncedAt: cp.clueSyncedAt || ""
+        };
+      }
+
+      // 2. Continuous hormonal (Minipill / Mirena / Implant)
+      if (hMode === "pill_continuous") {
+        return {
+          id: energy <= 2 || hasFatigueSymptom ? "menstrual" : "follicular",
+          hormonalMode: hMode,
+          modeShort: hMeta.short,
+          isHormonal: true,
+          isAuto: false,
+          energy,
+          label: `${hMeta.icon} ${hMeta.short}`,
+          short: "Continuo",
+          trainingCue: "Línea hormonal continua sin semana de pausa: entrena fuerza progresiva guiándote por tu energía diaria y recuperación.",
+          nutritionCue: "Proteína constante en cada comida + atención a vitaminas B (B9/B12), magnesio y omega-3.",
+          hoyShort: `${hMeta.icon} Hormonal continuo · Energía ${energy}/5`,
+          hasFatigueSymptom
+        };
+      }
+
+      // 3. Perimenopause / Menopause
+      if (hMode === "perimenopause") {
+        return {
+          id: energy <= 2 || hasFatigueSymptom ? "luteal" : "follicular",
+          hormonalMode: hMode,
+          modeShort: hMeta.short,
+          isMenopause: true,
+          isAuto: false,
+          energy,
+          label: "✨ Menopausia",
+          short: "Menopausia",
+          trainingCue: "Prioridad absoluta: fuerza progresiva (protege densidad ósea y músculo) + movilidad; si hubo mal sueño o sofocos, baja 1 RPE sin culpa.",
+          nutritionCue: "Asegura proteína firme en cada comida + Vitamina D, calcio, magnesio y omega-3 antiinflamatorio.",
+          hoyShort: `✨ Menopausia · Energía ${energy}/5`,
+          hasFatigueSymptom
+        };
+      }
+
+      // 4. Natural cycle OR Copper IUD (both have true 4-phase endogenous ovulatory cycles!)
+      const isCopper = hMode === "copper_iud";
       if (cp.mode === "auto" && cp.lastPeriodStart) {
         const startMs = new Date(cp.lastPeriodStart + "T12:00:00").getTime();
         if (Number.isFinite(startMs)) {
@@ -7524,39 +7784,68 @@
           if (cycleDay <= pDays) phaseId = "menstrual";
           else if (cycleDay < ovulStart) phaseId = "follicular";
           else if (cycleDay <= ovulEnd) phaseId = "ovulatory";
-          const daysToNext = avgLen - cycleDay + 1;
           const base = CYCLE_PHASE_META[phaseId];
           return {
             ...base,
+            hormonalMode: hMode,
+            modeShort: hMeta.short,
+            isCopperIud: isCopper,
             cycleDay,
             avgCycleLength: avgLen,
-            daysToNext,
+            daysToNext: avgLen - cycleDay + 1,
             isAuto: true,
             energy,
+            trainingCue: isCopper && (phaseId === "menstrual" || hasHeavyFlow)
+              ? "T de Cobre en días de regla/flujo abundante: protege tu energía (baja 1–2 RPE) y evita HIIT extenuante."
+              : base.trainingCue,
+            nutritionCue: isCopper && phaseId === "menstrual"
+              ? "Con T de Cobre el flujo suele ser mayor: prioriza hierro + vitamina C (limón/tomate), evita café/té tras comer y vigila tu ferritina."
+              : base.nutritionCue,
+            hoyShort: `${isCopper ? "🧡 " : ""}${base.label} · Día ${cycleDay}/${avgLen} · ⚡ ${energy}/5`,
+            hasFatigueSymptom,
             clueSource: cp.clueSource || "",
-            clueSyncedAt: cp.clueSyncedAt || "",
-            hoyShort: `${base.label} · Día ${cycleDay}/${avgLen} · Energía ${energy}/5`
+            clueSyncedAt: cp.clueSyncedAt || ""
           };
         }
       }
 
-      const phase = cp.phase || "none";
-      if (!phase || phase === "none" || !CYCLE_PHASE_META[phase]) return null;
+      const phase = (cp.phase && cp.phase !== "none" && CYCLE_PHASE_META[cp.phase]) ? cp.phase : "follicular";
       const base = CYCLE_PHASE_META[phase];
       return {
         ...base,
+        hormonalMode: hMode,
+        modeShort: hMeta.short,
+        isCopperIud: isCopper,
         isAuto: false,
         energy,
-        clueSource: cp.clueSource || "",
-        clueSyncedAt: cp.clueSyncedAt || "",
-        hoyShort: `${base.hoyShort} · Energía ${energy}/5`
+        nutritionCue: isCopper && phase === "menstrual"
+          ? "Con T de Cobre el flujo suele ser mayor: prioriza hierro + vitamina C y vigila tu ferritina en analíticas."
+          : base.nutritionCue,
+        hoyShort: `${isCopper ? "🧡 " : ""}${base.label} · ⚡ ${energy}/5`,
+        hasFatigueSymptom
       };
+    }
+
+    function setHormonalMode(mode) {
+      if (!HORMONAL_MODE_META[mode]) return;
+      const cp = state.cycleProfile || DEFAULT_STATE.cycleProfile;
+      const meta = HORMONAL_MODE_META[mode];
+      state.cycleProfile = {
+        ...cp,
+        hormonalMode: mode,
+        phase: mode === "none" ? "none" : (cp.phase && cp.phase !== "none" ? cp.phase : "follicular"),
+        packStartDate: meta.hasBlister ? (cp.packStartDate || getTodayDateKey()) : cp.packStartDate
+      };
+      saveState();
+      render();
+      showToast(mode === "none" ? "Seguimiento hormonal ocultado" : `Modo activo: ${meta.short} ✓`);
     }
 
     function setCyclePhase(phase) {
       if (!CYCLE_PHASE_META[phase]) return;
       state.cycleProfile = {
         ...(state.cycleProfile || DEFAULT_STATE.cycleProfile),
+        hormonalMode: phase === "none" ? "none" : (getHormonalMode() === "none" ? "natural" : getHormonalMode()),
         phase,
         mode: "manual"
       };
@@ -7578,6 +7867,216 @@
       showToast(`Energía hoy: ${n}/5 · Entreno adaptado ✓`);
     }
 
+    function markPeriodStartToday() {
+      const today = getTodayDateKey();
+      state.cycleProfile = {
+        ...(state.cycleProfile || DEFAULT_STATE.cycleProfile),
+        hormonalMode: ["natural", "copper_iud"].includes(getHormonalMode()) ? getHormonalMode() : "natural",
+        mode: "auto",
+        lastPeriodStart: today,
+        phase: "menstrual"
+      };
+      saveState();
+      render();
+      showToast("🩸 Inicio de regla registrado hoy (Día 1) ✓");
+    }
+
+    function toggleBlisterPillDay(dayNum, fromSheet = false) {
+      const cp = state.cycleProfile || DEFAULT_STATE.cycleProfile;
+      if (!cp.pillTakenDays || typeof cp.pillTakenDays !== "object") cp.pillTakenDays = {};
+      const key = `${cp.packStartDate || "pack"}_d${dayNum}`;
+      if (cp.pillTakenDays[key]) {
+        delete cp.pillTakenDays[key];
+      } else {
+        cp.pillTakenDays[key] = getCurrentHHMM();
+      }
+      saveState();
+      render();
+      if (fromSheet) openCycleTrackerSheet();
+      showToast(cp.pillTakenDays[key] ? `✓ Pastilla ${dayNum} marcada (${cp.pillTakenDays[key]})` : `Pastilla ${dayNum} desmarcada`);
+    }
+
+    function updatePackStartDate(val) {
+      if (!val) return;
+      state.cycleProfile.packStartDate = val;
+      saveState();
+      render();
+      openCycleTrackerSheet();
+      showToast("Fecha de inicio del blíster guardada ✓");
+    }
+
+    function setTodayCycleFlow(flowId) {
+      const today = getTodayDateKey();
+      if (!state.cycleProfile.symptomLogs || typeof state.cycleProfile.symptomLogs !== "object") state.cycleProfile.symptomLogs = {};
+      const cur = getTodayCycleSymptomLog(today);
+      state.cycleProfile.symptomLogs[today] = { ...cur, flow: flowId };
+      saveState();
+      render();
+      openCycleTrackerSheet();
+    }
+
+    function toggleTodayCycleSymptom(symId) {
+      const today = getTodayDateKey();
+      if (!state.cycleProfile.symptomLogs || typeof state.cycleProfile.symptomLogs !== "object") state.cycleProfile.symptomLogs = {};
+      const cur = getTodayCycleSymptomLog(today);
+      const list = [...cur.symptoms];
+      const idx = list.indexOf(symId);
+      if (idx >= 0) list.splice(idx, 1);
+      else list.push(symId);
+      state.cycleProfile.symptomLogs[today] = { ...cur, symptoms: list };
+      saveState();
+      render();
+      openCycleTrackerSheet();
+    }
+
+    function setTodayCycleMood(moodId) {
+      const today = getTodayDateKey();
+      if (!state.cycleProfile.symptomLogs || typeof state.cycleProfile.symptomLogs !== "object") state.cycleProfile.symptomLogs = {};
+      const cur = getTodayCycleSymptomLog(today);
+      state.cycleProfile.symptomLogs[today] = { ...cur, mood: cur.mood === moodId ? "" : moodId };
+      saveState();
+      render();
+      openCycleTrackerSheet();
+    }
+
+    function openHormonalModeSheet() {
+      const cur = getHormonalMode();
+      openSheet("🌙 Tu perfil hormonal / anticonceptivo", `
+        <div class="section-gap">
+          <div style="font-size:12px; color:var(--text-muted); line-height:1.4;">
+            Cada cuerpo y método funciona distinto. Elige el tuyo para adaptar comida, micronutrientes y entreno con base científica real:
+          </div>
+          <div class="onb-choice-stack">
+            ${Object.values(HORMONAL_MODE_META).map(hm => `
+              <button type="button" class="onb-tile ${cur === hm.id ? "active" : ""}" style="padding:11px 13px;" onclick="setHormonalMode('${hm.id}'); closeSheet();">
+                <span class="onb-tile-ico" style="width:34px; height:34px; font-size:17px;">${hm.icon}</span>
+                <div style="min-width:0;">
+                  <div style="font-size:13px; font-weight:800; color:var(--text-main);">${hm.label}</div>
+                  <div style="font-size:11px; color:var(--text-soft); line-height:1.35;">${hm.desc}</div>
+                </div>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `);
+    }
+
+    function openCycleTrackerSheet() {
+      const m = getAdaptiveNutritionMetrics();
+      const cp = state.cycleProfile || DEFAULT_STATE.cycleProfile;
+      const hMode = getHormonalMode();
+      const hMeta = HORMONAL_MODE_META[hMode] || HORMONAL_MODE_META.natural;
+      const active = getActiveCyclePhase(m);
+      const todayLog = getTodayCycleSymptomLog();
+      const packPrefix = cp.packStartDate || "pack";
+
+      let topVisualHtml = "";
+      if (hMeta.hasBlister && active) {
+        const pills = [];
+        for (let d = 1; d <= hMeta.totalDays; d++) {
+          const isPlacebo = d > hMeta.activeDays;
+          const isTaken = Boolean(cp.pillTakenDays && cp.pillTakenDays[`${packPrefix}_d${d}`]);
+          const isToday = d === active.packDay;
+          pills.push(`
+            <button type="button" class="blister-pill ${isPlacebo ? "placebo" : ""} ${isTaken ? "taken" : ""} ${isToday ? "today" : ""}" onclick="toggleBlisterPillDay(${d}, true)" title="Día ${d}${isPlacebo ? " (Placebo/Pausa)" : " (Activa)"}">
+              ${isTaken ? "✓" : d}
+            </button>
+          `);
+        }
+        topVisualHtml = `
+          <div class="card-soft">
+            <div class="row-between" style="margin-bottom:6px;">
+              <div>
+                <div style="font-size:13px; font-weight:800; color:var(--rose-dark);">${hMeta.icon} Blíster ${hMeta.short}</div>
+                <div style="font-size:11px; color:var(--text-muted);">Hoy: <strong>Día ${active.packDay}/${hMeta.totalDays}</strong> · ${active.isWithdrawal ? "Placebo / Sangrado" : "Pastilla activa"}</div>
+              </div>
+              <button type="button" class="btn-ghost btn-sm" onclick="openHormonalModeSheet()">Cambiar</button>
+            </div>
+            <div style="margin-bottom:8px;">
+              <label style="font-size:10.5px;">Fecha Pastilla 1 de este paquete</label>
+              <input type="date" value="${escapeAttr(cp.packStartDate || getTodayDateKey())}" onchange="updatePackStartDate(this.value)" />
+            </div>
+            <div class="blister-grid">${pills.join("")}</div>
+            <div style="display:flex; gap:10px; font-size:10px; color:var(--text-soft); margin-top:4px;">
+              <span>● 1–${hMeta.activeDays}: Activas</span>
+              <span style="color:#1E6B4E;">● ${hMeta.activeDays + 1}–${hMeta.totalDays}: Placebo / Pausa</span>
+            </div>
+          </div>
+        `;
+      } else if (hMeta.hasNaturalPhases) {
+        topVisualHtml = `
+          <div class="card-soft">
+            <div class="row-between" style="margin-bottom:7px;">
+              <div>
+                <div style="font-size:13px; font-weight:800; color:var(--rose-dark);">${hMeta.icon} ${hMeta.label}</div>
+                <div style="font-size:11px; color:var(--text-muted);">${active?.isAuto ? `Día ${active.cycleDay} de ${active.avgCycleLength} · ${active.short}` : "Registra tu última regla para cálculo automático"}</div>
+              </div>
+              <button type="button" class="btn-ghost btn-sm" onclick="openHormonalModeSheet()">Cambiar</button>
+            </div>
+            <div class="grid-2">
+              <button type="button" class="btn-primary btn-sm" onclick="markPeriodStartToday(); openCycleTrackerSheet();">🩸 Hoy empecé regla</button>
+              <button type="button" class="btn-secondary btn-sm" onclick="openClueSyncSheet()">⚙️ Fechas / Clue</button>
+            </div>
+          </div>
+        `;
+      } else {
+        topVisualHtml = `
+          <div class="card-soft">
+            <div class="row-between">
+              <div>
+                <div style="font-size:13px; font-weight:800; color:var(--rose-dark);">${hMeta.icon} ${hMeta.label}</div>
+                <div style="font-size:11px; color:var(--text-muted);">${hMeta.desc}</div>
+              </div>
+              <button type="button" class="btn-ghost btn-sm" onclick="openHormonalModeSheet()">Cambiar</button>
+            </div>
+          </div>
+        `;
+      }
+
+      openSheet("🌙 Diario de Ciclo & Síntomas", `
+        <div class="section-gap">
+          ${topVisualHtml}
+
+          <div>
+            <label>Flujo / Sangrado hoy</label>
+            <div class="chip-row">
+              ${CYCLE_FLOW_OPTIONS.map(f => `
+                <button type="button" class="chip ${todayLog.flow === f.id ? "active" : ""}" onclick="setTodayCycleFlow('${f.id}')">${f.label}</button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <label>Síntomas físicos hoy</label>
+            <div class="chip-row">
+              ${CYCLE_SYMPTOM_CHIPS.map(s => {
+                const on = todayLog.symptoms.includes(s.id);
+                return `<button type="button" class="chip ${on ? "active" : ""}" onclick="toggleTodayCycleSymptom('${s.id}')">${s.label}</button>`;
+              }).join("")}
+            </div>
+          </div>
+
+          <div>
+            <label>Estado de ánimo hoy</label>
+            <div class="chip-row">
+              ${CYCLE_MOOD_CHIPS.map(mo => `
+                <button type="button" class="chip ${todayLog.mood === mo.id ? "active" : ""}" onclick="setTodayCycleMood('${mo.id}')">${mo.label}</button>
+              `).join("")}
+            </div>
+          </div>
+
+          ${hMeta.science ? `
+            <div class="corr-box" style="margin-bottom:0;">
+              <div style="font-size:10.5px; font-weight:800; color:var(--rose-dark); margin-bottom:3px;">🔬 BASE CIENTÍFICA · ${escapeHtml(hMeta.short.toUpperCase())}</div>
+              <div>${hMeta.science}</div>
+            </div>
+          ` : ""}
+
+          <button type="button" class="btn-ghost btn-sm" style="color:var(--text-soft);" onclick="openClueSyncSheet()">🔗 Importar historial de Clue (.json) / Apple Salud</button>
+        </div>
+      `);
+    }
+
     function openRecipesForCyclePhase() {
       recipeMealTypeFilter = "all";
       recipeFilter = "Todas";
@@ -7587,45 +8086,100 @@
 
     function buildCycleSelectorHtml(m, standalone = false) {
       const cp = state.cycleProfile || DEFAULT_STATE.cycleProfile;
+      const hMode = getHormonalMode();
+      const hMeta = HORMONAL_MODE_META[hMode] || HORMONAL_MODE_META.none;
       const active = getActiveCyclePhase(m);
-      const current = active ? active.id : "none";
       const energy = [1, 2, 3, 4, 5].includes(Number(cp.dailyEnergy)) ? Number(cp.dailyEnergy) : 3;
+      const todayLog = getTodayCycleSymptomLog();
+
+      if (hMode === "none") {
+        return `
+          <div class="row-between" style="gap:8px;">
+            <div>
+              <div style="font-size:14px; font-weight:800; color:var(--text-main);">🌙 Ciclo, Anticonceptivos &amp; Menopausia</div>
+              <div style="font-size:11.5px; color:var(--text-soft);">Ciclo natural, Kelzy 24+4, 21+7, T de Cobre, DIU o Menopausia</div>
+            </div>
+            <button class="btn-secondary btn-sm" onclick="openHormonalModeSheet()">Configurar</button>
+          </div>
+        `;
+      }
+
+      const packPrefix = cp.packStartDate || "pack";
+      const miniBlisterHtml = (hMeta.hasBlister && active) ? (() => {
+        const dots = [];
+        for (let d = 1; d <= hMeta.totalDays; d++) {
+          const isPl = d > hMeta.activeDays;
+          const done = Boolean(cp.pillTakenDays && cp.pillTakenDays[`${packPrefix}_d${d}`]);
+          const cls = done ? (isPl ? "placebo-done" : "active-done") : (isPl ? "placebo-slot" : "");
+          dots.push(`<span class="blister-mini-dot ${cls} ${d === active.packDay ? "today-dot" : ""}"></span>`);
+        }
+        const todayTaken = Boolean(cp.pillTakenDays && cp.pillTakenDays[`${packPrefix}_d${active.packDay}`]);
+        return `
+          <div class="blister-mini-bar">${dots.join("")}</div>
+          <div class="row-between" style="font-size:11px; color:var(--text-muted); margin-bottom:7px;">
+            <span>Día <strong>${active.packDay}/${hMeta.totalDays}</strong> · ${active.isWithdrawal ? "Placebo / Sangrado" : "Pastilla activa"}</span>
+            <button class="btn-ghost btn-sm" style="padding:2px 6px; color:${todayTaken ? "var(--mint-text)" : "var(--rose-dark)"}; font-weight:800;" onclick="toggleBlisterPillDay(${active.packDay}, false)">
+              ${todayTaken ? "✓ Pastilla tomada" : "○ Marcar pastilla"}
+            </button>
+          </div>
+        `;
+      })() : "";
+
+      const loggedSymTags = [
+        ...(todayLog.flow !== "none" ? [CYCLE_FLOW_OPTIONS.find(x => x.id === todayLog.flow)?.label] : []),
+        ...todayLog.symptoms.map(id => CYCLE_SYMPTOM_CHIPS.find(x => x.id === id)?.label),
+        ...(todayLog.mood ? [CYCLE_MOOD_CHIPS.find(x => x.id === todayLog.mood)?.label] : [])
+      ].filter(Boolean);
 
       return `
         <div style="${standalone ? "" : "margin-top:11px; padding-top:10px; border-top:1px solid var(--border);"}">
-          <div class="row-between" style="margin-bottom:7px; gap:6px;">
-            <div>
-              <div style="font-size:${standalone ? "14px" : "12px"}; font-weight:800; color:var(--text-main);">🌙 Ciclo (Clue) &amp; Energía</div>
-              ${active?.isAuto
-                ? `<div style="font-size:11px; color:var(--rose-dark); font-weight:750;">Día ${active.cycleDay} de ${active.avgCycleLength} · ${active.short}${active.clueSource ? ` (${escapeHtml(active.clueSource)})` : ""}</div>`
-                : `<div style="font-size:11px; color:var(--text-soft);">Conecta Clue o elige tu fase</div>`}
+          <div class="row-between" style="margin-bottom:6px; gap:6px;">
+            <div style="min-width:0;">
+              <div style="font-size:${standalone ? "14px" : "12px"}; font-weight:800; color:var(--text-main);">${hMeta.icon} ${hMeta.short}</div>
+              <div style="font-size:11px; color:var(--rose-dark); font-weight:750;">
+                ${active?.isAuto ? `Día ${active.cycleDay}/${active.avgCycleLength} · ${active.short}` : active?.short || hMeta.short}
+              </div>
             </div>
-            <button class="btn-secondary btn-sm" onclick="openClueSyncSheet()">🔗 Sync Clue</button>
+            <div style="display:flex; gap:5px; flex-shrink:0;">
+              <button class="btn-secondary btn-sm" onclick="openCycleTrackerSheet()">${hMeta.hasBlister ? "💊 Blíster" : "📝 Síntomas"}</button>
+              <button class="btn-ghost btn-sm" onclick="openHormonalModeSheet()" title="Cambiar método">⚙️</button>
+            </div>
           </div>
 
-          <div class="chip-row">
-            ${Object.values(CYCLE_PHASE_META).map(p => `
-              <button class="chip ${current === p.id ? "active" : ""}" onclick="setCyclePhase('${p.id}')">${p.label}</button>
-            `).join("")}
+          ${miniBlisterHtml}
+
+          ${hMeta.hasNaturalPhases ? `
+            <div class="chip-row" style="margin-bottom:7px;">
+              ${["menstrual", "follicular", "ovulatory", "luteal"].map(pid => {
+                const p = CYCLE_PHASE_META[pid];
+                return `<button class="chip ${active?.id === pid ? "active" : ""}" onclick="setCyclePhase('${pid}')">${p.label}</button>`;
+              }).join("")}
+            </div>
+          ` : ""}
+
+          ${loggedSymTags.length ? `
+            <div class="chip-row" style="margin-bottom:7px;">
+              ${loggedSymTags.map(t => `<span class="badge">${escapeHtml(t)}</span>`).join("")}
+            </div>
+          ` : ""}
+
+          <div style="margin-top:4px;">
+            <div style="font-size:10.5px; font-weight:750; color:var(--text-soft); margin-bottom:4px;">ENERGÍA HOY (ADAPTA TU ENTRENO)</div>
+            <div class="metf-scale-grid cols-5">
+              ${CYCLE_ENERGY_LABELS.map(e => `
+                <button type="button" class="metf-scale-btn ${energy === e.val ? "active" : ""}" onclick="setDailyCycleEnergy(${e.val})">
+                  <div style="font-size:12px; font-weight:800;">${e.short}</div>
+                  <div style="font-size:9px;">${e.label}</div>
+                </button>
+              `).join("")}
+            </div>
           </div>
 
           ${active ? `
-            <div style="margin-top:9px;">
-              <div style="font-size:11px; font-weight:750; color:var(--text-soft); margin-bottom:5px;">ENERGÍA HOY (ADAPTA TU ENTRENO)</div>
-              <div class="metf-scale-grid cols-5">
-                ${CYCLE_ENERGY_LABELS.map(e => `
-                  <button type="button" class="metf-scale-btn ${energy === e.val ? "active" : ""}" onclick="setDailyCycleEnergy(${e.val})">
-                    <div style="font-size:12px; font-weight:800;">${e.short}</div>
-                    <div style="font-size:9px;">${e.label}</div>
-                  </button>
-                `).join("")}
-              </div>
-            </div>
-
             <div style="margin-top:8px; font-size:11.5px; color:var(--text-muted); line-height:1.42; background:var(--bg-soft); padding:9px 10px; border-radius:10px; border:1px solid var(--border);">
-              <div><strong>🏋️ Entreno:</strong> ${energy <= 2 ? "Energía baja hoy: reduce 1–2 puntos el RPE y prioriza Pilates, técnica o movilidad sin culpa." : active.trainingCue}</div>
+              <div><strong>🏋️ Entreno:</strong> ${energy <= 2 || active.hasFatigueSymptom ? "Hoy hay fatiga/baja energía: reduce 1–2 puntos el RPE y prioriza técnica, Pilates o movilidad sin culpa." : active.trainingCue}</div>
               <div style="margin-top:4px;"><strong>🍲 Comida:</strong> ${active.nutritionCue}</div>
-              <button class="btn-ghost btn-sm" style="margin-top:6px; padding:3px 0; color:var(--rose-dark); font-weight:800;" onclick="openRecipesForCyclePhase()">🍲 Ver recetas ideales para fase ${active.short} →</button>
+              <button class="btn-ghost btn-sm" style="margin-top:5px; padding:2px 0; color:var(--rose-dark); font-weight:800;" onclick="openRecipesForCyclePhase()">🍲 Ver recetas ideales para hoy →</button>
             </div>
           ` : ""}
         </div>
@@ -8651,7 +9205,7 @@
     <div class="box">Carbohidratos / Grasas<strong>${m.targetCarbs} g C · ${m.targetFat} g G</strong></div>
     <div class="box">Condiciones activas<strong>${escapeHtml(activeConds.length ? activeConds.join(", ") : "General")}</strong></div>
   </div>
-  ${cycle ? `<p style="font-size:12px; margin-top:8px;"><strong>Fase del ciclo actual:</strong> ${escapeHtml(cycle.short)}</p>` : ""}
+  ${cycle ? `<p style="font-size:12px; margin-top:8px;"><strong>Perfil hormonal / ciclo:</strong> ${escapeHtml(cycle.modeShort || "")}${cycle.isAuto ? ` · Día ${cycle.cycleDay}/${cycle.avgCycleLength}` : ""} (${escapeHtml(cycle.short)}) · Energía ${cycle.energy}/5</p>` : ""}
 
   <h2>2. Analíticas de Sangre e Índice HOMA-IR</h2>
   <table>
@@ -11160,7 +11714,10 @@
 
     function onbSetSex(sex) {
       state.bodyProfile.sex = sex === "M" ? "M" : "F";
-      if (sex === "M") state.cycleProfile.phase = "none";
+      if (sex === "M") {
+        state.cycleProfile.phase = "none";
+        state.cycleProfile.hormonalMode = "none";
+      }
       saveState();
       renderOnboarding();
     }
@@ -11218,13 +11775,8 @@
       renderOnboarding();
     }
 
-    function onbToggleCycleOpt(enable) {
-      state.cycleProfile = {
-        ...(state.cycleProfile || DEFAULT_STATE.cycleProfile),
-        phase: enable ? (state.cycleProfile?.phase && state.cycleProfile.phase !== "none" ? state.cycleProfile.phase : "follicular") : "none",
-        mode: enable ? (state.cycleProfile?.lastPeriodStart ? "auto" : "manual") : "manual"
-      };
-      saveState();
+    function onbSetHormonalMode(hMode) {
+      setHormonalMode(hMode);
       renderOnboarding();
     }
 
@@ -11401,11 +11953,12 @@
 
           ${m.sex === "F" ? `
             <div class="card-soft" style="margin-top:6px;">
-              <div style="font-size:13px; font-weight:800; color:var(--text-main); margin-bottom:4px;">🌙 Ciclo menstrual (Clue)</div>
-              <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">¿Quieres adaptar tus recetas y tu esfuerzo en entreno a tu fase del ciclo?</div>
-              <div class="seg-control">
-                <button type="button" class="seg-btn ${cycleOn ? "active" : ""}" onclick="onbToggleCycleOpt(true)">Sí, activar</button>
-                <button type="button" class="seg-btn ${!cycleOn ? "active" : ""}" onclick="onbToggleCycleOpt(false)">Ahora no</button>
+              <div style="font-size:13px; font-weight:800; color:var(--text-main); margin-bottom:4px;">🌙 Perfil hormonal / anticonceptivo</div>
+              <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">Adapta nutrientes, blíster y entreno a tu realidad:</div>
+              <div class="chip-row">
+                ${Object.values(HORMONAL_MODE_META).map(hm => `
+                  <button type="button" class="chip ${getHormonalMode() === hm.id ? "active" : ""}" onclick="onbSetHormonalMode('${hm.id}')">${hm.icon} ${hm.short}</button>
+                `).join("")}
               </div>
             </div>
           ` : ""}
