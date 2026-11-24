@@ -1752,6 +1752,72 @@
       border-radius: var(--radius-md);
       padding: 6px 8px;
     }
+
+    .lab-upload-box {
+      border: 1.5px dashed var(--rose-soft);
+      background: linear-gradient(135deg, #FFF8FB, #FDF1F6);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .lab-gauge-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .lab-gauge-item {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 8px 10px;
+    }
+
+    .lab-gauge-track {
+      position: relative;
+      height: 8px;
+      border-radius: 99px;
+      background: #EDE3E8;
+      margin: 7px 0 4px;
+      overflow: visible;
+    }
+
+    .lab-gauge-opt {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: 99px;
+      background: #B9E2CF;
+    }
+
+    .lab-gauge-dot {
+      position: absolute;
+      top: 50%;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(34, 22, 27, 0.28);
+    }
+
+    .lab-gauge-dot.ok { background: #2E8B63; }
+    .lab-gauge-dot.warn { background: #D6913A; }
+    .lab-gauge-dot.alert { background: #C84E77; }
+
+    .extra-marker-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-main);
+    }
   </style>
 </head>
 <body>
@@ -2909,6 +2975,8 @@
     let diaryDateKey = new Date().toISOString().slice(0, 10);
     let activeFoodSheet = { slot: "desayuno", mode: "presets", search: "", portion: 1 };
     let saludSubTab = "diario";
+    let selectedLabChartMarker = "homa";
+    let pendingExtraLabMarkers = [];
     let recipeFilter = "Todas";
     let recipeQuickFilter = "profile";
     let recipeSearch = "";
@@ -6211,8 +6279,8 @@
               <button class="quick-log-btn" onclick="openAddLabSheet()">
                 <span class="quick-log-icon">🩸</span>
                 <div style="min-width:0;">
-                  <div class="quick-log-title">+ Analítica</div>
-                  <div class="quick-log-sub">${labCountQuick ? `${labCountQuick} guardada(s)` : "HOMA-IR, B12, Fe"}</div>
+                  <div class="quick-log-title">📷 Analítica</div>
+                  <div class="quick-log-sub">${labCountQuick ? `${labCountQuick} guardada(s)` : "Subir PDF / foto"}</div>
                 </div>
               </button>
             </div>
@@ -6310,8 +6378,8 @@
                 <button class="btn-ghost btn-sm" onclick="setSaludSubTab('perfil')">Editar perfil →</button>
               </div>
               <div class="grid-2">
-                <button class="btn-primary btn-sm" onclick="openPrintableMedicalReport()">📄 Resumen PDF</button>
-                <button class="btn-secondary btn-sm" onclick="openAddLabSheet()">+ Analítica</button>
+                <button class="btn-primary btn-sm" onclick="openAddLabSheet()">📷 Subir PDF / Foto</button>
+                <button class="btn-secondary btn-sm" onclick="openPrintableMedicalReport()">📄 Resumen PDF</button>
               </div>
             </div>
 
@@ -6602,6 +6670,42 @@
       return (g * i) / 405;
     }
 
+    const LAB_MARKER_META = {
+      homa:          { key: "homa",          label: "HOMA-IR",        unit: "",       dec: 2, min: 0.3, max: 4.5,  optMin: 0.5, optMax: 2.0 },
+      glucose:       { key: "glucose",       label: "Glucosa ayunas", unit: "mg/dL",  dec: 0, min: 55,  max: 150,  optMin: 70,  optMax: 99 },
+      insulin:       { key: "insulin",       label: "Insulina basal", unit: "µU/mL",  dec: 1, min: 1,   max: 26,   optMin: 2,   optMax: 10 },
+      hba1c:         { key: "hba1c",         label: "HbA1c",          unit: "%",      dec: 1, min: 4.2, max: 7.5,  optMin: 4.6, optMax: 5.6 },
+      ferritin:      { key: "ferritin",      label: "Ferritina",      unit: "ng/mL",  dec: 0, min: 5,   max: 220,  optMin: 30,  optMax: 150, optMaxM: 300 },
+      b12:           { key: "b12",           label: "Vitamina B12",   unit: "pg/mL",  dec: 0, min: 120, max: 1050, optMin: 300, optMax: 900 },
+      vitD:          { key: "vitD",          label: "Vitamina D",     unit: "ng/mL",  dec: 0, min: 8,   max: 105,  optMin: 30,  optMax: 80 },
+      folate:        { key: "folate",        label: "Folato (B9)",    unit: "ng/mL",  dec: 1, min: 1.5, max: 24,   optMin: 5,   optMax: 20 },
+      hemoglobin:    { key: "hemoglobin",    label: "Hemoglobina",    unit: "g/dL",   dec: 1, min: 9.5, max: 18.5, optMin: 12.0, optMax: 15.5, optMinM: 13.5, optMaxM: 17.5 },
+      iron:          { key: "iron",          label: "Hierro sérico",  unit: "µg/dL",  dec: 0, min: 25,  max: 205,  optMin: 60,  optMax: 160 },
+      tsh:           { key: "tsh",           label: "TSH (Tiroides)", unit: "mIU/L",  dec: 2, min: 0.1, max: 6.0,  optMin: 0.5, optMax: 2.5 },
+      ldl:           { key: "ldl",           label: "Colesterol LDL", unit: "mg/dL",  dec: 0, min: 40,  max: 190,  optMin: 45,  optMax: 100 },
+      hdl:           { key: "hdl",           label: "Colesterol HDL", unit: "mg/dL",  dec: 0, min: 25,  max: 105,  optMin: 50,  optMax: 95, optMinM: 40 },
+      triglycerides: { key: "triglycerides", label: "Triglicéridos",  unit: "mg/dL",  dec: 0, min: 35,  max: 240,  optMin: 40,  optMax: 150 },
+      crp:           { key: "crp",           label: "PCR / CRP",      unit: "mg/L",   dec: 1, min: 0,   max: 12,   optMin: 0,   optMax: 3.0 }
+    };
+
+    function getLabMarkerValue(entry, key) {
+      if (!entry) return null;
+      if (key === "homa") {
+        if (Number(entry.homaDirect) > 0) return Number(entry.homaDirect);
+        return computeHomaIr(entry.glucose, entry.insulin);
+      }
+      const n = Number(entry[key]);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    }
+
+    function getMarkerOptRange(key, sex) {
+      const meta = LAB_MARKER_META[key];
+      if (!meta) return { optMin: 0, optMax: 100, min: 0, max: 100 };
+      const optMin = (sex === "M" && meta.optMinM !== undefined) ? meta.optMinM : meta.optMin;
+      const optMax = (sex === "M" && meta.optMaxM !== undefined) ? meta.optMaxM : meta.optMax;
+      return { optMin, optMax, min: meta.min, max: Math.max(meta.max, optMax * 1.15) };
+    }
+
     function evaluateLabMarker(type, val, sex) {
       const n = Number(val);
       if (!(n > 0)) return null;
@@ -6636,42 +6740,128 @@
         if (n <= 6.4) return { label: "Rango prediabetes", cls: "warn" };
         return { label: "Elevada · consultar", cls: "alert" };
       }
-      return null;
+      const r = getMarkerOptRange(type, sex);
+      if (n < r.optMin) return { label: "Bajo orient.", cls: "alert" };
+      if (n <= r.optMax) return { label: "En rango", cls: "ok" };
+      return { label: "Alto orient.", cls: type === "hdl" ? "ok" : "warn" };
     }
 
-    function renderLabsTrendSvg(sortedDesc) {
-      const asc = (sortedDesc || []).slice().reverse();
-      const homaPts = asc
-        .map(l => ({ date: String(l.date || "").slice(2), val: computeHomaIr(l.glucose, l.insulin) }))
-        .filter(x => x.val !== null);
-      const b12Pts = asc
-        .map(l => ({ date: String(l.date || "").slice(2), val: Number(l.b12) > 0 ? Number(l.b12) : null }))
-        .filter(x => x.val !== null);
-      const series = homaPts.length >= 2
-        ? { title: "📉 Tendencia HOMA-IR", unit: "", color: "#C84E77", pts: homaPts.slice(-6) }
-        : (b12Pts.length >= 2 ? { title: "📉 Tendencia Vitamina B12 (pg/mL)", unit: "", color: "#2E8B63", pts: b12Pts.slice(-6) } : null);
-      if (!series) return "";
+    function formatLabVal(val, dec = 1) {
+      if (val === null || val === undefined || !Number.isFinite(Number(val))) return "—";
+      return Number(val).toFixed(dec).replace(".", ",");
+    }
 
-      const vals = series.pts.map(p => p.val);
-      const minV = Math.min(...vals) * 0.9;
-      const maxV = Math.max(...vals) * 1.1;
+    function renderLabGaugesHtml(latest, sex) {
+      if (!latest) return "";
+      const keys = Object.keys(LAB_MARKER_META);
+      const present = keys.map(k => ({ key: k, meta: LAB_MARKER_META[k], val: getLabMarkerValue(latest, k) })).filter(x => x.val !== null);
+      if (!present.length) return "";
+
+      return `
+        <div style="font-size:11px; font-weight:800; color:var(--text-soft); margin:8px 0 6px;">📊 DIAGRAMA DE RANGOS (${escapeHtml(latest.date || "")})</div>
+        <div class="lab-gauge-list">
+          ${present.map(({ key, meta, val }) => {
+            const r = getMarkerOptRange(key, sex);
+            const ev = evaluateLabMarker(key, val, sex) || { label: "Registrado", cls: "ok" };
+            const span = Math.max(0.1, r.max - r.min);
+            const optLeft = Math.max(0, Math.min(100, ((r.optMin - r.min) / span) * 100));
+            const optRight = Math.max(optLeft + 4, Math.min(100, ((r.optMax - r.min) / span) * 100));
+            const dotPct = Math.max(3, Math.min(97, ((val - r.min) / span) * 100));
+            return `
+              <div class="lab-gauge-item">
+                <div class="row-between" style="gap:6px;">
+                  <span style="font-size:12px; font-weight:800; color:var(--text-main);">${meta.label}</span>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <strong style="font-size:12.5px; color:var(--text-main);">${formatLabVal(val, meta.dec)} <span style="font-size:10px; font-weight:600; color:var(--text-soft);">${meta.unit}</span></strong>
+                    <span class="lab-status ${ev.cls}" style="margin:0;">${ev.label}</span>
+                  </div>
+                </div>
+                <div class="lab-gauge-track">
+                  <div class="lab-gauge-opt" style="left:${optLeft.toFixed(1)}%; width:${(optRight - optLeft).toFixed(1)}%;"></div>
+                  <div class="lab-gauge-dot ${ev.cls}" style="left:${dotPct.toFixed(1)}%;"></div>
+                </div>
+                <div class="row-between" style="font-size:9.5px; color:var(--text-soft);">
+                  <span>Óptimo orient.: ${formatLabVal(r.optMin, meta.dec)}–${formatLabVal(r.optMax, meta.dec)} ${meta.unit}</span>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function setSelectedLabChartMarker(key) {
+      selectedLabChartMarker = key;
+      render();
+      const box = document.getElementById("labsDetailsBox");
+      if (box) box.open = true;
+    }
+
+    function renderLabsTrendSvg(sortedDesc, sex) {
+      const asc = (sortedDesc || []).slice().reverse();
+      if (!asc.length) return "";
+      const allKeys = Object.keys(LAB_MARKER_META);
+      const available = allKeys.filter(k => asc.filter(l => getLabMarkerValue(l, k) !== null).length >= 1);
+      if (!available.length) return "";
+
+      if (!available.includes(selectedLabChartMarker)) {
+        const multi = available.find(k => asc.filter(l => getLabMarkerValue(l, k) !== null).length >= 2);
+        selectedLabChartMarker = multi || available[0];
+      }
+
+      const key = selectedLabChartMarker;
+      const meta = LAB_MARKER_META[key];
+      const r = getMarkerOptRange(key, sex);
+      const pts = asc
+        .map(l => ({ date: String(l.date || "").slice(2), val: getLabMarkerValue(l, key) }))
+        .filter(x => x.val !== null)
+        .slice(-8);
+
+      const chipsHtml = `
+        <div class="chip-row" style="margin-bottom:7px;">
+          ${available.map(k => `
+            <button class="chip ${k === key ? "active" : ""}" style="padding:4px 9px; font-size:11px;" onclick="setSelectedLabChartMarker('${k}')">${LAB_MARKER_META[k].label}</button>
+          `).join("")}
+        </div>
+      `;
+
+      if (pts.length < 2) {
+        return `
+          <div class="sci-chart-box">
+            <div style="font-size:11px; font-weight:800; color:var(--text-main); margin-bottom:5px;">📈 Evolución por biomarcador</div>
+            ${chipsHtml}
+            <div style="font-size:11.5px; color:var(--text-soft);">Tienes 1 dato de <strong>${meta.label}</strong> (${formatLabVal(pts[0].val, meta.dec)} ${meta.unit}). Cuando subas tu siguiente analítica verás la curva de evolución aquí.</div>
+          </div>
+        `;
+      }
+
+      const vals = pts.map(p => p.val);
+      const minV = Math.min(...vals, r.optMin) * 0.88;
+      const maxV = Math.max(...vals, r.optMax) * 1.1;
       const span = Math.max(0.2, maxV - minV);
-      const W = 340, H = 88, padX = 22, padY = 16;
-      const coords = series.pts.map((p, idx) => ({
-        x: padX + (idx / (series.pts.length - 1)) * (W - padX * 2),
-        y: H - padY - ((p.val - minV) / span) * (H - padY * 2),
-        txt: p.val < 20 ? p.val.toFixed(2).replace(".", ",") : Math.round(p.val),
+      const W = 340, H = 104, padX = 24, padY = 18;
+      const yFor = v => H - padY - ((v - minV) / span) * (H - padY * 2);
+      const bandTop = Math.max(padY, Math.min(H - padY, yFor(r.optMax)));
+      const bandBot = Math.max(padY, Math.min(H - padY, yFor(r.optMin)));
+
+      const coords = pts.map((p, idx) => ({
+        x: padX + (idx / (pts.length - 1)) * (W - padX * 2),
+        y: yFor(p.val),
+        txt: formatLabVal(p.val, meta.dec),
         d: p.date
       }));
       const poly = coords.map(c => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
       return `
         <div class="sci-chart-box">
-          <div style="font-size:11px; font-weight:800; color:var(--text-main); margin-bottom:4px;">${series.title}</div>
-          <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:88px; background:#fff; border-radius:9px; border:1px solid var(--border);">
-            <polyline fill="none" stroke="${series.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${poly}" />
+          <div style="font-size:11px; font-weight:800; color:var(--text-main); margin-bottom:5px;">📈 Evolución: ${meta.label} ${meta.unit ? `(${meta.unit})` : ""}</div>
+          ${chipsHtml}
+          <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:104px; background:#fff; border-radius:9px; border:1px solid var(--border);">
+            <rect x="${padX}" y="${bandTop.toFixed(1)}" width="${W - padX * 2}" height="${Math.max(4, bandBot - bandTop).toFixed(1)}" fill="#E7F6EE" />
+            <text x="${padX + 4}" y="${Math.min(H - padY - 2, bandBot - 3).toFixed(1)}" text-anchor="start" font-size="7.5" font-weight="700" fill="#2E8B63">Zona óptima</text>
+            <polyline fill="none" stroke="#C84E77" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${poly}" />
             ${coords.map(c => `
-              <circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="3.6" fill="${series.color}" />
-              <text x="${c.x.toFixed(1)}" y="${Math.max(10, c.y - 6).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="#522639">${c.txt}</text>
+              <circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="3.8" fill="#C84E77" />
+              <text x="${c.x.toFixed(1)}" y="${Math.max(11, c.y - 6).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="#522639">${c.txt}</text>
               <text x="${c.x.toFixed(1)}" y="${H - 3}" text-anchor="middle" font-size="8" fill="#7D626D">${c.d}</text>
             `).join("")}
           </svg>
@@ -6683,55 +6873,37 @@
       const logs = Array.isArray(state.labLogs) ? state.labLogs : [];
       const sorted = logs.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
       const latest = sorted[0] || null;
-      const latestHoma = latest ? computeHomaIr(latest.glucose, latest.insulin) : null;
+      const latestHoma = latest ? getLabMarkerValue(latest, "homa") : null;
       const summarySub = latest
-        ? `Última: ${latest.date}${latestHoma !== null ? ` · HOMA-IR ${latestHoma.toFixed(2).replace(".", ",")}` : ` · ${logs.length} reg.`}`
-        : "Ferritina, B12, Vit D, HOMA-IR y PDF médico";
-
-      const renderTile = (lbl, val, unit, evalObj) => `
-        <div class="lab-tile">
-          <div class="lab-tile-lbl">${lbl}</div>
-          <div class="lab-tile-val">${Number(val).toFixed(unit === "%" ? 1 : 0).replace(".", ",")} <span style="font-size:10.5px; font-weight:600; color:var(--text-soft);">${unit}</span></div>
-          ${evalObj ? `<span class="lab-status ${evalObj.cls}">${evalObj.label}</span>` : ""}
-        </div>
-      `;
+        ? `Última: ${latest.date}${latestHoma !== null ? ` · HOMA-IR ${formatLabVal(latestHoma, 2)}` : ` · ${logs.length} reg.`}`
+        : "Sube foto/PDF o registra HOMA-IR, HbA1c, B12, Fe...";
 
       let latestHtml = "";
       if (latest) {
-        const tiles = [];
-        if (latestHoma !== null) {
-          const hEval = evaluateLabMarker("homa", latestHoma, m.sex);
-          tiles.push(`
-            <div class="lab-tile homa-highlight">
-              <div>
-                <div class="lab-tile-lbl">Índice HOMA-IR (calculado)</div>
-                <div class="lab-tile-val" style="color:var(--rose-dark);">${latestHoma.toFixed(2).replace(".", ",")}</div>
-                <div style="font-size:10.5px; color:var(--text-soft);">Glucosa ${latest.glucose} · Insulina ${latest.insulin}</div>
-              </div>
-              ${hEval ? `<span class="lab-status ${hEval.cls}">${hEval.label}</span>` : ""}
-            </div>
-          `);
-        }
-        if (latest.ferritin > 0) tiles.push(renderTile("Ferritina", latest.ferritin, "ng/mL", evaluateLabMarker("ferritin", latest.ferritin, m.sex)));
-        if (latest.b12 > 0) tiles.push(renderTile("Vitamina B12", latest.b12, "pg/mL", evaluateLabMarker("b12", latest.b12, m.sex)));
-        if (latest.vitD > 0) tiles.push(renderTile("Vitamina D", latest.vitD, "ng/mL", evaluateLabMarker("vitD", latest.vitD, m.sex)));
-        if (latest.glucose > 0) tiles.push(renderTile("Glucosa ayunas", latest.glucose, "mg/dL", evaluateLabMarker("glucose", latest.glucose, m.sex)));
-        if (latest.hba1c > 0) tiles.push(renderTile("HbA1c", latest.hba1c, "%", evaluateLabMarker("hba1c", latest.hba1c, m.sex)));
-
+        const extras = Array.isArray(latest.extraMarkers) ? latest.extraMarkers : [];
         latestHtml = `
-          <div class="lab-grid">${tiles.join("")}</div>
-          ${renderLabsTrendSvg(sorted)}
+          ${renderLabGaugesHtml(latest, m.sex)}
+          ${extras.length ? `
+            <div style="margin-bottom:10px;">
+              <div style="font-size:10.5px; font-weight:800; color:var(--text-soft); margin-bottom:5px;">OTROS DATOS DETECTADOS EN TU ANÁLISIS (${extras.length})</div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                ${extras.map(ex => `<span class="extra-marker-chip"><strong>${escapeHtml(ex.name)}:</strong> ${escapeHtml(String(ex.value))} ${escapeHtml(ex.unit || "")}</span>`).join("")}
+              </div>
+            </div>
+          ` : ""}
+          ${renderLabsTrendSvg(sorted, m.sex)}
           ${latest.note ? `<div style="font-size:11.5px; color:var(--text-muted); margin-bottom:9px;">📝 ${escapeHtml(latest.note)}</div>` : ""}
           ${sorted.length > 0 ? `
             <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">
-              ${sorted.slice(0, 4).map(entry => {
-                const eh = computeHomaIr(entry.glucose, entry.insulin);
+              ${sorted.slice(0, 5).map(entry => {
+                const eh = getLabMarkerValue(entry, "homa");
                 const bits = [];
-                if (eh !== null) bits.push(`HOMA ${eh.toFixed(2).replace(".", ",")}`);
-                if (entry.ferritin > 0) bits.push(`Fe ${entry.ferritin}`);
-                if (entry.b12 > 0) bits.push(`B12 ${entry.b12}`);
-                if (entry.vitD > 0) bits.push(`VitD ${entry.vitD}`);
-                if (entry.hba1c > 0) bits.push(`A1c ${entry.hba1c}%`);
+                if (eh !== null) bits.push(`HOMA ${formatLabVal(eh, 2)}`);
+                if (entry.hba1c > 0) bits.push(`A1c ${formatLabVal(entry.hba1c, 1)}%`);
+                if (entry.ferritin > 0) bits.push(`Fe ${Math.round(entry.ferritin)}`);
+                if (entry.b12 > 0) bits.push(`B12 ${Math.round(entry.b12)}`);
+                if (entry.vitD > 0) bits.push(`VitD ${Math.round(entry.vitD)}`);
+                if (entry.tsh > 0) bits.push(`TSH ${formatLabVal(entry.tsh, 2)}`);
                 return `
                   <div class="row-between" style="padding:6px 9px; background:var(--bg-soft); border-radius:9px; font-size:11.5px; gap:6px;">
                     <div style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
@@ -6745,21 +6917,21 @@
           ` : ""}
         `;
       } else {
-        latestHtml = `<div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Guarda tus analíticas para seguir evolución de ferritina, B12, vitamina D, glucosa, insulina (HOMA-IR automático) y llevar un PDF limpio a tu consulta.</div>`;
+        latestHtml = `<div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Sube una <strong>foto o PDF</strong> de tu análisis de sangre (100% privado en tu dispositivo) para extraer automáticamente Glucosa, Insulina, HOMA-IR, HbA1c, B12, Ferritina, Vit D, TSH, lípidos y ver sus diagramas.</div>`;
       }
 
       return `
         <details class="clean-details" id="labsDetailsBox" ${openByDefault ? "open" : ""}>
           <summary>
             <div>
-              <div class="card-title" style="margin:0; font-size:14px;">📊 Analíticas &amp; Resumen Médico</div>
+              <div class="card-title" style="margin:0; font-size:14px;">📊 Analíticas &amp; Diagramas</div>
               <div style="font-size:11.5px; color:var(--text-soft);">${summarySub}</div>
             </div>
           </summary>
           <div class="clean-details-body">
             ${latestHtml}
             <div class="grid-2">
-              <button class="btn-primary btn-sm" onclick="openAddLabSheet()">+ Analítica</button>
+              <button class="btn-primary btn-sm" onclick="openAddLabSheet()">📷 Subir PDF / Foto</button>
               <button class="btn-secondary btn-sm" onclick="openPrintableMedicalReport()">📄 Resumen PDF</button>
             </div>
           </div>
@@ -6767,14 +6939,310 @@
       `;
     }
 
+    function loadExternalScriptOnce(url, globalName) {
+      return new Promise((resolve, reject) => {
+        if (window[globalName]) { resolve(window[globalName]); return; }
+        const existing = document.querySelector(`script[data-src="${url}"]`);
+        if (existing) {
+          existing.addEventListener("load", () => resolve(window[globalName]));
+          existing.addEventListener("error", () => reject(new Error("No se pudo cargar " + globalName)));
+          return;
+        }
+        const s = document.createElement("script");
+        s.src = url;
+        s.async = true;
+        s.dataset.src = url;
+        s.onload = () => window[globalName] ? resolve(window[globalName]) : reject(new Error("Módulo no disponible"));
+        s.onerror = () => reject(new Error("Sin conexión para cargar lector OCR/PDF"));
+        document.head.appendChild(s);
+      });
+    }
+
+    function parseLabReportText(rawText) {
+      const text = String(rawText || "").replace(/\r/g, "\n");
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const found = {};
+      const extraMarkers = [];
+
+      // 1. Detect date (DD.MM.YYYY, DD/MM/YYYY, YYYY-MM-DD)
+      const isoMatch = text.match(/\b(20\d{2})[-\/.](0?[1-9]|1[0-2])[-\/.](0?[1-9]|[12]\d|3[01])\b/);
+      const euMatch = text.match(/\b(0?[1-9]|[12]\d|3[01])[-\/.](0?[1-9]|1[0-2])[-\/.](20\d{2})\b/);
+      if (isoMatch) {
+        found.date = `${isoMatch[1]}-${String(isoMatch[2]).padStart(2, "0")}-${String(isoMatch[3]).padStart(2, "0")}`;
+      } else if (euMatch) {
+        found.date = `${euMatch[3]}-${String(euMatch[2]).padStart(2, "0")}-${String(euMatch[1]).padStart(2, "0")}`;
+      }
+
+      // Helper to extract first clinical numeric measurement after a matched label
+      const extractAfterMatch = (line, rx) => {
+        const m = line.match(rx);
+        if (!m) return null;
+        const rest = line.slice(m.index + m[0].length);
+        const numMatch = rest.match(/[:=\s\t(<>]*([0-9]+(?:[.,][0-9]+)?)/);
+        if (!numMatch) return null;
+        const val = Number(numMatch[1].replace(",", "."));
+        if (!Number.isFinite(val) || val <= 0) return null;
+        return { val, rest: rest.toLowerCase() };
+      };
+
+      const coreRules = [
+        { key: "homaDirect",    rx: /\b(?:homa[\s-]*ir|homa[\s-]*index|indice\s+homa|índice\s+homa)\b/i },
+        { key: "hba1c",         rx: /\b(?:hb\s*a1c|hba1c|h4bc|hemoglobina\s+glic(?:osilada|ada)|glykoh[äa]moglobin)\b/i, convert: (v, r) => (r.includes("mmol/mol") || v > 15) ? Number(((v / 10.929) + 2.15).toFixed(1)) : v },
+        { key: "glucose",       rx: /\b(?:glucosa(?:\s+en\s+ayunas|\s+basal)?|n[üu]chternglukose|glukose|glucose|blutzucker|glicemia|glucemia)\b/i, convert: (v, r) => (r.includes("mmol") || (v >= 2.5 && v <= 20)) ? Math.round(v * 18.018) : v },
+        { key: "insulin",       rx: /\b(?:insulina(?:\s+basal|\s+en\s+ayunas)?|n[üu]chterninsulin|insulin)\b/i, convert: (v, r) => (r.includes("pmol") || v > 65) ? Number((v / 6.945).toFixed(1)) : v },
+        { key: "ferritin",      rx: /\b(?:ferritina|ferritin)\b/i },
+        { key: "b12",           rx: /\b(?:vitamina?\s*b\s*12|cobalamina?|holotranscobalamin|b12)\b/i, convert: (v, r) => (r.includes("pmol") && !r.includes("pg")) ? Math.round(v * 1.355) : v },
+        { key: "vitD",          rx: /\b(?:25[\s-]*oh[\s-]*(?:vit(?:amina?)?\.?\s*d3?|calcidiol)|vitamina?\s*d3?|vit\.?\s*d)\b/i, convert: (v, r) => r.includes("nmol") ? Math.round(v / 2.496) : v },
+        { key: "folate",        rx: /\b(?:folato|acido\s+folico|ácido\s+fólico|fols[äa]ure|vitamina?\s*b9|folate)\b/i },
+        { key: "hemoglobin",    rx: /\b(?:hemoglobina|h[äa]moglobin|hemoglobin)\b/i, convert: (v, r) => (r.includes("g/l") && v > 40) ? Number((v / 10).toFixed(1)) : (r.includes("mmol") ? Number((v * 1.611).toFixed(1)) : v) },
+        { key: "iron",          rx: /\b(?:hierro(?:\s+s[ée]rico)?|eisen|sideremia|serum\s+iron)\b/i },
+        { key: "tsh",           rx: /\b(?:tsh(?:\s+basal)?|thyrotropin|tirotropina)\b/i },
+        { key: "ldl",           rx: /\b(?:colesterol\s+ldl|ldl[\s-]*cholesterin|ldl[\s-]*c|ldl)\b/i, convert: (v, r) => (r.includes("mmol") || v < 12) ? Math.round(v * 38.67) : v },
+        { key: "hdl",           rx: /\b(?:colesterol\s+hdl|hdl[\s-]*cholesterin|hdl[\s-]*c|hdl)\b/i, convert: (v, r) => (r.includes("mmol") || v < 10) ? Math.round(v * 38.67) : v },
+        { key: "triglycerides", rx: /\b(?:triglic[ée]ridos|triglyceride|triglycerides)\b/i, convert: (v, r) => (r.includes("mmol") || v < 10) ? Math.round(v * 88.57) : v },
+        { key: "crp",           rx: /\b(?:pcr(?:\s+ultrasensible)?|hs[\s-]*crp|crp|prote[íi]na\s+c\s+reactiva)\b/i }
+      ];
+
+      const extraRules = [
+        { name: "Colesterol total", rx: /\b(?:colesterol\s+total|gesamt[\s-]*cholesterin|cholesterin\s+gesamt|total\s+cholesterol)\b/i, defUnit: "mg/dL" },
+        { name: "Testosterona",     rx: /\b(?:testosterona|testosteron|testosterone)\b/i, defUnit: "ng/dL" },
+        { name: "DHEA-S",           rx: /\b(?:dhea[\s-]*s)\b/i, defUnit: "µg/dL" },
+        { name: "SHBG",             rx: /\b(?:shbg)\b/i, defUnit: "nmol/L" },
+        { name: "LH",               rx: /\b(?:lh(?:\s+basal)?|hormona\s+luteinizante)\b/i, defUnit: "IU/L" },
+        { name: "FSH",              rx: /\b(?:fsh(?:\s+basal)?)\b/i, defUnit: "IU/L" },
+        { name: "Prolactina",       rx: /\b(?:prolactina|prolaktin|prolactin)\b/i, defUnit: "ng/mL" },
+        { name: "Cortisol",         rx: /\b(?:cortisol|kortisol)\b/i, defUnit: "µg/dL" },
+        { name: "fT3",              rx: /\b(?:ft3|t3\s+libre|freies\s+t3)\b/i, defUnit: "pg/mL" },
+        { name: "fT4",              rx: /\b(?:ft4|t4\s+libre|freies\s+t4)\b/i, defUnit: "ng/dL" },
+        { name: "ALT / GPT",        rx: /\b(?:alt|gpt|alat)\b/i, defUnit: "U/L" },
+        { name: "AST / GOT",        rx: /\b(?:ast|got|asat)\b/i, defUnit: "U/L" },
+        { name: "GGT",              rx: /\b(?:ggt|gamma[\s-]*gt)\b/i, defUnit: "U/L" },
+        { name: "Creatinina",       rx: /\b(?:creatinina|kreatinin|creatinine)\b/i, defUnit: "mg/dL" },
+        { name: "Ácido úrico",      rx: /\b(?:[áa]cido\s+[úu]rico|harns[äa]ure|uric\s+acid)\b/i, defUnit: "mg/dL" },
+        { name: "Magnesio",         rx: /\b(?:magnesio|magnesium)\b/i, defUnit: "mg/dL" },
+        { name: "Zinc",             rx: /\b(?:zinc|zink)\b/i, defUnit: "µg/dL" },
+        { name: "Leucocitos",       rx: /\b(?:leucocitos|leukozyten|wbc)\b/i, defUnit: "/nL" },
+        { name: "Plaquetas",        rx: /\b(?:plaquetas|thrombozyten|platelets)\b/i, defUnit: "/nL" },
+        { name: "MCV",              rx: /\b(?:mcv|vcm)\b/i, defUnit: "fL" }
+      ];
+
+      const seenExtra = new Set();
+
+      lines.forEach(line => {
+        coreRules.forEach(rule => {
+          if (found[rule.key] !== undefined) return;
+          const hit = extractAfterMatch(line, rule.rx);
+          if (!hit) return;
+          const finalVal = rule.convert ? rule.convert(hit.val, hit.rest) : hit.val;
+          if (Number.isFinite(finalVal) && finalVal > 0) found[rule.key] = finalVal;
+        });
+
+        extraRules.forEach(er => {
+          if (seenExtra.has(er.name)) return;
+          const hit = extractAfterMatch(line, er.rx);
+          if (!hit) return;
+          const unitMatch = hit.rest.match(/\b(mg\/dl|ng\/ml|ng\/dl|pg\/ml|µg\/dl|ug\/dl|u\/l|iu\/l|mmol\/l|nmol\/l|fl|\/nl|g\/dl|%)\b/i);
+          seenExtra.add(er.name);
+          extraMarkers.push({
+            name: er.name,
+            value: hit.val,
+            unit: unitMatch ? unitMatch[1] : er.defUnit
+          });
+        });
+      });
+
+      const coreCount = Object.keys(found).filter(k => k !== "date").length;
+      return { ...found, extraMarkers, totalDetected: coreCount + extraMarkers.length };
+    }
+
+    function setLabScanStatus(msg, isOk = false) {
+      const box = document.getElementById("labScanStatusBox");
+      if (!box) return;
+      box.style.display = "block";
+      box.style.background = isOk ? "var(--mint-bg)" : "var(--rose-pale)";
+      box.style.color = isOk ? "var(--mint-text)" : "var(--rose-dark)";
+      box.innerHTML = msg;
+    }
+
+    function applyParsedLabToForm(parsed) {
+      if (!parsed) return;
+      if (parsed.date && document.getElementById("labDate")) {
+        document.getElementById("labDate").value = parsed.date;
+      }
+      const fieldMap = {
+        glucose: "labGlucose",
+        insulin: "labInsulin",
+        hba1c: "labHba1c",
+        ferritin: "labFerritin",
+        b12: "labB12",
+        vitD: "labVitD",
+        folate: "labFolate",
+        hemoglobin: "labHemoglobin",
+        iron: "labIron",
+        tsh: "labTsh",
+        ldl: "labLdl",
+        hdl: "labHdl",
+        triglycerides: "labTrig",
+        crp: "labCrp"
+      };
+      let filledExtraSection = false;
+      Object.entries(fieldMap).forEach(([k, domId]) => {
+        if (parsed[k] !== undefined && parsed[k] !== null) {
+          const el = document.getElementById(domId);
+          if (el) el.value = String(parsed[k]).replace(".", ",");
+          if (["folate", "hemoglobin", "iron", "tsh", "ldl", "hdl", "triglycerides", "crp"].includes(k)) {
+            filledExtraSection = true;
+          }
+        }
+      });
+      if (parsed.homaDirect && document.getElementById("labHomaDirect")) {
+        document.getElementById("labHomaDirect").value = String(parsed.homaDirect).replace(".", ",");
+      }
+      if (filledExtraSection) {
+        const moreDetails = document.getElementById("labMoreFieldsDetails");
+        if (moreDetails) moreDetails.open = true;
+      }
+      pendingExtraLabMarkers = Array.isArray(parsed.extraMarkers) ? parsed.extraMarkers : [];
+      renderPendingExtraMarkersPreview();
+      updateHomaPreview();
+
+      if (parsed.totalDetected > 0) {
+        setLabScanStatus(`✓ <strong>${parsed.totalDetected} datos detectados</strong> automáticamente. Revísalos abajo y pulsa Guardar.`, true);
+      } else {
+        setLabScanStatus("No se reconocieron valores numéricos claros. Puedes completar los campos manualmente o pegar el texto del laboratorio.");
+      }
+    }
+
+    function renderPendingExtraMarkersPreview() {
+      const box = document.getElementById("pendingExtrasBox");
+      if (!box) return;
+      if (!pendingExtraLabMarkers.length) {
+        box.style.display = "none";
+        box.innerHTML = "";
+        return;
+      }
+      box.style.display = "block";
+      box.innerHTML = `
+        <div style="font-size:10.5px; font-weight:800; color:var(--text-soft); margin-bottom:5px;">OTROS MARCADORES EXTRAÍDOS (${pendingExtraLabMarkers.length})</div>
+        <div style="display:flex; flex-wrap:wrap; gap:5px;">
+          ${pendingExtraLabMarkers.map(ex => `<span class="extra-marker-chip"><strong>${escapeHtml(ex.name)}:</strong> ${escapeHtml(String(ex.value))} ${escapeHtml(ex.unit || "")}</span>`).join("")}
+        </div>
+      `;
+    }
+
+    async function handleLabFileUpload(input) {
+      const file = input?.files?.[0];
+      if (!file) return;
+      const name = String(file.name || "").toLowerCase();
+      setLabScanStatus(`⏳ Procesando <strong>${escapeHtml(file.name)}</strong> en tu dispositivo...`);
+
+      try {
+        let extractedText = "";
+        if (name.endsWith(".txt") || name.endsWith(".csv") || file.type === "text/plain") {
+          extractedText = await file.text();
+        } else if (name.endsWith(".pdf") || file.type === "application/pdf") {
+          const buf = await file.arrayBuffer();
+          try {
+            const pdfjsLib = await loadExternalScriptOnce("https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js", "pdfjsLib");
+            pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+            const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+            const pageTexts = [];
+            for (let p = 1; p <= Math.min(pdf.numPages, 6); p++) {
+              setLabScanStatus(`⏳ Leyendo PDF (página ${p}/${Math.min(pdf.numPages, 6)})...`);
+              const page = await pdf.getPage(p);
+              const content = await page.getTextContent();
+              let line = "";
+              content.items.forEach(it => {
+                line += (it.str || "") + (it.hasEOL ? "\n" : " ");
+              });
+              pageTexts.push(line);
+            }
+            extractedText = pageTexts.join("\n").trim();
+
+            // If scanned PDF with no embedded text, render page 1 to canvas and run OCR
+            if (extractedText.replace(/\s+/g, "").length < 30) {
+              setLabScanStatus("⏳ PDF escaneado detectado · aplicando OCR local...");
+              const page1 = await pdf.getPage(1);
+              const vp = page1.getViewport({ scale: 2 });
+              const canvas = document.createElement("canvas");
+              canvas.width = vp.width;
+              canvas.height = vp.height;
+              await page1.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+              const Tesseract = await loadExternalScriptOnce("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js", "Tesseract");
+              const res = await Tesseract.recognize(canvas, "deu+spa+eng", {
+                logger: m => {
+                  if (m.status === "recognizing text" && typeof m.progress === "number") {
+                    setLabScanStatus(`⏳ Escaneando PDF con OCR local... ${Math.round(m.progress * 100)}%`);
+                  }
+                }
+              });
+              extractedText = res?.data?.text || "";
+            }
+          } catch (pdfErr) {
+            // Lightweight offline fallback for uncompressed text PDFs
+            const rawStr = new TextDecoder("latin1").decode(buf);
+            const matches = rawStr.match(/\(([^()]{2,120})\)/g) || [];
+            extractedText = matches.map(s => s.slice(1, -1)).join("\n");
+          }
+        } else {
+          // Image OCR in-browser via Tesseract.js
+          setLabScanStatus("⏳ Cargando lector OCR privado (solo la primera vez)...");
+          const Tesseract = await loadExternalScriptOnce("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js", "Tesseract");
+          const res = await Tesseract.recognize(file, "deu+spa+eng", {
+            logger: m => {
+              if (m.status === "recognizing text" && typeof m.progress === "number") {
+                setLabScanStatus(`⏳ Leyendo foto de tu análisis... ${Math.round(m.progress * 100)}%`);
+              }
+            }
+          });
+          extractedText = res?.data?.text || "";
+        }
+
+        const parsed = parseLabReportText(extractedText);
+        applyParsedLabToForm(parsed);
+      } catch (err) {
+        setLabScanStatus("No se pudo leer el archivo automáticamente (revisa tu conexión para OCR/PDF o pega el texto abajo).");
+      }
+      input.value = "";
+    }
+
+    function parsePastedLabText() {
+      const raw = document.getElementById("labPasteTextarea")?.value || "";
+      if (!raw.trim()) {
+        showToast("Pega primero el texto de tu análisis");
+        return;
+      }
+      const parsed = parseLabReportText(raw);
+      applyParsedLabToForm(parsed);
+    }
+
     function openAddLabSheet() {
       const today = new Date().toISOString().slice(0, 10);
-      openSheet("Registrar analítica de sangre", `
+      pendingExtraLabMarkers = [];
+      openSheet("📷 Subir o registrar analítica", `
         <div class="section-gap">
+          <div class="lab-upload-box">
+            <div style="font-size:13px; font-weight:800; color:var(--rose-dark); margin-bottom:4px;">Subir foto o PDF del análisis</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-bottom:9px;">Detecta Glucosa, Insulina, HOMA-IR, HbA1c, B12, Ferritina, Vit D, TSH, lípidos y más · <strong>100% privado en tu dispositivo</strong></div>
+            <input type="file" id="labFileInput" accept=".pdf,image/*,.txt,.csv" style="display:none;" onchange="handleLabFileUpload(this)" />
+            <button type="button" class="btn-primary btn-sm" onclick="document.getElementById('labFileInput').click()">📷 Elegir PDF o Foto</button>
+          </div>
+
+          <div id="labScanStatusBox" style="display:none; padding:8px 11px; border-radius:10px; font-size:11.5px; line-height:1.4;"></div>
+
+          <details style="background:var(--bg-soft); border:1px solid var(--border); border-radius:10px; padding:8px 10px;">
+            <summary style="cursor:pointer; font-size:11.5px; font-weight:750; color:var(--text-main);">📋 O pegar texto copiado del laboratorio</summary>
+            <div style="margin-top:7px; display:flex; flex-direction:column; gap:6px;">
+              <textarea id="labPasteTextarea" rows="3" placeholder="Pega aquí las líneas de tu informe (español o alemán, ej. Glukose 92 mg/dL, Insulin 10,4, HbA1c 5,4%, Ferritin 28, Vitamin B12 360...)"></textarea>
+              <button type="button" class="btn-secondary btn-sm" onclick="parsePastedLabText()">✨ Extraer datos automáticamente</button>
+            </div>
+          </details>
+
           <div>
             <label>Fecha del análisis</label>
             <input type="date" id="labDate" value="${today}" />
           </div>
+
           <div class="grid-2">
             <div>
               <label>Glucosa ayunas (mg/dL)</label>
@@ -6785,7 +7253,20 @@
               <input type="text" inputmode="decimal" id="labInsulin" placeholder="Ej. 11,5" oninput="updateHomaPreview()" />
             </div>
           </div>
+
           <div id="homaPreviewBox" style="display:none; padding:8px 11px; border-radius:10px; background:var(--rose-pale); color:var(--rose-dark); font-size:12px; font-weight:750;"></div>
+
+          <div class="grid-2">
+            <div>
+              <label>HbA1c (%)</label>
+              <input type="text" inputmode="decimal" id="labHba1c" placeholder="Ej. 5,3" />
+            </div>
+            <div>
+              <label>HOMA-IR directo (opcional)</label>
+              <input type="text" inputmode="decimal" id="labHomaDirect" placeholder="Auto si G+I" oninput="updateHomaPreview()" />
+            </div>
+          </div>
+
           <div class="grid-2">
             <div>
               <label>Ferritina (ng/mL)</label>
@@ -6796,22 +7277,45 @@
               <input type="text" inputmode="decimal" id="labB12" placeholder="Ej. 380" />
             </div>
           </div>
+
           <div class="grid-2">
             <div>
               <label>Vitamina D 25-OH (ng/mL)</label>
               <input type="text" inputmode="decimal" id="labVitD" placeholder="Ej. 32" />
             </div>
             <div>
-              <label>HbA1c (%)</label>
-              <input type="text" inputmode="decimal" id="labHba1c" placeholder="Ej. 5,3" />
+              <label>Folato / B9 (ng/mL)</label>
+              <input type="text" inputmode="decimal" id="labFolate" placeholder="Ej. 11,2" />
             </div>
           </div>
+
+          <details id="labMoreFieldsDetails" style="background:var(--bg-soft); border:1px solid var(--border); border-radius:10px; padding:8px 10px;">
+            <summary style="cursor:pointer; font-size:11.5px; font-weight:750; color:var(--text-main);">+ Más marcadores (Tiroides, Lípidos, Hemoglobina, CRP)</summary>
+            <div style="margin-top:8px; display:flex; flex-direction:column; gap:8px;">
+              <div class="grid-2">
+                <div><label>Hemoglobina (g/dL)</label><input type="text" inputmode="decimal" id="labHemoglobin" placeholder="Ej. 13,2" /></div>
+                <div><label>Hierro sérico (µg/dL)</label><input type="text" inputmode="decimal" id="labIron" placeholder="Ej. 85" /></div>
+              </div>
+              <div class="grid-2">
+                <div><label>TSH (mIU/L)</label><input type="text" inputmode="decimal" id="labTsh" placeholder="Ej. 1,85" /></div>
+                <div><label>PCR / CRP (mg/L)</label><input type="text" inputmode="decimal" id="labCrp" placeholder="Ej. 0,9" /></div>
+              </div>
+              <div class="grid-3">
+                <div><label>LDL (mg/dL)</label><input type="text" inputmode="decimal" id="labLdl" placeholder="95" /></div>
+                <div><label>HDL (mg/dL)</label><input type="text" inputmode="decimal" id="labHdl" placeholder="62" /></div>
+                <div><label>Triglicéridos</label><input type="text" inputmode="decimal" id="labTrig" placeholder="88" /></div>
+              </div>
+            </div>
+          </details>
+
+          <div id="pendingExtrasBox" style="display:none; padding:8px 10px; border-radius:10px; background:var(--bg-soft); border:1px solid var(--border);"></div>
+
           <div>
             <label>Nota opcional</label>
-            <input type="text" id="labNote" placeholder="Ej. Control semestral en ayunas" />
+            <input type="text" id="labNote" placeholder="Ej. Control laboratorio en ayunas" />
           </div>
-          <button class="btn-primary" style="width:100%;" onclick="saveLabEntry()">Guardar analítica</button>
-          <div class="disclaimer-box" style="margin-top:0;">Rellena solo los valores que tengas. Los rangos mostrados son orientativos y no sustituyen el criterio de tu médico.</div>
+          <button class="btn-primary" style="width:100%;" onclick="saveLabEntry()">Guardar analítica y actualizar diagramas</button>
+          <div class="disclaimer-box" style="margin-top:0;">Rellena o verifica los valores extraídos. Los rangos mostrados son orientativos y no sustituyen el criterio de tu médico.</div>
         </div>
       `);
     }
@@ -6830,11 +7334,12 @@
       if (!box) return;
       const g = parseOptDecimal("labGlucose");
       const i = parseOptDecimal("labInsulin");
-      const homa = computeHomaIr(g, i);
+      const direct = parseOptDecimal("labHomaDirect");
+      const homa = direct || computeHomaIr(g, i);
       if (homa !== null) {
         const ev = evaluateLabMarker("homa", homa, state.bodyProfile.sex);
         box.style.display = "block";
-        box.textContent = `HOMA-IR calculado: ${homa.toFixed(2).replace(".", ",")} (${ev ? ev.label : ""})`;
+        box.textContent = `HOMA-IR: ${homa.toFixed(2).replace(".", ",")} (${ev ? ev.label : ""})`;
       } else {
         box.style.display = "none";
       }
@@ -6847,25 +7352,37 @@
         date,
         glucose: parseOptDecimal("labGlucose"),
         insulin: parseOptDecimal("labInsulin"),
+        homaDirect: parseOptDecimal("labHomaDirect"),
+        hba1c: parseOptDecimal("labHba1c"),
         ferritin: parseOptDecimal("labFerritin"),
         b12: parseOptDecimal("labB12"),
         vitD: parseOptDecimal("labVitD"),
-        hba1c: parseOptDecimal("labHba1c"),
+        folate: parseOptDecimal("labFolate"),
+        hemoglobin: parseOptDecimal("labHemoglobin"),
+        iron: parseOptDecimal("labIron"),
+        tsh: parseOptDecimal("labTsh"),
+        ldl: parseOptDecimal("labLdl"),
+        hdl: parseOptDecimal("labHdl"),
+        triglycerides: parseOptDecimal("labTrig"),
+        crp: parseOptDecimal("labCrp"),
+        extraMarkers: Array.isArray(pendingExtraLabMarkers) ? [...pendingExtraLabMarkers] : [],
         note: String(document.getElementById("labNote")?.value || "").trim()
       };
-      const hasAny = entry.glucose || entry.insulin || entry.ferritin || entry.b12 || entry.vitD || entry.hba1c;
-      if (!hasAny) {
-        showToast("Ingresa al menos un valor de laboratorio");
+      const coreVals = [entry.glucose, entry.insulin, entry.homaDirect, entry.hba1c, entry.ferritin, entry.b12, entry.vitD, entry.folate, entry.hemoglobin, entry.iron, entry.tsh, entry.ldl, entry.hdl, entry.triglycerides, entry.crp];
+      if (!coreVals.some(Boolean) && !entry.extraMarkers.length) {
+        showToast("Sube un análisis o ingresa al menos un valor");
         return;
       }
       if (!Array.isArray(state.labLogs)) state.labLogs = [];
       state.labLogs.push(entry);
+      pendingExtraLabMarkers = [];
       saveState();
       closeSheet();
+      if (currentTab === "progreso") saludSubTab = "clinica";
       render();
       const box = document.getElementById("labsDetailsBox");
       if (box) box.open = true;
-      showToast("Analítica guardada ✓");
+      showToast("Analítica guardada y diagramas actualizados ✓");
     }
 
     function deleteLabEntry(id) {
@@ -6892,7 +7409,7 @@
 
       const labsRows = sortedLabs.length
         ? sortedLabs.map(l => {
-            const homa = computeHomaIr(l.glucose, l.insulin);
+            const homa = getLabMarkerValue(l, "homa");
             return `<tr>
               <td>${escapeHtml(l.date || "")}</td>
               <td>${l.ferritin ? l.ferritin + " ng/mL" : "—"}</td>
@@ -6905,6 +7422,23 @@
             </tr>`;
           }).join("")
         : `<tr><td colspan="8" style="text-align:center; color:#666;">Sin analíticas registradas todavía.</td></tr>`;
+
+      const latestLab = sortedLabs[0] || null;
+      const latestExtendedBits = [];
+      if (latestLab) {
+        ["folate", "hemoglobin", "iron", "tsh", "ldl", "hdl", "triglycerides", "crp"].forEach(k => {
+          if (Number(latestLab[k]) > 0) {
+            const meta = LAB_MARKER_META[k];
+            latestExtendedBits.push(`<b>${meta.label}:</b> ${formatLabVal(latestLab[k], meta.dec)} ${meta.unit}`);
+          }
+        });
+        (latestLab.extraMarkers || []).forEach(ex => {
+          latestExtendedBits.push(`<b>${escapeHtml(ex.name)}:</b> ${escapeHtml(String(ex.value))} ${escapeHtml(ex.unit || "")}`);
+        });
+      }
+      const extraLabsPdfHtml = latestExtendedBits.length
+        ? `<div class="box" style="margin-top:8px;"><b>Otros parámetros (${escapeHtml(latestLab.date || "")}):</b> ${latestExtendedBits.join(" · ")}</div>`
+        : "";
 
       const metfStats = getMetforminStats();
       const b12Mon = getMetforminB12Monitor();
@@ -6965,6 +7499,7 @@
     </thead>
     <tbody>${labsRows}</tbody>
   </table>
+  ${extraLabsPdfHtml}
   ${metfPdfHtml}
 
   <h2>${metfPdfHtml ? "4" : "3"}. Evolución de Peso y Actividad Reciente</h2>
