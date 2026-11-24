@@ -6,8 +6,11 @@
   <meta name="theme-color" content="#FAF5F7" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="MealPrep" />
-  <title>MealPrep &amp; NutriTrack</title>
+  <meta name="apple-mobile-web-app-title" content="LuTrack" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" sizes="512x512" href="apple-touch-icon.png" />
+  <title>LuTrack</title>
   <style>
     :root {
       --bg-app: #FAF5F7;
@@ -2208,7 +2211,7 @@
       <div class="topbar-row">
         <div class="brand">
           <div class="brand-title" id="headerTitle">Hoy</div>
-          <div class="brand-sub" id="headerSub">MealPrep &amp; NutriTrack</div>
+          <div class="brand-sub" id="headerSub">LuTrack</div>
         </div>
         <div class="topbar-actions">
           <div class="pill-status" id="headerBudgetPill" onclick="switchTab('comida', 'diario')" style="cursor:pointer;">0 / 1640 kcal</div>
@@ -9557,7 +9560,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Resumen Médico · MealPrep & NutriTrack</title>
+<title>Resumen Médico · LuTrack</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #22161B; margin: 24px; line-height: 1.45; }
   h1 { font-size: 20px; margin: 0 0 4px; color: #522639; }
@@ -9577,7 +9580,7 @@
 <body>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
   <h1>Resumen de Seguimiento Nutricional &amp; Salud</h1>
-  <div class="sub">Generado con MealPrep &amp; NutriTrack · ${escapeHtml(today)}</div>
+  <div class="sub">Generado con LuTrack · ${escapeHtml(today)}</div>
 
   <h2>1. Perfil Clínico y Metas</h2>
   <div class="grid">
@@ -10768,7 +10771,7 @@
         const endMm = pad2(endTot % 60);
         const cat = MED_CATEGORY_META[med.category] || MED_CATEGORY_META.other;
         const summary = `${cat.icon} Toma: ${med.name} (${med.dose})`;
-        const desc = `${med.withFood ? "Tomar con comida. " : ""}Registra tu toma en MealPrep & NutriTrack para saber la hora exacta.`;
+        const desc = `${med.withFood ? "Tomar con comida. " : ""}Registra tu toma en LuTrack para saber la hora exacta.`;
         const alarms = [
           "BEGIN:VALARM",
           "TRIGGER:-PT0M",
@@ -10787,7 +10790,7 @@
         }
         return [
           "BEGIN:VEVENT",
-          `UID:med-${med.id}@mealprep-nutritrack`,
+          `UID:med-${med.id}@lutrack`,
           `DTSTAMP:${dtStamp}`,
           `DTSTART:${y}${mo}${da}T${hh}${mm}00`,
           `DTEND:${y}${mo}${da}T${endHh}${endMm}00`,
@@ -10802,7 +10805,7 @@
       const ics = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//MealPrep NutriTrack//Smart Meds//ES",
+        "PRODID:-//LuTrack//Smart Meds//ES",
         "CALSCALE:GREGORIAN",
         ...events,
         "END:VCALENDAR"
@@ -11054,7 +11057,7 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
       const a = document.createElement("a");
       a.setAttribute("href", dataStr);
-      a.setAttribute("download", `mealprep-respaldo-${new Date().toISOString().slice(0, 10)}.json`);
+      a.setAttribute("download", `lutrack-respaldo-${new Date().toISOString().slice(0, 10)}.json`);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -11734,7 +11737,7 @@
         const endMm = pad2(startMinTotal % 60);
         return [
           "BEGIN:VEVENT",
-          `UID:${uid}@mealprep-nutritrack`,
+          `UID:${uid}@lutrack`,
           `DTSTAMP:${dtStamp}`,
           `DTSTART:${y}${mo}${da}T${hh}${mm}00`,
           `DTEND:${y}${mo}${da}T${endHh}${endMm}00`,
@@ -11754,7 +11757,7 @@
       if (rems.morningMeds?.enabled) {
         events.push(makeEvent(
           "mp-morning-meds",
-          "💊 MealPrep: Toma mañana y desayuno proteico",
+          "💊 LuTrack: Toma mañana y desayuno proteico",
           "Revisa tu protocolo de mañana y empieza con proteína + fibra.",
           rems.morningMeds.time, 15, "FREQ=DAILY"
         ));
@@ -11762,7 +11765,7 @@
       if (rems.postMealWalk?.enabled) {
         events.push(makeEvent(
           "mp-postmeal-walk",
-          "🚶 MealPrep: Caminata 15 min post-almuerzo",
+          "🚶 LuTrack: Caminata 15 min post-almuerzo",
           "Caminata suave de 10–15 min tras comer para estabilidad glucémica.",
           rems.postMealWalk.time, 15, "FREQ=DAILY"
         ));
@@ -11770,7 +11773,7 @@
       if (rems.workout?.enabled && uniqueWorkoutDays.length) {
         events.push(makeEvent(
           "mp-workout",
-          `🏋️ MealPrep: ${plan.planTitle}`,
+          `🏋️ LuTrack: ${plan.planTitle}`,
           `Plan activo: ${plan.planTitle} (${plan.rpeLabel} · descansos ${plan.restMain}). Abre Entreno para ver tu rutina del día.`,
           rems.workout.time, 45, `FREQ=WEEKLY;BYDAY=${uniqueWorkoutDays.join(",")}`
         ));
@@ -11778,7 +11781,7 @@
       if (rems.eveningMeds?.enabled) {
         events.push(makeEvent(
           "mp-evening-meds",
-          "💊 MealPrep: Toma noche y cierre del día",
+          "💊 LuTrack: Toma noche y cierre del día",
           "Completa tu protocolo nocturno (ej. Magnesio) y revisa tus pasos.",
           rems.eveningMeds.time, 10, "FREQ=DAILY"
         ));
@@ -11786,7 +11789,7 @@
       if (rems.batchPrep?.enabled) {
         events.push(makeEvent(
           "mp-batch-prep",
-          "🥡 MealPrep: Batch Cooking semanal (5 tápers L–V)",
+          "🥡 LuTrack: Batch Cooking semanal (5 tápers L–V)",
           "Revisa tu lista en Súper y cocina tus tápers de la semana.",
           rems.batchPrep.time, 60, "FREQ=WEEKLY;BYDAY=SU"
         ));
@@ -11794,8 +11797,8 @@
       if (rems.dailySync?.enabled) {
         events.push(makeEvent(
           "mp-daily-sync",
-          "🔄 MealPrep: Sincronizar Apple Salud / Xiaomi",
-          "Ejecuta tu Atajo Sync MealPrep para guardar pasos, peso y entreno de hoy.",
+          "🔄 LuTrack: Sincronizar Apple Salud / Xiaomi",
+          "Ejecuta tu Atajo Sync LuTrack para guardar pasos, peso y entreno de hoy.",
           rems.dailySync.time, 5, "FREQ=DAILY"
         ));
       }
@@ -11808,9 +11811,9 @@
       const ics = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//MealPrep & NutriTrack//Recordatorios iPhone//ES",
+        "PRODID:-//LuTrack//Recordatorios iPhone//ES",
         "CALSCALE:GREGORIAN",
-        "X-WR-CALNAME:MealPrep & NutriTrack",
+        "X-WR-CALNAME:LuTrack",
         ...events,
         "END:VCALENDAR"
       ].join("\r\n");
@@ -11819,7 +11822,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "mealprep-recordatorios-iphone.ics";
+      a.download = "lutrack-recordatorios-iphone.ics";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -11843,7 +11846,7 @@
         </div>
 
         <div class="card">
-          <div style="font-size:12.5px; font-weight:800; color:var(--rose-dark); margin-bottom:6px;">Paso 2 · Crear el Atajo "Sync MealPrep" (1 vez)</div>
+          <div style="font-size:12.5px; font-weight:800; color:var(--rose-dark); margin-bottom:6px;">Paso 2 · Crear el Atajo "Sync LuTrack" (1 vez)</div>
           <ol style="margin:0; padding-left:18px; font-size:12px; color:var(--text-main); line-height:1.5;">
             <li>Abre la app <strong>Atajos (Shortcuts)</strong> en tu iPhone y toca <strong>+</strong>.</li>
             <li>Añade <strong>Buscar muestras de Salud</strong> → Tipo: <em>Pasos</em>, Fecha inicio: <em>es hoy</em> → añade <strong>Calcular estadísticas</strong> (<em>Suma</em>).</li>
@@ -11856,7 +11859,7 @@
         <div class="card">
           <div style="font-size:12.5px; font-weight:800; color:var(--mint-text); margin-bottom:6px;">Paso 3 · Hacerlo automático todos los días</div>
           <div style="font-size:12px; color:var(--text-main); line-height:1.45;">
-            En <strong>Atajos → Automatización → + → Momento del día</strong> (ej. <strong>21:30 todos los días</strong>) elige <strong>Ejecutar inmediatamente</strong> y selecciona <em>Sync MealPrep</em>.<br>
+            En <strong>Atajos → Automatización → + → Momento del día</strong> (ej. <strong>21:30 todos los días</strong>) elige <strong>Ejecutar inmediatamente</strong> y selecciona <em>Sync LuTrack</em>.<br>
             <small style="color:var(--text-muted);">Truco pro: crea otra automatización «Al cerrar app: Mi Fitness» para que se sincronice cada vez que revises tu reloj Xiaomi.</small>
           </div>
         </div>
@@ -12472,7 +12475,7 @@
 
       el.innerHTML = `
         <div class="onb-top">
-          ${onboardingStep > 0 ? `<button type="button" class="btn-ghost btn-sm" onclick="onbGo(-1)">← Atrás</button>` : `<span style="font-size:12px; font-weight:800; color:var(--rose-dark);">MealPrep</span>`}
+          ${onboardingStep > 0 ? `<button type="button" class="btn-ghost btn-sm" onclick="onbGo(-1)">← Atrás</button>` : `<span style="font-size:13px; font-weight:800; color:var(--rose-dark); letter-spacing:-0.02em;">LuTrack</span>`}
           <div class="onb-progress-track"><div class="onb-progress-fill" style="width:${pct}%;"></div></div>
           <button type="button" class="btn-ghost btn-sm" style="color:var(--text-soft);" onclick="skipOnboarding()">Omitir</button>
         </div>
