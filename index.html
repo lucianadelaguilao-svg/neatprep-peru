@@ -1498,6 +1498,114 @@
       flex-shrink: 0;
       margin-top: 1px;
     }
+
+    .metf-scale-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .metf-scale-grid.cols-5 {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .metf-scale-btn {
+      padding: 8px 4px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      line-height: 1.25;
+      transition: all 0.14s ease;
+    }
+
+    .metf-scale-btn.active {
+      background: var(--rose-pale);
+      border-color: var(--rose);
+      color: var(--rose-dark);
+    }
+
+    .sci-chart-box {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .sci-legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .sci-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .sci-diagram-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .sci-node {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 8px 9px;
+      font-size: 11px;
+      line-height: 1.38;
+      color: var(--text-muted);
+    }
+
+    .sci-node-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--rose-dark);
+      margin-bottom: 3px;
+    }
+
+    .b12-alert-box {
+      background: linear-gradient(135deg, #FFF9F2, #FFF5EC);
+      border: 1px solid #F2DEC4;
+      border-radius: 12px;
+      padding: 9px 11px;
+      font-size: 11.5px;
+      line-height: 1.42;
+      color: var(--text-main);
+    }
+
+    .b12-alert-box.ok {
+      background: var(--mint-bg);
+      border-color: #CDE8DC;
+      color: var(--mint-text);
+    }
+
+    .corr-box {
+      background: linear-gradient(135deg, #FFF7FA, #FAF2F6);
+      border: 1px solid var(--rose-soft);
+      border-radius: 11px;
+      padding: 9px 11px;
+      font-size: 11.5px;
+      line-height: 1.42;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -2636,6 +2744,13 @@
       labLogs: [],
       cycleProfile: {
         phase: "none"
+      },
+      metforminTracker: {
+        enabled: true,
+        formulation: "IR",
+        doseMg: 500,
+        startDate: "",
+        logs: []
       }
     };
 
@@ -2749,7 +2864,17 @@
           phase: ["none", "menstrual", "follicular", "ovulatory", "luteal"].includes(parsed.cycleProfile?.phase)
             ? parsed.cycleProfile.phase
             : "none"
-        }
+        },
+        metforminTracker: (() => {
+          const rawM = (parsed.metforminTracker && typeof parsed.metforminTracker === "object") ? parsed.metforminTracker : {};
+          return {
+            enabled: rawM.enabled !== undefined ? Boolean(rawM.enabled) : true,
+            formulation: ["IR", "XR"].includes(rawM.formulation) ? rawM.formulation : "IR",
+            doseMg: Number(rawM.doseMg) > 0 ? Number(rawM.doseMg) : 500,
+            startDate: typeof rawM.startDate === "string" ? rawM.startDate : "",
+            logs: Array.isArray(rawM.logs) ? rawM.logs : []
+          };
+        })()
       };
     }
 
@@ -3735,12 +3860,15 @@
           </div>
 
           <div class="card">
-            <div class="row-between">
-              <div>
+            <div class="row-between" style="gap:8px;">
+              <div style="min-width:0;">
                 <div style="font-size:12.5px; font-weight:800;">${healthBannerTitle}</div>
                 <div class="card-sub">Tomas <strong>${medsDone}/${state.meds.length}</strong> · Pasos <strong>${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")}</strong>/${Number(state.stepsGoal).toLocaleString("es-ES")}</div>
               </div>
-              <button class="btn-secondary btn-sm" onclick="switchTab('progreso')">Abrir</button>
+              <div style="display:flex; gap:5px; flex-shrink:0;">
+                ${(m.takesMetformin || (state.metforminTracker?.logs?.length > 0)) ? `<button class="btn-secondary btn-sm" onclick="openMetforminLogSheet()" title="Registrar tolerancia metformina hoy">💊 GI</button>` : ""}
+                <button class="btn-secondary btn-sm" onclick="switchTab('progreso')">Abrir</button>
+              </div>
             </div>
           </div>
 
@@ -5493,6 +5621,7 @@
           </details>
 
           ${buildLabsDetailsHtml(m)}
+          ${buildMetforminDetailsHtml(m)}
 
           <div class="card">
             <div class="row-between" style="margin-bottom:8px;">
@@ -5772,6 +5901,46 @@
       return null;
     }
 
+    function renderLabsTrendSvg(sortedDesc) {
+      const asc = (sortedDesc || []).slice().reverse();
+      const homaPts = asc
+        .map(l => ({ date: String(l.date || "").slice(2), val: computeHomaIr(l.glucose, l.insulin) }))
+        .filter(x => x.val !== null);
+      const b12Pts = asc
+        .map(l => ({ date: String(l.date || "").slice(2), val: Number(l.b12) > 0 ? Number(l.b12) : null }))
+        .filter(x => x.val !== null);
+      const series = homaPts.length >= 2
+        ? { title: "📉 Tendencia HOMA-IR", unit: "", color: "#C84E77", pts: homaPts.slice(-6) }
+        : (b12Pts.length >= 2 ? { title: "📉 Tendencia Vitamina B12 (pg/mL)", unit: "", color: "#2E8B63", pts: b12Pts.slice(-6) } : null);
+      if (!series) return "";
+
+      const vals = series.pts.map(p => p.val);
+      const minV = Math.min(...vals) * 0.9;
+      const maxV = Math.max(...vals) * 1.1;
+      const span = Math.max(0.2, maxV - minV);
+      const W = 340, H = 88, padX = 22, padY = 16;
+      const coords = series.pts.map((p, idx) => ({
+        x: padX + (idx / (series.pts.length - 1)) * (W - padX * 2),
+        y: H - padY - ((p.val - minV) / span) * (H - padY * 2),
+        txt: p.val < 20 ? p.val.toFixed(2).replace(".", ",") : Math.round(p.val),
+        d: p.date
+      }));
+      const poly = coords.map(c => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
+      return `
+        <div class="sci-chart-box">
+          <div style="font-size:11px; font-weight:800; color:var(--text-main); margin-bottom:4px;">${series.title}</div>
+          <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:88px; background:#fff; border-radius:9px; border:1px solid var(--border);">
+            <polyline fill="none" stroke="${series.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${poly}" />
+            ${coords.map(c => `
+              <circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="3.6" fill="${series.color}" />
+              <text x="${c.x.toFixed(1)}" y="${Math.max(10, c.y - 6).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="#522639">${c.txt}</text>
+              <text x="${c.x.toFixed(1)}" y="${H - 3}" text-anchor="middle" font-size="8" fill="#7D626D">${c.d}</text>
+            `).join("")}
+          </svg>
+        </div>
+      `;
+    }
+
     function buildLabsDetailsHtml(m) {
       const logs = Array.isArray(state.labLogs) ? state.labLogs : [];
       const sorted = logs.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
@@ -5813,6 +5982,7 @@
 
         latestHtml = `
           <div class="lab-grid">${tiles.join("")}</div>
+          ${renderLabsTrendSvg(sorted)}
           ${latest.note ? `<div style="font-size:11.5px; color:var(--text-muted); margin-bottom:9px;">📝 ${escapeHtml(latest.note)}</div>` : ""}
           ${sorted.length > 0 ? `
             <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">
@@ -5998,6 +6168,20 @@
           }).join("")
         : `<tr><td colspan="8" style="text-align:center; color:#666;">Sin analíticas registradas todavía.</td></tr>`;
 
+      const metfStats = getMetforminStats();
+      const b12Mon = getMetforminB12Monitor();
+      const metfPdfHtml = (m.takesMetformin || metfStats.count > 0) ? `
+  <h2>3. Seguimiento de Metformina, Tolerancia GI y Monitor B12</h2>
+  <div class="grid">
+    <div class="box">Pauta registrada<strong>${escapeHtml(metfStats.mt.formulation)} · ${metfStats.mt.doseMg} mg/día</strong></div>
+    <div class="box">Tolerancia GI media (${metfStats.count} reg.)<strong>${metfStats.avgGi !== null ? metfStats.avgGi.toFixed(1).replace(".", ",") + " / 3" : "Sin registros"}</strong></div>
+    <div class="box">Energía post-comida<strong>${metfStats.avgEnergy !== null ? metfStats.avgEnergy.toFixed(1).replace(".", ",") + " / 5" : "—"}</strong></div>
+  </div>
+  <div class="box" style="margin-top:8px;">
+    <b>Monitor Vitamina B12 (ADA):</b> ${escapeHtml(b12Mon.badge)} — ${escapeHtml(b12Mon.text)}
+    ${metfStats.correlations.length ? `<div style="margin-top:5px;">${metfStats.correlations.map(c => "• " + c).join("<br/>")}</div>` : ""}
+  </div>` : "";
+
       return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6043,8 +6227,9 @@
     </thead>
     <tbody>${labsRows}</tbody>
   </table>
+  ${metfPdfHtml}
 
-  <h2>3. Evolución de Peso y Actividad Reciente</h2>
+  <h2>${metfPdfHtml ? "4" : "3"}. Evolución de Peso y Actividad Reciente</h2>
   <div class="grid" style="grid-template-columns: 1fr 1fr;">
     <div class="box">
       Últimos pesajes
@@ -6056,7 +6241,7 @@
     </div>
   </div>
 
-  <h2>4. Protocolo / Suplementación Habitual y Notas</h2>
+  <h2>${metfPdfHtml ? "5" : "4"}. Protocolo / Suplementación Habitual y Notas</h2>
   <div class="box">
     ${(state.meds || []).map(med => `• <b>${escapeHtml(med.name)}</b> — ${escapeHtml(med.dose)}`).join("<br/>") || "Sin tomas registradas"}
     ${state.glucoseNote ? `<div style="margin-top:6px; border-top:1px solid #E7DCE1; padding-top:6px;"><b>Nota personal:</b> ${escapeHtml(state.glucoseNote)}</div>` : ""}
@@ -6078,6 +6263,8 @@
         .map(c => CLINICAL_CONDITION_META[c]?.short)
         .filter(Boolean);
 
+      const metfStats = getMetforminStats();
+
       openSheet("📄 Resumen Médico (PDF)", `
         <div class="section-gap">
           <div class="card-soft">
@@ -6086,7 +6273,8 @@
               <div><strong>Perfil:</strong> ${m.sex === "M" ? "Hombre" : "Mujer"} · ${m.age} años · ${m.weightKg.toFixed(1)} kg · ${m.heightCm} cm (BMI ${m.bmi.toFixed(1)})</div>
               <div><strong>Enfoque:</strong> ${m.goalMeta.shortLabel} · ${activeConds.length ? activeConds.join(", ") : "General"}</div>
               <div><strong>Metas diarias:</strong> ${m.targetKcal} kcal · ${m.targetProtein}g P · ${m.targetCarbs}g C · ${m.targetFat}g G</div>
-              <div><strong>Analíticas:</strong> ${sortedLabs.length ? `${sortedLabs.length} registro(s) · última ${latest.date}${latestHoma !== null ? ` (HOMA-IR ${latestHoma.toFixed(2).replace(".", ",")})` : ""}` : "Sin analíticas aún (se exporta perfil, peso y protocolo)"}</div>
+              <div><strong>Analíticas:</strong> ${sortedLabs.length ? `${sortedLabs.length} registro(s) · última ${latest.date}${latestHoma !== null ? ` (HOMA-IR ${latestHoma.toFixed(2).replace(".", ",")})` : ""}` : "Sin analíticas aún"}</div>
+              ${(m.takesMetformin || metfStats.count > 0) ? `<div><strong>Metformina:</strong> ${metfStats.mt.formulation} ${metfStats.mt.doseMg} mg · ${metfStats.count ? `${metfStats.count} reg. (GI ${metfStats.avgGi.toFixed(1).replace(".", ",")}/3 · En. ${metfStats.avgEnergy.toFixed(1).replace(".", ",")}/5)` : "sin diario GI aún"}</div>` : ""}
             </div>
           </div>
           <button class="btn-primary" style="width:100%;" onclick="printMedicalReportNow()">🖨️ Imprimir / Guardar como PDF</button>
@@ -6115,6 +6303,434 @@
         URL.revokeObjectURL(url);
         showToast("Resumen descargado (ábrelo y pulsa Imprimir → PDF)");
       }
+    }
+
+    const METF_GI_LABELS = [
+      { val: 0, short: "0", label: "Sin molestia" },
+      { val: 1, short: "1", label: "Leve" },
+      { val: 2, short: "2", label: "Moderada" },
+      { val: 3, short: "3", label: "Fuerte" }
+    ];
+    const METF_TIMING_LABELS = {
+      mid_meal: "Mitad comida",
+      end_meal: "Fin comida",
+      fasted: "En ayunas / sola"
+    };
+    const METF_BRISTOL_LABELS = {
+      normal: "Normal (3–4)",
+      soft: "Blanda (5)",
+      diarrhea: "Líquida (6–7)",
+      constipated: "Estreñim. (1–2)"
+    };
+    const METF_MEAL_LABELS = {
+      protein_fiber: "Proteína + fibra",
+      heavy_carb: "Carb refinado / grasa"
+    };
+    let metfDraft = { timing: "mid_meal", mealQuality: "protein_fiber", giScore: 0, bristol: "normal", postMealEnergy: 4, cravings: 2 };
+
+    function getMetforminStats() {
+      const mt = state.metforminTracker || DEFAULT_STATE.metforminTracker;
+      const logs = Array.isArray(mt.logs)
+        ? mt.logs.slice().sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")))
+        : [];
+      const count = logs.length;
+      const avgGi = count ? logs.reduce((s, l) => s + Number(l.giScore || 0), 0) / count : null;
+      const avgEnergy = count ? logs.reduce((s, l) => s + Number(l.postMealEnergy || 0), 0) / count : null;
+      const avgCravings = count ? logs.reduce((s, l) => s + Number(l.cravings || 0), 0) / count : null;
+
+      // Correlations
+      const withFood = logs.filter(l => l.timing === "mid_meal" || l.timing === "end_meal");
+      const fasted = logs.filter(l => l.timing === "fasted");
+      const protMeals = logs.filter(l => l.mealQuality === "protein_fiber");
+      const heavyMeals = logs.filter(l => l.mealQuality === "heavy_carb");
+
+      const correlations = [];
+      if (withFood.length >= 1 && fasted.length >= 1) {
+        const wfAvg = withFood.reduce((s, l) => s + Number(l.giScore || 0), 0) / withFood.length;
+        const faAvg = fasted.reduce((s, l) => s + Number(l.giScore || 0), 0) / fasted.length;
+        correlations.push(`<strong>Timing:</strong> molestia GI media <strong>${wfAvg.toFixed(1).replace(".", ",")}/3</strong> con comida vs. <strong>${faAvg.toFixed(1).replace(".", ",")}/3</strong> fuera de comida.`);
+      }
+      if (protMeals.length >= 1 && heavyMeals.length >= 1) {
+        const pAvg = protMeals.reduce((s, l) => s + Number(l.giScore || 0), 0) / protMeals.length;
+        const hAvg = heavyMeals.reduce((s, l) => s + Number(l.giScore || 0), 0) / heavyMeals.length;
+        correlations.push(`<strong>Tipo de comida:</strong> GI <strong>${pAvg.toFixed(1).replace(".", ",")}/3</strong> con proteína+fibra vs. <strong>${hAvg.toFixed(1).replace(".", ",")}/3</strong> con carbos refinados/grasa.`);
+      }
+      const recent4 = logs.slice(-4);
+      const recentGi = recent4.length ? recent4.reduce((s, l) => s + Number(l.giScore || 0), 0) / recent4.length : 0;
+      const persistentGiAlert = recent4.length >= 4 && recentGi >= 1.8;
+      if (persistentGiAlert) {
+        correlations.push(`<strong>Señal para tu médico:</strong> molestia GI sostenida (${recentGi.toFixed(1).replace(".", ",")}/3 en los últimos registros). Vale la pena consultar si te conviene pasar a <strong>liberación prolongada (XR/Retard)</strong> o ajustar el ritmo de titulación.`);
+      } else if (count >= 2 && !correlations.length) {
+        correlations.push(avgGi <= 0.8
+          ? `<strong>Buena adaptación:</strong> tolerancia digestiva estable (${avgGi.toFixed(1).replace(".", ",")}/3) con energía post-comida media de <strong>${avgEnergy.toFixed(1).replace(".", ",")}/5</strong>.`
+          : `<strong>En adaptación:</strong> sigue registrando si la tomas a mitad de comida con proteína+fibra para detectar qué te sienta mejor.`);
+      }
+
+      return { mt, logs, count, avgGi, avgEnergy, avgCravings, correlations, persistentGiAlert };
+    }
+
+    function getMetforminB12Monitor() {
+      const mt = state.metforminTracker || DEFAULT_STATE.metforminTracker;
+      const sortedLabs = (state.labLogs || []).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      const latestB12Lab = sortedLabs.find(l => Number(l.b12) > 0) || null;
+      let monthsOn = null;
+      if (mt.startDate) {
+        const diffDays = Math.max(0, Math.round((Date.now() - new Date(mt.startDate + "T00:00:00").getTime()) / 86400000));
+        monthsOn = Math.floor(diffDays / 30);
+      }
+
+      if (latestB12Lab && Number(latestB12Lab.b12) < 300) {
+        return {
+          status: "warn",
+          badge: `B12 ${latestB12Lab.b12} pg/mL · Vigilar`,
+          text: `Tu última Vitamina B12 (${latestB12Lab.date}) está en rango bajo/límite. Con metformina las guías ADA recomiendan comentarlo con tu médico para valorar reposición.`
+        };
+      }
+      if (monthsOn !== null && monthsOn >= 12 && !latestB12Lab) {
+        return {
+          status: "warn",
+          badge: `${monthsOn} meses · Medir B12`,
+          text: `Llevas ${monthsOn} meses con metformina sin B12 registrada. Conviene solicitar Vitamina B12 en tu próxima analítica (guías ADA/MHRA).`
+        };
+      }
+      if (latestB12Lab) {
+        return {
+          status: "ok",
+          badge: `B12 ${latestB12Lab.b12} pg/mL · OK`,
+          text: `Último control B12 (${latestB12Lab.date}) en rango adecuado. Repite control periódico cada 12 meses o antes si notas fatiga inusual u hormigueo.`
+        };
+      }
+      return {
+        status: "warn",
+        badge: monthsOn !== null ? `Mes ${monthsOn + 1} · Sin B12 base` : "Registrar B12 base",
+        text: "Al iniciar metformina es ideal anotar una Vitamina B12 base en Analíticas y repetir control periódico según criterio médico."
+      };
+    }
+
+    function renderMetforminChartSvg(logs) {
+      if (!logs || logs.length < 2) {
+        return `<div style="font-size:11.5px; color:var(--text-soft); padding:9px; background:var(--bg-soft); border-radius:10px; border:1px solid var(--border); margin-bottom:10px;">Registra al menos <strong>2 días</strong> para graficar tu curva de adaptación (molestia GI vs. energía post-comida).</div>`;
+      }
+      const recent = logs.slice(-10);
+      const W = 340, H = 112, padX = 20, padY = 18;
+      const plotW = W - padX * 2;
+      const plotH = H - padY * 2;
+
+      const ptsGi = recent.map((item, idx) => {
+        const x = padX + (idx / (recent.length - 1)) * plotW;
+        const norm = Math.max(0, Math.min(3, Number(item.giScore || 0))) / 3;
+        const y = H - padY - norm * plotH;
+        return { x, y, v: Number(item.giScore || 0), d: String(item.date || "").slice(5) };
+      });
+      const ptsEn = recent.map((item, idx) => {
+        const x = padX + (idx / (recent.length - 1)) * plotW;
+        const norm = (Math.max(1, Math.min(5, Number(item.postMealEnergy || 3))) - 1) / 4;
+        const y = H - padY - norm * plotH;
+        return { x, y, v: Number(item.postMealEnergy || 3) };
+      });
+
+      const polyGi = ptsGi.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+      const polyEn = ptsEn.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+
+      return `
+        <div class="sci-chart-box">
+          <div style="font-size:11px; font-weight:800; color:var(--text-main); margin-bottom:5px;">📈 Curva de adaptación (últimos ${recent.length} registros)</div>
+          <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:112px; background:#fff; border-radius:9px; border:1px solid var(--border);">
+            <line x1="${padX}" y1="${padY}" x2="${W - padX}" y2="${padY}" stroke="#F1E7EC" stroke-dasharray="3,3" />
+            <line x1="${padX}" y1="${(padY + H - padY) / 2}" x2="${W - padX}" y2="${(padY + H - padY) / 2}" stroke="#F1E7EC" stroke-dasharray="3,3" />
+            <line x1="${padX}" y1="${H - padY}" x2="${W - padX}" y2="${H - padY}" stroke="#E7DCE1" />
+            <polyline fill="none" stroke="#2E8B63" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${polyEn}" />
+            <polyline fill="none" stroke="#C84E77" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${polyGi}" />
+            ${ptsEn.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.2" fill="#2E8B63" />`).join("")}
+            ${ptsGi.map(p => `
+              <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.8" fill="#C84E77" />
+              <text x="${p.x.toFixed(1)}" y="${H - 4}" text-anchor="middle" font-size="8.5" fill="#7D626D">${p.d}</text>
+            `).join("")}
+          </svg>
+          <div class="sci-legend">
+            <span><i class="sci-dot" style="background:#C84E77;"></i>Molestia GI (0–3 · ideal bajar)</span>
+            <span><i class="sci-dot" style="background:#2E8B63;"></i>Energía post-comida (1–5 · ideal subir)</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildMetforminMechanismHtml(m) {
+      return `
+        <details style="margin-top:9px; background:var(--bg-surface); border:1px solid var(--border); border-radius:11px; padding:8px 10px;">
+          <summary style="cursor:pointer; font-size:12px; font-weight:800; color:var(--rose-dark); list-style:none;">🧠 Cómo actúa en tu cuerpo (diagrama científico)</summary>
+          <div style="margin-top:8px;">
+            <svg viewBox="0 0 320 44" style="width:100%; height:44px; display:block;">
+              <rect x="92" y="4" width="136" height="24" rx="12" fill="#522639" />
+              <text x="160" y="19.5" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFFFFF">💊 Metformina (vía AMPK)</text>
+              <line x1="160" y1="28" x2="160" y2="36" stroke="#C84E77" stroke-width="1.6" />
+              <line x1="44" y1="36" x2="276" y2="36" stroke="#C84E77" stroke-width="1.6" />
+              <line x1="44" y1="36" x2="44" y2="44" stroke="#C84E77" stroke-width="1.6" />
+              <line x1="121" y1="36" x2="121" y2="44" stroke="#C84E77" stroke-width="1.6" />
+              <line x1="199" y1="36" x2="199" y2="44" stroke="#C84E77" stroke-width="1.6" />
+              <line x1="276" y1="36" x2="276" y2="44" stroke="#C84E77" stroke-width="1.6" />
+            </svg>
+            <div class="sci-diagram-grid">
+              <div class="sci-node">
+                <div class="sci-node-title">1. Hígado</div>
+                Reduce la producción excesiva de glucosa (gluconeogénesis), estabilizando tu glucemia en ayunas.
+              </div>
+              <div class="sci-node">
+                <div class="sci-node-title">2. Músculo + Entreno</div>
+                Potencia la captación de glucosa (GLUT4). Combinada con <strong>fuerza + 15 min de caminata</strong> el efecto es sinérgico.
+              </div>
+              <div class="sci-node">
+                <div class="sci-node-title">3. Intestino y B12</div>
+                Modula microbiota y absorción de glucosa: por eso puede haber adaptación GI inicial (tómala con comida) y conviene vigilar <strong>B12</strong>.
+              </div>
+              <div class="sci-node">
+                <div class="sci-node-title">4. Eje hormonal${m.isPCOS ? " (SOP)" : ""}</div>
+                Al bajar la hiperinsulinemia, mejora la sensibilidad celular, la saciedad y el equilibrio androgénico/ovulatorio.
+              </div>
+            </div>
+          </div>
+        </details>
+      `;
+    }
+
+    function buildMetforminDetailsHtml(m) {
+      const stats = getMetforminStats();
+      const mt = stats.mt;
+      const b12Mon = getMetforminB12Monitor();
+      const summarySub = stats.count
+        ? `${mt.formulation} ${mt.doseMg} mg · ${stats.count} reg. · GI ${stats.avgGi.toFixed(1).replace(".", ",")}/3 · Energía ${stats.avgEnergy.toFixed(1).replace(".", ",")}/5`
+        : `${mt.formulation} ${mt.doseMg} mg · Escala GI 0–3, curvas y B12`;
+
+      return `
+        <details class="clean-details" id="metforminDetailsBox">
+          <summary>
+            <div>
+              <div class="card-title" style="margin:0; font-size:14px;">💊 Seguimiento Metformina (Ciencia)</div>
+              <div style="font-size:11.5px; color:var(--text-soft);">${summarySub}</div>
+            </div>
+          </summary>
+          <div class="clean-details-body">
+            <div style="font-size:11px; font-weight:750; color:var(--text-soft); margin-bottom:6px;">PAUTA INDICADA POR TU MÉDICO</div>
+            <div class="seg-control" style="margin-bottom:8px;">
+              <button class="seg-btn ${mt.formulation === "IR" ? "active" : ""}" onclick="setMetfFormulation('IR')">Inmediata (IR)</button>
+              <button class="seg-btn ${mt.formulation === "XR" ? "active" : ""}" onclick="setMetfFormulation('XR')">Prolongada (XR/Retard)</button>
+            </div>
+            <div class="grid-2" style="margin-bottom:10px;">
+              <div>
+                <label>Dosis actual (mg/día)</label>
+                <input type="number" id="metfDoseInput" min="250" max="3000" step="50" value="${mt.doseMg}" onchange="updateMetfConfig()" />
+              </div>
+              <div>
+                <label>Fecha inicio / ajuste</label>
+                <input type="date" id="metfStartInput" value="${escapeAttr(mt.startDate || "")}" onchange="updateMetfConfig()" />
+              </div>
+            </div>
+
+            <div class="grid-2" style="margin-bottom:10px;">
+              <button class="btn-primary btn-sm" onclick="openMetforminLogSheet()">+ Registrar hoy (10 s)</button>
+              <button class="btn-secondary btn-sm" onclick="openPrintableMedicalReport()">📄 Incluir en PDF</button>
+            </div>
+
+            ${renderMetforminChartSvg(stats.logs)}
+
+            ${stats.correlations.length ? `
+              <div class="corr-box">
+                <div style="font-size:11px; font-weight:800; color:var(--rose-dark); margin-bottom:4px;">🔍 PATRONES DETECTADOS</div>
+                ${stats.correlations.map(c => `<div style="margin-bottom:3px;">• ${c}</div>`).join("")}
+              </div>
+            ` : ""}
+
+            ${stats.logs.length ? `
+              <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">
+                ${stats.logs.slice().reverse().slice(0, 5).map(l => `
+                  <div class="row-between" style="padding:6px 9px; background:var(--bg-soft); border-radius:9px; font-size:11px; gap:6px;">
+                    <div style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                      <strong>${escapeHtml(l.date)}</strong> · GI <strong>${l.giScore}/3</strong> · En. <strong>${l.postMealEnergy}/5</strong> · <span style="color:var(--text-muted);">${METF_TIMING_LABELS[l.timing] || ""} · ${METF_BRISTOL_LABELS[l.bristol] || ""}</span>
+                    </div>
+                    <button class="btn-ghost btn-sm" style="padding:2px 6px; color:var(--text-soft);" onclick="deleteMetforminLog('${l.id}')" title="Eliminar">×</button>
+                  </div>
+                `).join("")}
+              </div>
+            ` : ""}
+
+            <div class="b12-alert-box ${b12Mon.status === "ok" ? "ok" : ""}">
+              <div class="row-between" style="margin-bottom:4px;">
+                <strong>🔬 Monitor Vitamina B12 (ADA)</strong>
+                <span class="badge ${b12Mon.status === "ok" ? "badge-mint" : "badge-amber"}">${escapeHtml(b12Mon.badge)}</span>
+              </div>
+              <div>${b12Mon.text}</div>
+            </div>
+
+            ${buildMetforminMechanismHtml(m)}
+
+            <details style="margin-top:8px; background:var(--bg-surface); border:1px solid var(--border); border-radius:11px; padding:8px 10px;">
+              <summary style="cursor:pointer; font-size:11.5px; font-weight:800; color:var(--text-main); list-style:none;">🛡️ Qué consultar siempre con tu médico</summary>
+              <div style="margin-top:6px; font-size:11px; color:var(--text-muted); line-height:1.45;">
+                • <strong>No cambies tu dosis por tu cuenta:</strong> usa este registro para decidir juntos si mantener pauta o valorar versión <strong>XR/Retard</strong>.<br/>
+                • <strong>Situaciones especiales:</strong> avisa a tu médico ante vómitos/diarrea intensa con deshidratación, consumo elevado de alcohol o antes de pruebas con <strong>contraste yodado</strong>.
+              </div>
+            </details>
+          </div>
+        </details>
+      `;
+    }
+
+    function setMetfFormulation(form) {
+      if (!["IR", "XR"].includes(form)) return;
+      state.metforminTracker.formulation = form;
+      saveState();
+      render();
+      const box = document.getElementById("metforminDetailsBox");
+      if (box) box.open = true;
+      showToast(`Formulación: ${form === "XR" ? "Prolongada (XR/Retard)" : "Liberación inmediata (IR)"}`);
+    }
+
+    function updateMetfConfig() {
+      const dose = Number(document.getElementById("metfDoseInput")?.value || 500);
+      const start = document.getElementById("metfStartInput")?.value || "";
+      if (dose > 0) state.metforminTracker.doseMg = dose;
+      state.metforminTracker.startDate = start;
+      saveState();
+      render();
+      const box = document.getElementById("metforminDetailsBox");
+      if (box) box.open = true;
+      showToast("Pauta guardada ✓");
+    }
+
+    function openMetforminLogSheet() {
+      const today = new Date().toISOString().slice(0, 10);
+      const mt = state.metforminTracker || DEFAULT_STATE.metforminTracker;
+      metfDraft = { timing: "mid_meal", mealQuality: "protein_fiber", giScore: 0, bristol: "normal", postMealEnergy: 4, cravings: 2 };
+      openSheet("💊 Diario Metformina (10 s)", `
+        <div class="section-gap">
+          <div class="grid-2">
+            <div>
+              <label>Fecha</label>
+              <input type="date" id="metfLogDate" value="${today}" />
+            </div>
+            <div>
+              <label>Dosis tomada (mg)</label>
+              <input type="number" id="metfLogDose" value="${mt.doseMg}" step="50" min="250" max="3000" />
+            </div>
+          </div>
+
+          <div>
+            <label>¿Cuándo la tomaste?</label>
+            <div class="seg-control cols-3" id="metfTimingRow">
+              ${Object.entries(METF_TIMING_LABELS).map(([k, lbl]) => `
+                <button type="button" class="seg-btn ${metfDraft.timing === k ? "active" : ""}" data-val="${k}" onclick="selectMetfField('timing','${k}')">${lbl}</button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <label>¿Cómo fue esa comida?</label>
+            <div class="seg-control" id="metfMealRow">
+              ${Object.entries(METF_MEAL_LABELS).map(([k, lbl]) => `
+                <button type="button" class="seg-btn ${metfDraft.mealQuality === k ? "active" : ""}" data-val="${k}" onclick="selectMetfField('mealQuality','${k}')">${lbl}</button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <label>Escala digestiva GI (náusea, gases, cólico)</label>
+            <div class="metf-scale-grid" id="metfGiRow">
+              ${METF_GI_LABELS.map(item => `
+                <button type="button" class="metf-scale-btn ${metfDraft.giScore === item.val ? "active" : ""}" data-val="${item.val}" onclick="selectMetfField('giScore', ${item.val})">
+                  <div style="font-size:13px; font-weight:800;">${item.short}</div>
+                  <div style="font-size:9.5px;">${item.label}</div>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <label>Tránsito (Escala Bristol simplificada)</label>
+            <div class="metf-scale-grid" id="metfBristolRow">
+              ${Object.entries(METF_BRISTOL_LABELS).map(([k, lbl]) => `
+                <button type="button" class="metf-scale-btn ${metfDraft.bristol === k ? "active" : ""}" data-val="${k}" onclick="selectMetfField('bristol','${k}')">${lbl}</button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <label>Energía tras comer (1 = bajón/sueño · 5 = estable)</label>
+            <div class="metf-scale-grid cols-5" id="metfEnergyRow">
+              ${[1, 2, 3, 4, 5].map(n => `
+                <button type="button" class="metf-scale-btn ${metfDraft.postMealEnergy === n ? "active" : ""}" data-val="${n}" onclick="selectMetfField('postMealEnergy', ${n})">${n}</button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <label>Antojos dulces hoy (1 = nada · 5 = muy fuertes)</label>
+            <div class="metf-scale-grid cols-5" id="metfCravingsRow">
+              ${[1, 2, 3, 4, 5].map(n => `
+                <button type="button" class="metf-scale-btn ${metfDraft.cravings === n ? "active" : ""}" data-val="${n}" onclick="selectMetfField('cravings', ${n})">${n}</button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <label>Nota opcional</label>
+            <input type="text" id="metfLogNote" placeholder="Ej. Cena con salmón, cero molestias" />
+          </div>
+
+          <button class="btn-primary" style="width:100%;" onclick="saveMetforminLog()">Guardar registro</button>
+        </div>
+      `);
+    }
+
+    function selectMetfField(field, val) {
+      metfDraft[field] = val;
+      const map = {
+        timing: "metfTimingRow",
+        mealQuality: "metfMealRow",
+        giScore: "metfGiRow",
+        bristol: "metfBristolRow",
+        postMealEnergy: "metfEnergyRow",
+        cravings: "metfCravingsRow"
+      };
+      const row = document.getElementById(map[field]);
+      if (!row) return;
+      row.querySelectorAll("button").forEach(btn => {
+        btn.classList.toggle("active", String(btn.getAttribute("data-val")) === String(val));
+      });
+    }
+
+    function saveMetforminLog() {
+      const date = document.getElementById("metfLogDate")?.value || new Date().toISOString().slice(0, 10);
+      const doseMg = Number(document.getElementById("metfLogDose")?.value || state.metforminTracker.doseMg || 500);
+      const note = String(document.getElementById("metfLogNote")?.value || "").trim();
+      if (!Array.isArray(state.metforminTracker.logs)) state.metforminTracker.logs = [];
+      if (!state.metforminTracker.startDate) state.metforminTracker.startDate = date;
+      state.metforminTracker.logs.push({
+        id: "metf_" + Date.now(),
+        date,
+        doseMg,
+        timing: metfDraft.timing,
+        mealQuality: metfDraft.mealQuality,
+        giScore: Number(metfDraft.giScore || 0),
+        bristol: metfDraft.bristol,
+        postMealEnergy: Number(metfDraft.postMealEnergy || 4),
+        cravings: Number(metfDraft.cravings || 2),
+        note
+      });
+      saveState();
+      closeSheet();
+      render();
+      const box = document.getElementById("metforminDetailsBox");
+      if (box) box.open = true;
+      showToast("Registro de metformina guardado ✓");
+    }
+
+    function deleteMetforminLog(id) {
+      state.metforminTracker.logs = (state.metforminTracker.logs || []).filter(x => x.id !== id);
+      saveState();
+      render();
+      const box = document.getElementById("metforminDetailsBox");
+      if (box) box.open = true;
+      showToast("Registro eliminado");
     }
 
     function setProfileSex(sex) {
