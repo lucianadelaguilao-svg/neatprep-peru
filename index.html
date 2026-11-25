@@ -78,15 +78,16 @@
       box-shadow: 0 24px 64px rgba(35, 24, 29, 0.14);
     }
 
-    @media (min-width: 520px) {
+    @media (min-width: 520px) and (max-width: 859px) {
       body {
         padding: 16px;
         align-items: center;
       }
       .phone-shell {
-        height: min(910px, calc(100dvh - 32px));
-        border-radius: 40px;
-        border: 7px solid #23181D;
+        max-width: 520px;
+        height: min(920px, calc(100dvh - 32px));
+        border-radius: 32px;
+        border: 1px solid rgba(120, 62, 85, 0.14);
       }
     }
 
@@ -2368,6 +2369,283 @@
       background: #2E8B63;
       color: #FFFFFF;
     }
+
+    /* Responsive Desktop Layout Utilities (stack cleanly on mobile, multi-column on desktop) */
+    .sidebar-brand,
+    .sidebar-footer {
+      display: none;
+    }
+
+    .desk-split,
+    .desk-col,
+    .desk-grid-2,
+    .desk-grid-recipes {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    @media (min-width: 860px) {
+      html, body {
+        background: var(--bg-app);
+      }
+
+      body {
+        padding: 0;
+        align-items: stretch;
+        justify-content: stretch;
+      }
+
+      .phone-shell {
+        width: 100%;
+        max-width: none;
+        height: 100dvh;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+      }
+
+      .bottom-nav {
+        grid-column: 1;
+        grid-row: 1 / -1;
+        height: 100%;
+        padding: 20px 14px 18px;
+        background: #FFFFFF;
+        border-top: none;
+        border-right: 1px solid rgba(120, 62, 85, 0.10);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        overflow-y: auto;
+      }
+
+      .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 4px 8px 18px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(120, 62, 85, 0.08);
+      }
+
+      .sidebar-brand-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        overflow: hidden;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(216, 78, 125, 0.24);
+      }
+
+      .sidebar-brand-icon img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .sidebar-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 16px;
+        border-top: 1px solid rgba(120, 62, 85, 0.08);
+      }
+
+      .nav-btn {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 11px;
+        padding: 10px 12px;
+        border-radius: 13px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-align: left;
+        transition: background 0.14s ease, color 0.14s ease;
+      }
+
+      .nav-btn:hover {
+        background: var(--bg-soft);
+        color: var(--text-main);
+      }
+
+      .nav-btn.active {
+        background: var(--rose-pale);
+        color: var(--rose-dark);
+        font-weight: 750;
+      }
+
+      .nav-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 0;
+      }
+
+      .nav-btn.active .nav-icon {
+        background: transparent;
+        color: var(--rose);
+      }
+
+      .topbar {
+        grid-column: 2;
+        grid-row: 1;
+        padding: 16px 32px 14px;
+      }
+
+      .topbar-row {
+        max-width: 1120px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .brand-title {
+        font-size: 26px;
+      }
+
+      .brand-sub {
+        font-size: 12.5px;
+      }
+
+      .pill-status {
+        font-size: 12.5px;
+        padding: 7px 14px;
+      }
+
+      .icon-btn {
+        width: 36px;
+        height: 36px;
+      }
+
+      .scroll-area {
+        grid-column: 2;
+        grid-row: 2;
+        padding: 22px 32px 48px;
+      }
+
+      #mainContent > .section-gap {
+        max-width: 1120px;
+        margin: 0 auto;
+        gap: 18px;
+      }
+
+      #mainContent > .section-gap > .seg-control {
+        max-width: 480px;
+      }
+
+      .desk-split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .desk-split.even {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
+
+      .desk-col {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+      }
+
+      .desk-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        align-items: start;
+      }
+
+      .desk-grid-recipes {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .quick-log-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .quick-log-btn:hover,
+      .recipe-card:hover {
+        transform: translateY(-1px);
+        transition: transform 0.14s ease, box-shadow 0.14s ease;
+        box-shadow: 0 4px 12px rgba(181, 51, 96, 0.08), 0 8px 22px rgba(35, 24, 29, 0.05);
+      }
+
+      .btn-primary:hover {
+        filter: brightness(1.04);
+      }
+
+      .btn-secondary:hover {
+        background: #FADAE6;
+      }
+
+      .sheet-backdrop {
+        align-items: center;
+        padding: 24px;
+      }
+
+      .sheet-panel {
+        max-width: 580px;
+        max-height: 85dvh;
+        border-radius: 24px;
+        border: 1px solid var(--border);
+        box-shadow: 0 24px 64px rgba(35, 24, 29, 0.22);
+      }
+
+      .sheet-handle {
+        display: none;
+      }
+
+      .sheet-header {
+        padding: 16px 20px 14px;
+      }
+
+      .sheet-body {
+        padding: 16px 20px 22px;
+      }
+
+      .onb-overlay {
+        padding: 36px 24px;
+        align-items: center;
+      }
+
+      .onb-top,
+      .onb-body,
+      .onb-footer {
+        width: 100%;
+        max-width: 600px;
+      }
+
+      .wp-header > *,
+      .wp-body > * {
+        width: 100%;
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .toast {
+        bottom: 24px;
+      }
+    }
+
+    @media (min-width: 1260px) {
+      .desk-grid-recipes {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
   </style>
 </head>
 <body>
@@ -2394,6 +2672,13 @@
     <main class="scroll-area" id="mainContent"></main>
 
     <nav class="bottom-nav" aria-label="Navegación principal">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><img src="icon.svg" alt="LuTrack" /></div>
+        <div style="min-width:0;">
+          <div style="font-size:16px; font-weight:850; color:var(--text-main); letter-spacing:-0.02em; line-height:1.15;">LuTrack</div>
+          <div style="font-size:11px; color:var(--text-soft); font-weight:600;">Salud integral</div>
+        </div>
+      </div>
       <button class="nav-btn active" data-tab="hoy" onclick="switchTab('hoy')">
         <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></span>
         <span>Hoy</span>
@@ -2414,6 +2699,10 @@
         <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
         <span>Salud</span>
       </button>
+      <div class="sidebar-footer">
+        <button type="button" class="btn-primary btn-sm" style="width:100%;" onclick="openAddFoodSheet('almuerzo')">+ Registrar comida</button>
+        <button type="button" class="btn-secondary btn-sm" style="width:100%;" onclick="openAppTourSheet(0)">Tour guiado</button>
+      </div>
     </nav>
     <div class="onb-overlay" id="onboardingOverlay" role="dialog" aria-modal="true" aria-label="Configuración inicial"></div>
     <div class="workout-player-overlay" id="workoutPlayerOverlay" role="dialog" aria-modal="true" aria-label="Sesión de entreno en vivo"></div>
@@ -5139,63 +5428,69 @@
         <div class="section-gap">
           ${topSwitcherHtml}
           ${buildSectionHintHtml("hoy")}
-          ${buildHoyDueMedsBannerHtml()}
 
-          <div class="card">
-            <div class="row-between" style="margin-bottom:4px;">
-              <div style="font-size:14px; font-weight:850; color:var(--text-main);">Tu día · ${todayDayName || "Hoy"}</div>
-              <button class="btn-ghost btn-sm" style="color:var(--rose-dark); padding:2px 4px;" onclick="switchTab('comida', 'diario')">Diario →</button>
-            </div>
-
-            <div class="rings-widget-grid">
-              ${buildRingSvg(kcalPctHoy, kcalRemHoy < -120 ? "#D6913A" : "#D84E7D", String(todayDiaryTot.kcal), `/${kcalTargetHoy}`, "Calorías", "switchTab('comida', 'diario')")}
-              ${buildRingSvg(protPctHoy, "#2E8B63", `${todayDiaryTot.protein}g`, `/${protTargetHoy}g`, "Proteína", "switchTab('comida', 'diario')")}
-              ${thirdRingHtml}
-            </div>
-
-            <div class="hairline-list" style="margin-bottom:12px;">
-              ${renderHoyMealRow("desayuno", "#D6913A", "Desayuno")}
-              ${renderHoyMealRow("almuerzo", "#C43E67", "Almuerzo")}
-              ${renderHoyMealRow("cena", "#5E5CE6", "Cena")}
-              ${renderHoyMealRow("snacks", "#2E8B63", "Snacks")}
-            </div>
-
-            <div class="grid-2">
-              <button class="btn-secondary btn-sm" onclick="openEatingOutSheet()">Como fuera</button>
-              <button class="btn-secondary btn-sm" onclick="switchTab('comida', 'recetario')">Recetario</button>
-            </div>
-          </div>
-
-          ${buildWaterTrackerHtml(todayStr)}
-
-          <div class="card">
-            <div class="hairline-list">
-              ${cyclePhase ? `
-                <div class="hairline-row" onclick="switchTab('progreso', 'diario')" style="cursor:pointer;">
-                  <div style="min-width:0;">
-                    <div style="font-size:13px; font-weight:700; color:var(--rose-dark);">${cyclePhase.short}${cyclePhase.isAuto ? ` · Día ${cyclePhase.cycleDay}/${cyclePhase.avgCycleLength}` : ""}</div>
-                    <div style="font-size:11.5px; color:var(--text-soft);">Energía hoy ${cyclePhase.energy}/5 · comida y entreno adaptados</div>
-                  </div>
-                  <span style="font-size:12px; font-weight:700; color:var(--rose); flex-shrink:0;">Ajustar</span>
+          <div class="desk-split">
+            <div class="desk-col">
+              <div class="card">
+                <div class="row-between" style="margin-bottom:4px;">
+                  <div style="font-size:14px; font-weight:850; color:var(--text-main);">Tu día · ${todayDayName || "Hoy"}</div>
+                  <button class="btn-ghost btn-sm" style="color:var(--rose-dark); padding:2px 4px;" onclick="switchTab('comida', 'diario')">Diario →</button>
                 </div>
-              ` : ""}
 
-              <div class="hairline-row">
-                <div style="min-width:0;">
-                  <div style="font-size:13px; font-weight:700; color:var(--text-main);">Entreno · ${workoutsDoneCount}/${plan.schedule.length} sem</div>
-                  <div style="font-size:11.5px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${nextWorkout.title} · ${nextWorkout.mins} min</div>
+                <div class="rings-widget-grid">
+                  ${buildRingSvg(kcalPctHoy, kcalRemHoy < -120 ? "#D6913A" : "#D84E7D", String(todayDiaryTot.kcal), `/${kcalTargetHoy}`, "Calorías", "switchTab('comida', 'diario')")}
+                  ${buildRingSvg(protPctHoy, "#2E8B63", `${todayDiaryTot.protein}g`, `/${protTargetHoy}g`, "Proteína", "switchTab('comida', 'diario')")}
+                  ${thirdRingHtml}
                 </div>
-                <button class="btn-ghost btn-sm" style="color:var(--rose); font-weight:700; flex-shrink:0;" onclick="switchTab('entreno')">Ver ›</button>
+
+                <div class="hairline-list" style="margin-bottom:12px;">
+                  ${renderHoyMealRow("desayuno", "#D6913A", "Desayuno")}
+                  ${renderHoyMealRow("almuerzo", "#C43E67", "Almuerzo")}
+                  ${renderHoyMealRow("cena", "#5E5CE6", "Cena")}
+                  ${renderHoyMealRow("snacks", "#2E8B63", "Snacks")}
+                </div>
+
+                <div class="grid-2">
+                  <button class="btn-secondary btn-sm" onclick="openEatingOutSheet()">Como fuera</button>
+                  <button class="btn-secondary btn-sm" onclick="switchTab('comida', 'recetario')">Recetario</button>
+                </div>
               </div>
+            </div>
 
-              <div class="hairline-row">
-                <div style="min-width:0;">
-                  <div style="font-size:13px; font-weight:700; color:var(--text-main);">${healthBannerTitle}</div>
-                  <div style="font-size:11.5px; color:var(--text-soft);">Pasos <strong>${stepsValHoy.toLocaleString("es-ES")}</strong>/${Number(state.stepsGoal).toLocaleString("es-ES")} · Meta ${g.currentKg.toFixed(1)} → ${g.milestoneKg} kg</div>
-                </div>
-                <div style="display:flex; gap:5px; flex-shrink:0;">
-                  ${takesMetformin() ? `<button class="btn-secondary btn-sm" style="padding:4px 9px;" onclick="openMetforminLogSheet()">GI</button>` : ""}
-                  <button class="btn-ghost btn-sm" style="color:var(--rose); font-weight:700;" onclick="switchTab('progreso', 'diario')">Abrir ›</button>
+            <div class="desk-col">
+              ${buildHoyDueMedsBannerHtml()}
+              ${buildWaterTrackerHtml(todayStr)}
+
+              <div class="card">
+                <div class="hairline-list">
+                  ${cyclePhase ? `
+                    <div class="hairline-row" onclick="switchTab('progreso', 'diario')" style="cursor:pointer;">
+                      <div style="min-width:0;">
+                        <div style="font-size:13px; font-weight:700; color:var(--rose-dark);">${cyclePhase.short}${cyclePhase.isAuto ? ` · Día ${cyclePhase.cycleDay}/${cyclePhase.avgCycleLength}` : ""}</div>
+                        <div style="font-size:11.5px; color:var(--text-soft);">Energía hoy ${cyclePhase.energy}/5 · comida y entreno adaptados</div>
+                      </div>
+                      <span style="font-size:12px; font-weight:700; color:var(--rose); flex-shrink:0;">Ajustar</span>
+                    </div>
+                  ` : ""}
+
+                  <div class="hairline-row">
+                    <div style="min-width:0;">
+                      <div style="font-size:13px; font-weight:700; color:var(--text-main);">Entreno · ${workoutsDoneCount}/${plan.schedule.length} sem</div>
+                      <div style="font-size:11.5px; color:var(--text-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${nextWorkout.title} · ${nextWorkout.mins} min</div>
+                    </div>
+                    <button class="btn-ghost btn-sm" style="color:var(--rose); font-weight:700; flex-shrink:0;" onclick="switchTab('entreno')">Ver ›</button>
+                  </div>
+
+                  <div class="hairline-row">
+                    <div style="min-width:0;">
+                      <div style="font-size:13px; font-weight:700; color:var(--text-main);">${healthBannerTitle}</div>
+                      <div style="font-size:11.5px; color:var(--text-soft);">Pasos <strong>${stepsValHoy.toLocaleString("es-ES")}</strong>/${Number(state.stepsGoal).toLocaleString("es-ES")} · Meta ${g.currentKg.toFixed(1)} → ${g.milestoneKg} kg</div>
+                    </div>
+                    <div style="display:flex; gap:5px; flex-shrink:0;">
+                      ${takesMetformin() ? `<button class="btn-secondary btn-sm" style="padding:4px 9px;" onclick="openMetforminLogSheet()">GI</button>` : ""}
+                      <button class="btn-ghost btn-sm" style="color:var(--rose); font-weight:700;" onclick="switchTab('progreso', 'diario')">Abrir ›</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -5739,52 +6034,59 @@
       }).join("");
 
       return `
-        <div class="date-nav-bar">
-          <button class="btn-ghost btn-sm" onclick="changeDiaryDate(-1)">‹</button>
-          <button class="btn-ghost btn-sm" style="font-weight:750; color:var(--text-main);" onclick="resetDiaryDateToday()">${escapeHtml(formatDiaryDateLabel(key))}</button>
-          <button class="btn-ghost btn-sm" onclick="changeDiaryDate(1)">›</button>
-        </div>
+        <div class="desk-split">
+          <div class="desk-col">
+            <div class="date-nav-bar">
+              <button class="btn-ghost btn-sm" onclick="changeDiaryDate(-1)">‹</button>
+              <button class="btn-ghost btn-sm" style="font-weight:750; color:var(--text-main);" onclick="resetDiaryDateToday()">${escapeHtml(formatDiaryDateLabel(key))}</button>
+              <button class="btn-ghost btn-sm" onclick="changeDiaryDate(1)">›</button>
+            </div>
 
-        <div class="card">
-          <div class="row-between" style="margin-bottom:6px;">
-            <div>
-              <div style="font-size:11px; font-weight:750; color:var(--text-soft); text-transform:uppercase;">Balance real del día</div>
-              <div style="font-size:18px; font-weight:850; color:var(--text-main);">
-                ${tot.kcal} <span style="font-size:12.5px; font-weight:650; color:var(--text-soft);">/ ${kcalTarget} kcal</span>
+            <div class="card">
+              <div class="row-between" style="margin-bottom:6px;">
+                <div>
+                  <div style="font-size:11px; font-weight:750; color:var(--text-soft); text-transform:uppercase;">Balance real del día</div>
+                  <div style="font-size:18px; font-weight:850; color:var(--text-main);">
+                    ${tot.kcal} <span style="font-size:12.5px; font-weight:650; color:var(--text-soft);">/ ${kcalTarget} kcal</span>
+                  </div>
+                </div>
+                <span class="badge ${kcalRem >= 0 ? "badge-mint" : "badge-amber"}">${kcalRemLabel}</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" style="width:${kcalPct}%; background:${kcalRem < -120 ? "#D6913A" : "var(--rose)"};"></div>
+              </div>
+
+              <div class="macro-bars-grid">
+                <div class="macro-bar-card">
+                  <div class="macro-bar-lbl">Proteína</div>
+                  <div class="macro-bar-val">${tot.protein}/${protTarget}g</div>
+                  <div class="macro-mini-track"><div class="macro-mini-fill" style="width:${protPct}%; background:#2E8B63;"></div></div>
+                </div>
+                <div class="macro-bar-card">
+                  <div class="macro-bar-lbl">Carbos</div>
+                  <div class="macro-bar-val">${tot.carbs}/${carbPrefix}${carbTarget}g</div>
+                  <div class="macro-mini-track"><div class="macro-mini-fill" style="width:${carbPct}%; background:${tot.carbs > carbTarget && carbPrefix ? "#C84E77" : "#8F4A65"};"></div></div>
+                </div>
+                <div class="macro-bar-card">
+                  <div class="macro-bar-lbl">Grasas</div>
+                  <div class="macro-bar-val">${tot.fat}/${fatTarget}g</div>
+                  <div class="macro-mini-track"><div class="macro-mini-fill" style="width:${fatPct}%; background:#D6913A;"></div></div>
+                </div>
+              </div>
+
+              <div class="chip-row" style="margin-top:10px;">
+                ${day.almuerzo.length === 0 && plannedLunch ? `<button class="chip active" onclick="logPlannedLunchToDiary('${key}')">✓ Añadir táper (${escapeHtml(plannedLunch.title.slice(0, 20))}…)</button>` : ""}
+                ${hasYesterday && tot.count === 0 ? `<button class="chip" onclick="copyYesterdayDiary('${key}')">📋 Copiar ayer</button>` : ""}
               </div>
             </div>
-            <span class="badge ${kcalRem >= 0 ? "badge-mint" : "badge-amber"}">${kcalRemLabel}</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" style="width:${kcalPct}%; background:${kcalRem < -120 ? "#D6913A" : "var(--rose)"};"></div>
+
+            ${buildWaterTrackerHtml(key)}
           </div>
 
-          <div class="macro-bars-grid">
-            <div class="macro-bar-card">
-              <div class="macro-bar-lbl">Proteína</div>
-              <div class="macro-bar-val">${tot.protein}/${protTarget}g</div>
-              <div class="macro-mini-track"><div class="macro-mini-fill" style="width:${protPct}%; background:#2E8B63;"></div></div>
-            </div>
-            <div class="macro-bar-card">
-              <div class="macro-bar-lbl">Carbos</div>
-              <div class="macro-bar-val">${tot.carbs}/${carbPrefix}${carbTarget}g</div>
-              <div class="macro-mini-track"><div class="macro-mini-fill" style="width:${carbPct}%; background:${tot.carbs > carbTarget && carbPrefix ? "#C84E77" : "#8F4A65"};"></div></div>
-            </div>
-            <div class="macro-bar-card">
-              <div class="macro-bar-lbl">Grasas</div>
-              <div class="macro-bar-val">${tot.fat}/${fatTarget}g</div>
-              <div class="macro-mini-track"><div class="macro-mini-fill" style="width:${fatPct}%; background:#D6913A;"></div></div>
-            </div>
-          </div>
-
-          <div class="chip-row" style="margin-top:10px;">
-            ${day.almuerzo.length === 0 && plannedLunch ? `<button class="chip active" onclick="logPlannedLunchToDiary('${key}')">✓ Añadir táper (${escapeHtml(plannedLunch.title.slice(0, 20))}…)</button>` : ""}
-            ${hasYesterday && tot.count === 0 ? `<button class="chip" onclick="copyYesterdayDiary('${key}')">📋 Copiar ayer</button>` : ""}
+          <div class="desk-col">
+            ${slotsHtml}
           </div>
         </div>
-
-        ${slotsHtml}
-        ${buildWaterTrackerHtml(key)}
       `;
     }
 
@@ -6726,12 +7028,12 @@
         return `<div class="empty-note">Sin recetas con este filtro. Toca <strong>Todo</strong> o <strong>Todas</strong> para ver los ${state.recipes.length} platos.</div>`;
       }
       if (recipeMealTypeFilter !== "all") {
-        return list.map(r => renderRecipeCardHtml(r, true)).join("");
+        return `<div class="desk-grid-recipes">${list.map(r => renderRecipeCardHtml(r, true)).join("")}</div>`;
       }
       const groups = [
-        { id: "desayuno", title: "🌅 Desayunos", items: list.filter(r => getRecipeMealType(r) === "desayuno") },
-        { id: "almuerzo", title: "☀️ Almuerzos", items: list.filter(r => getRecipeMealType(r) === "almuerzo") },
-        { id: "cena",     title: "🌙 Cenas",     items: list.filter(r => getRecipeMealType(r) === "cena") }
+        { id: "desayuno", title: "Desayunos", items: list.filter(r => getRecipeMealType(r) === "desayuno") },
+        { id: "almuerzo", title: "Almuerzos", items: list.filter(r => getRecipeMealType(r) === "almuerzo") },
+        { id: "cena",     title: "Cenas",     items: list.filter(r => getRecipeMealType(r) === "cena") }
       ].filter(g => g.items.length > 0);
 
       return groups.map(g => `
@@ -6739,7 +7041,7 @@
           <span>${g.title}</span>
           <span class="badge">${g.items.length}</span>
         </div>
-        ${g.items.map(r => renderRecipeCardHtml(r, true)).join("")}
+        <div class="desk-grid-recipes">${g.items.map(r => renderRecipeCardHtml(r, true)).join("")}</div>
       `).join("");
     }
 
@@ -7068,7 +7370,7 @@
         ? `<div class="card" style="background:var(--rose-pale); box-shadow:none; font-size:12.5px; color:var(--rose-dark); font-weight:750;">Buscando recetas en internet para "${escapeHtml(q)}"...</div>`
         : (onlineRecipeMsg ? `<div style="font-size:12px; color:var(--mint-text); background:var(--mint-bg); padding:9px 12px; border-radius:12px; font-weight:700;">${escapeHtml(onlineRecipeMsg)}</div>` : "");
 
-      const cardsHtml = onlineRecipeResults.length ? onlineRecipeResults.map(r => `
+      const cardsHtml = onlineRecipeResults.length ? `<div class="desk-grid-recipes">${onlineRecipeResults.map(r => `
         <div class="recipe-card">
           <div class="row-between" style="gap:10px; align-items:flex-start;">
             ${r.thumb ? `<img src="${escapeAttr(r.thumb)}" alt="" style="width:54px; height:54px; border-radius:11px; object-fit:cover; flex-shrink:0;" />` : ""}
@@ -7078,12 +7380,12 @@
               <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">~${r.kcal} kcal · ${r.protein}g P · ${r.carbs}g C · ${r.ingredients.length} ingr.</div>
             </div>
           </div>
-          <div style="display:flex; gap:6px;">
+          <div style="display:flex; gap:6px; margin-top:auto;">
             <button class="btn-secondary btn-sm" style="flex:1;" onclick="previewOnlineRecipe('${escapeAttr(r.id)}')">Ver receta</button>
             <button class="btn-primary btn-sm" style="flex:1;" onclick="importOnlineRecipe('${escapeAttr(r.id)}')">+ Guardar</button>
           </div>
         </div>
-      `).join("") : "";
+      `).join("")}</div>` : "";
 
       const quickCreateHtml = q.length >= 2 ? `
         <div class="card" style="background:var(--rose-pale); box-shadow:none;">
@@ -7584,7 +7886,7 @@
             <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
           </div>
           ${antiWasteHtml}
-          ${aislesHtml || `<div class="empty-note">Todo cubierto con lo que ya tienes en casa. Revisa <strong>Comida → En casa</strong> si quieres quitar algún ingrediente.</div>`}
+          <div class="desk-grid-2">${aislesHtml || `<div class="empty-note">Todo cubierto con lo que ya tienes en casa. Revisa <strong>Comida → En casa</strong> si quieres quitar algún ingrediente.</div>`}</div>
         </div>
       `;
     }
@@ -8187,7 +8489,9 @@
             <div class="progress-track"><div class="progress-fill-mint" style="width:${weekPct}%;"></div></div>
           </div>
 
-          ${daysHtml}
+          <div class="desk-grid-2">
+            ${daysHtml}
+          </div>
 
           <details class="clean-details">
             <summary>
@@ -8797,57 +9101,62 @@
               </button>
             </div>
 
-            ${isMedsTrackingEnabled() ? buildMedsCardHtml() : ""}
-
-            ${m.sex === "F" ? `<div class="card">${buildCycleSelectorHtml(m, true)}</div>` : ""}
-
-            <div class="card">
-              <div class="row-between" style="margin-bottom:8px;">
-                <div>
-                  <div class="card-title" style="margin:0;">Peso y Metas</div>
-                  <div class="card-sub">${m.weightKg.toFixed(1)} kg (${Number(diffW) <= 0 ? diffW : "+" + diffW} kg) · Meta ${g.milestoneKg.toFixed(1)} kg</div>
-                </div>
-                <div style="display:flex; gap:5px;">
-                  <button class="btn-ghost btn-sm" onclick="openBodyGoalsSheet()">Metas</button>
-                  <button class="btn-primary btn-sm" onclick="openWeightLogSheet()">+ Peso</button>
-                </div>
+            <div class="desk-split even">
+              <div class="desk-col">
+                ${isMedsTrackingEnabled() ? buildMedsCardHtml() : ""}
+                ${m.sex === "F" ? `<div class="card">${buildCycleSelectorHtml(m, true)}</div>` : ""}
               </div>
 
-              <div class="goal-box" style="margin-bottom:8px;">
-                <div class="row-between" style="margin-bottom:4px;">
-                  <span style="font-size:12px; font-weight:800; color:var(--mint-text);">Fase 1: ${g.milestoneKg.toFixed(1)} kg · Meta ${state.bodyGoals.annualYear}: ${g.annualKg.toFixed(1)} kg</span>
-                  <span class="badge badge-mint">${g.milestonePct}%</span>
-                </div>
-                <div class="progress-track" style="margin-bottom:4px;">
-                  <div class="progress-fill-mint" style="width:${g.milestonePct}%;"></div>
-                </div>
-                <div style="font-size:11px; color:var(--text-muted);">
-                  Faltan <strong>${g.remMilestone.toFixed(1)} kg</strong> · ${g.weeklyLossKg > 0 ? `~${g.weeksTo64} sem (${g.etaStr})` : "Mantenimiento"}
-                </div>
-              </div>
-
-              ${renderWeightChartSvg(state.weightLogs)}
-
-              <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
-                ${state.weightLogs.slice().reverse().slice(0, 3).map(w => `
-                  <div class="row-between" style="padding:6px 10px; background:var(--bg-soft); border-radius:var(--radius-sm); font-size:12px;">
-                    <span>${w.date}</span>
-                    <strong>${Number(w.weight).toFixed(1)} kg</strong>
+              <div class="desk-col">
+                <div class="card">
+                  <div class="row-between" style="margin-bottom:8px;">
+                    <div>
+                      <div class="card-title" style="margin:0;">Peso y Metas</div>
+                      <div class="card-sub">${m.weightKg.toFixed(1)} kg (${Number(diffW) <= 0 ? diffW : "+" + diffW} kg) · Meta ${g.milestoneKg.toFixed(1)} kg</div>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                      <button class="btn-ghost btn-sm" onclick="openBodyGoalsSheet()">Metas</button>
+                      <button class="btn-primary btn-sm" onclick="openWeightLogSheet()">+ Peso</button>
+                    </div>
                   </div>
-                `).join("")}
-              </div>
-            </div>
 
-            <div class="card">
-              <div class="row-between" style="margin-bottom:6px;">
-                <div>
-                  <div class="card-title" style="margin:0;">Pasos hoy</div>
-                  <div class="card-sub">${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")} / ${Number(state.stepsGoal).toLocaleString("es-ES")} (${stepsPct}%)</div>
+                  <div class="goal-box" style="margin-bottom:8px;">
+                    <div class="row-between" style="margin-bottom:4px;">
+                      <span style="font-size:12px; font-weight:800; color:var(--mint-text);">Fase 1: ${g.milestoneKg.toFixed(1)} kg · Meta ${state.bodyGoals.annualYear}: ${g.annualKg.toFixed(1)} kg</span>
+                      <span class="badge badge-mint">${g.milestonePct}%</span>
+                    </div>
+                    <div class="progress-track" style="margin-bottom:4px;">
+                      <div class="progress-fill-mint" style="width:${g.milestonePct}%;"></div>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-muted);">
+                      Faltan <strong>${g.remMilestone.toFixed(1)} kg</strong> · ${g.weeklyLossKg > 0 ? `~${g.weeksTo64} sem (${g.etaStr})` : "Mantenimiento"}
+                    </div>
+                  </div>
+
+                  ${renderWeightChartSvg(state.weightLogs)}
+
+                  <div style="display:flex; flex-direction:column; gap:5px; margin-top:8px;">
+                    ${state.weightLogs.slice().reverse().slice(0, 3).map(w => `
+                      <div class="row-between" style="padding:6px 10px; background:var(--bg-soft); border-radius:var(--radius-sm); font-size:12px;">
+                        <span>${w.date}</span>
+                        <strong>${Number(w.weight).toFixed(1)} kg</strong>
+                      </div>
+                    `).join("")}
+                  </div>
                 </div>
-                <button class="btn-secondary btn-sm" onclick="openStepsSheet()">+ Pasos</button>
+
+                <div class="card">
+                  <div class="row-between" style="margin-bottom:6px;">
+                    <div>
+                      <div class="card-title" style="margin:0;">Pasos hoy</div>
+                      <div class="card-sub">${Number(todayStepsObj.steps || 0).toLocaleString("es-ES")} / ${Number(state.stepsGoal).toLocaleString("es-ES")} (${stepsPct}%)</div>
+                    </div>
+                    <button class="btn-secondary btn-sm" onclick="openStepsSheet()">+ Pasos</button>
+                  </div>
+                  <div class="progress-track"><div class="progress-fill" style="width:${stepsPct}%;"></div></div>
+                  ${state.syncConfig?.lastSyncAt ? `<div style="font-size:10.5px; color:var(--text-soft); margin-top:5px;">✓ Sync: ${escapeHtml(state.syncConfig.lastSyncAt)}</div>` : ""}
+                </div>
               </div>
-              <div class="progress-track"><div class="progress-fill" style="width:${stepsPct}%;"></div></div>
-              ${state.syncConfig?.lastSyncAt ? `<div style="font-size:10.5px; color:var(--text-soft); margin-top:5px;">✓ Sync: ${escapeHtml(state.syncConfig.lastSyncAt)}</div>` : ""}
             </div>
 
             ${!isMedsTrackingEnabled() ? `
